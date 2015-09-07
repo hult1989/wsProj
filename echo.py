@@ -4,6 +4,7 @@ from processData import processData
 import time
 
 class Echo(protocol.Protocol):
+    #can add a log entry inside connectionMade
     def dataReceived(self, rawData):
         #it seems that some time-comsuming and cpu blocking operation can be warpped in Deferred funtion
         d = threads.deferToThread(processRawData, rawData) 

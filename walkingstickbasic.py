@@ -1,11 +1,12 @@
 import copy
 class User:
-    def __init__(self, id, username, password, time):
+    def __init__(self, phone, username, password, timestamp, id=None):
         #time means craeted date and time
-        self.id = id
         self.username = username
+        self.phone = phone
         self.password = password
-        self.timestamp = time
+        self.timestamp = timestamp
+        self.id = id
 
 
 class UserLocation:
@@ -18,7 +19,7 @@ class UserLocation:
 
 
 class SOSNumberList:
-    def __init__(self, id, userid, numbers):
+    def __init__(self,  userid, numbers, id=None):
         self.id = id
         self.userid = userid
         self.numbers = copy.copy(numbers)
