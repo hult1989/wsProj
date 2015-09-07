@@ -5,7 +5,6 @@ import time
 
 class Echo(protocol.Protocol):
     def dataReceived(self, rawData):
-        print "response at:\t", time.time()
         #it seems that some time-comsuming and cpu blocking operation can be warpped in Deferred funtion
         d = threads.deferToThread(processRawData, rawData) 
         '''
@@ -23,10 +22,8 @@ class EchoFactory(protocol.Factory):
     protocol = Echo
 
 def processRawData(data):
-    time.sleep(5)
     #processData requires many steps like get phone number, get message, database operation...each step require a callbacks and errbacks
     processData(data)
-    print "finish processing data at:\t", time.time()
     
     #data will be processed here, parse and put into database
 
