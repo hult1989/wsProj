@@ -1,16 +1,21 @@
-from twisted.internet import protocol, reactor, defer
+from twisted.internet import protocol, reactor, defer, threads
+from twisted.internet.task import LoopingCall
 from twisted.protocols import basic
 from processData import processData
-from time import time
+from time import time, sleep
 from noblocking import cc
+from threading import currentThread
+
 
 class Echo(protocol.Protocol):
-    def __init__(self):
-        self.d = defer.Deferred()
+    def __init__(self, factory):
+        self.factory = factory
+
     def dataReceived(self, rawData):
-        print "receive data at:\t", time()
+        self.factory.count += 1
+        print "receive\t%d\t data at:%f" % (self.factory.count,  time())
         #it seems that some time-comsuming and cpu blocking operation can be warpped in Deferred funtion
-        self.d.addCallback(processRawData)
+        d = threads.deferToThread(processRawData, rawData)
         '''
         d.addCallback(getMsg)
         #the return value of getMsg will be passed to the next callback, aka sqlOperation in this case
@@ -19,17 +24,25 @@ class Echo(protocol.Protocol):
         d.addErrback(onSqlOperationError)
 
         '''
-        self.d.addErrback(onError)
-        self.d.callback(rawData)
-        print "goover callback at:\t", time()
+        d.addCallback(anotherCallback)
+        d.addErrback(onError)
+        print "thread callback at:\t", time()
         #need parse and operate db here
 
 class EchoFactory(protocol.Factory):
-    protocol = Echo
+    def __init__(self):
+        self.count = 0
+        print "Current Thread", currentThread()
+
+    def buildProtocol(self, addr):
+        return Echo(self)
+
+def anotherCallback(data):
+    print "another call back at:\t", time()
 
 def processRawData(data):
-    print "start process data at:\t", time()
-    cc()
+    print "Current Thread", currentThread()
+    sleep(5)
     #processData requires many steps like get phone number, get message, database operation...each step require a callbacks and errbacks
     processData(data)
     print "finish process data at:\t", time()
