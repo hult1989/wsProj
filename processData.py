@@ -5,12 +5,12 @@ import time
 
 def processData(data):
     userid = getPhoneNoFromHex(data[1:9])
-    print userid
+    #print userid
     gpsInfo = getMessage(data)
     gpsInfo = gpsInfo.split(',')
-    print gpsInfo
+    #print gpsInfo
     location = UserLocation(userid, float(gpsInfo[0]), float(gpsInfo[1]), str(int(time.time())))
-    print vars(location)
+    #print vars(location)
     insertLocation(location)
     return True
 

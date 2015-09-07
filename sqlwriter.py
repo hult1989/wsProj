@@ -14,7 +14,7 @@ def executeSQL(sqlStr):
 
 def insertLocation(userlocation):
     sql = 'insert into location (userid, longitude, latitude, timestamp) values ("%s", %f, %f, "%s" );' % (userlocation.userid, userlocation.longitude, userlocation.latitude, userlocation.timestamp)
-    print sql
+    #print sql
     try:
         executeSQL(sql)
         return 1
