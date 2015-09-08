@@ -1,4 +1,5 @@
 import mysql.connector
+from walkingstickbasic import SOSNumberList
 from walkingstickbasic import User, UserLocation
 import time
 
@@ -54,6 +55,8 @@ def getLocation(userid):
 def insertUser(user):
     sqlStr = 'insert into userinfo (username, password, phone, timestamp) values ("%s", "%s", "%s", "%s");' % (user.username, user.password, user.phone, user.timestamp )
     executeSQL(sqlStr)
+    newuser = getUser(user.username)
+    return newuser.id
 
 def delUser(username):
     sqlStr = 'delete from userinfo where username = "%s";' % username
@@ -65,14 +68,16 @@ def getUser(username):
     cur = connector.cursor()
     cur.execute(sqlStr)
     values = cur.fetchall()
-    print values
+    #print values
     user = User(id = values[0][0], username = values[0][1], password = values[0][2],phone = values[0][3], timestamp = values[0][4])
     cur.close()
     return user 
 
-from walkingstickbasic import SOSNumberList
+'''
 from json import dumps
 s = getUser('alice')
-print dumps(vars(s))
+#print dumps(vars(s))
 s = getSOSNumber('15652963154')
-print dumps(vars(s))
+#print dumps(vars(s))
+'''
+
