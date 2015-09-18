@@ -37,6 +37,7 @@ class GetLocationPage(Resource):
 class GetUserPage(Resource):
     isLeaf = True
     def render_GET(self, request):
+        print request.args
         request.write("input username")
         return """
         <html>
@@ -53,7 +54,7 @@ class GetUserPage(Resource):
         username = str(cgi.escape(request.args["username"][0]))
         user = getUser(username)
         result =  dumps(vars(user)) 
-
+        print "YOUR SESSION IS:\t", request.getSession().uid
         return """
         <html>
         <body>Userinfo is: </br>%s</body>
@@ -125,11 +126,13 @@ class RegisterPage(Resource):
     
 
 mainPage = Resource()
+tempPage = Resource()
+tempPage.putChild('api', mainPage)
 mainPage.putChild("getsos", GetNumberPage())
 mainPage.putChild("getlocation", GetLocationPage())
 mainPage.putChild("getuserinfo", GetUserPage())
 mainPage.putChild("register", RegisterPage())
 
-factory = Site(mainPage)
+factory = Site(tempPage)
 reactor.listenTCP(8082, factory)
 reactor.run()
