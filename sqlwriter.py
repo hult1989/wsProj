@@ -3,8 +3,8 @@ from walkingstickbasic import SOSNumberList
 from walkingstickbasic import User, UserLocation
 import time
 
-SQLUSER = 'wswriter'
-PASSWORD = 'f'
+SQLUSER = 'tanghao'
+PASSWORD = '123456'
 
 def executeSQL(sqlStr):
     connector = mysql.connector.connect(user=SQLUSER, password=PASSWORD, database = 'walkingstickdb', use_unicode=True)
@@ -15,7 +15,7 @@ def executeSQL(sqlStr):
 
 def insertLocation(userlocation):
     sql = 'insert into location (userid, longitude, latitude, timestamp) values ("%s", %f, %f, "%s" );' % (userlocation.userid, float(userlocation.longitude), float(userlocation.latitude), userlocation.timestamp)
-    print sql
+    #print sql
     try:
         executeSQL(sql)
         return 1
@@ -30,27 +30,22 @@ def getLocation(userid):
     values = cur.fetchall()
     locationList = []
     for v in values:
-        locationList.append(UserLocation(v[0], float(v[1]), float(v[2]), timestamp=v[3]))
+        locationList.append(UserLocation(v[0], float(v[1]), float(v[2]), timestamp=str(v[3])))
     cur.close()
     return locationList
-
-location = UserLocation('1', '23.1122', '31.342', '20150902132323')
-print insertLocation(location)
-ll =  getLocation('1')
-for l in ll:
-    print vars(l)
-
-
    
-def getSOSNumber(userid):
-    sql = 'select sosnumber from userinfo where userid = "%s";' % userid
+def getSOSNumberByPhone(phone):
+    sql = 'select sosnumber from userinfo where phone = "%s";' % phone
     connector = mysql.connector.connect(user=SQLUSER, password=PASSWORD, database = 'walkingstickdb', use_unicode=True)
     cur = connector.cursor()
     cur.execute(sql)
     values = cur.fetchall()
     cur.close()
-    s = SOSNumberList(userid, values[0][0])
+    if len(values) == 0:
+        return "0", "no sos number"
+    s = SOSNumberList(phone, values[0][0])
     return s
+
 
 
 def insertSOSNumber(SOSNumberList):
@@ -139,9 +134,10 @@ def updatePassword(username, password, newpassword):
     executeSQL(sql)
     return "1", "success"
 
-
-u = User('alice', 'f', '15882205392')
-
+if __name__ == '__main__':
+    u = User('alice', 'f', '15882205392')
+    l = UserLocation('15882205392', '11.1123234', '11.112', '20150920112222')
+    print getSOSNumber('alice')
 
 
 '''

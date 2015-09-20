@@ -2,7 +2,7 @@ from twisted.internet import reactor
 from twisted.web.resource import Resource
 from twisted.web.server import Site
 import cgi
-from sqlwriter import getLocation, getSOSNumber, getUser, insertUser
+from sqlwriter import *
 from walkingstickbasic import User, UserLocation, SOSNumberList
 from json import dumps
 
@@ -52,7 +52,7 @@ class GetUserPage(Resource):
 
     def render_POST(self, request):
         username = str(cgi.escape(request.args["username"][0]))
-        user = getUser(username)
+        user = getUserByName(username)
         result =  dumps(vars(user)) 
         print "YOUR SESSION IS:\t", request.getSession().uid
         return """
@@ -64,12 +64,12 @@ class GetUserPage(Resource):
 class GetNumberPage(Resource):
     isLeaf = True
     def render_GET(self, request):
-        request.write("input userid(phone number)")
+        request.write("input phone number")
         return """
         <html>
             <body>
                 <form method="POST">
-                    <input name="userid" type="text" />
+                    <input name="phone" type="text" />
                     <input type="submit" />
                 </form>
             </body>
@@ -77,8 +77,8 @@ class GetNumberPage(Resource):
         """
 
     def render_POST(self, request):
-        userid = str(cgi.escape(request.args["userid"][0]))
-        numberlist = getSOSNumber(userid)
+        phone = str(cgi.escape(request.args["phone"][0]))
+        numberlist = getSOSNumberByPhone(phone)
         result = dumps(vars(numberlist)) 
         return """
         <html>
@@ -110,18 +110,47 @@ class RegisterPage(Resource):
         """
 
     def render_POST(self, request):
+        print request.content.read()
         username = str(cgi.escape(request.args["username"][0]))
         password = str(cgi.escape(request.args["password"][0]))
         phone = str(cgi.escape(request.args["phone"][0]))
-        from time import time
-        timestamp = str(int(time()))
-        newUser = User(phone = phone, username = username, password = password, timestamp = timestamp)
+        newUser = User(phone = phone, username = username, password = password)
         newuserid = insertUser(newUser)
         return """
         <html>
             <body>new userid is: </br>%d</body>
         </html>
         """  % newuserid 
+
+class EditNumberPage(Resource):
+    isLeaf = True
+    def render_GET(self, request):
+        request.write("input userid(phone number)")
+        return """
+        <html>
+            <body>
+                <form method="POST">
+                   <p>
+                   userid: <input name="userid" type="text" />
+                   </p>
+                   <p>
+                   sosnumbers: <input name="numbers" type="text" />
+                   </p>
+                   <input type="submit" />
+                </form>
+            </body>
+        </html>
+        """
+
+    def render_POST(self, request):
+        userid = str(cgi.escape(request.args["userid"][0]))
+        numberlist = SOSNumberList(userid, str(cgi.escape(request.args["numbers"][0])))
+        result = insertSOSNumber(numberlist)
+        return """
+        <html>
+        <body>numberlist is: </br>%s</body>
+        </html>
+        """  % str(result)
 
     
 
@@ -132,6 +161,7 @@ mainPage.putChild("getsos", GetNumberPage())
 mainPage.putChild("getlocation", GetLocationPage())
 mainPage.putChild("getuserinfo", GetUserPage())
 mainPage.putChild("register", RegisterPage())
+mainPage.putChild("editsosnumber", EditNumberPage())
 
 factory = Site(tempPage)
 reactor.listenTCP(8082, factory)
