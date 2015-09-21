@@ -8,6 +8,50 @@ from sqlwriter import *
 from walkingstickbasic import User, UserLocation, SOSNumberList
 from json import dumps
 
+
+
+def register(request):
+    username = str(cgi.escape(request.args["username"][0]))
+    password = str(cgi.escape(request.args["password"][0]))
+    phone = str(cgi.escape(request.args["phone"][0]))
+    newUser = User(phone = phone, username = username, password = password)
+    newuserid = insertUser(newUser)
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class UserPage(Resource):
+    isLeaf =  True
+    def render_POST(self, request):
+        if request.args['action'] == ['register']:
+            return register(request)
+        elif request.args['action'] == ['login']:
+            return login(request)
+        elif request.args['action'] == ['updatepassword']:
+            return updatePwd(request)
+        elif request.args['action'] == ['feedback']:
+            return giveFeedback(request)
+        elif request.args['action'] == ['rate']:
+            return giveRate(request)
+        
+
+
+
+
 class GetLocationPage(Resource):
     isLeaf = True
     def render_GET(self, request):

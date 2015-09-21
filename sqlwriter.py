@@ -13,6 +13,14 @@ def executeSQL(sqlStr):
     connector.commit()
     cur.close()
 
+def selectSQL(sql):
+    connector = mysql.connector.connect(user=SQLUSER, password=PASSWORD, database = 'walkingstickdb', use_unicode=True)
+    cur = connector.cursor()
+    cur.execute(sql)
+    values = cur.fetchall()
+    cur.close()
+    return values
+
 def insertLocation(userlocation):
     sql = 'insert into location (userid, longitude, latitude, timestamp) values ("%s", %f, %f, "%s" );' % (userlocation.userid, float(userlocation.longitude), float(userlocation.latitude), userlocation.timestamp)
     #print sql
@@ -62,6 +70,16 @@ s = SOSNumberList('1', '15882205392, 15652963154')
 #print vars(getSOSNumber('1'))
 
 
+def authenticateUser(username, password):
+    sql = 'select userid, password from userinfo where username = "%s";' %username
+    values = selectSQL(sql)
+    if len(values) == 0:
+        return {"result":"0", "detail":"no such user"}
+    realpassword = str(values[0][1])
+    if realpassword == password:
+        return {"result":"1", "detail":{"userid":str(values[0][0])}}
+    return {"result": "0", "detail": "password error"}
+    
 
 
 
@@ -69,7 +87,7 @@ def insertUser(user):
     sqlStr = 'insert into userinfo (username, password, phone, date) values ("%s", "%s", "%s", CURDATE());' % (user.username, user.password, user.phone)
     executeSQL(sqlStr)
     newuser = getUserByName(user.username)
-    return newuser.userid
+    return str(newuser.userid)
 
 
 
@@ -110,21 +128,6 @@ def getUserByPhone(phone):
     cur.close()
     return user 
 
-def authenticateUser(username, pwd):
-    sql = 'select userid, password from userinfo where username = "%s";' % username
-    connector = mysql.connector.connect(user=SQLUSER, password=PASSWORD, database = 'walkingstickdb', use_unicode=True)
-    cur = connector.cursor()
-    cur.execute(sql)
-    values = cur.fetchall()
-    cur.close()
-    if len(values) == 0:
-        return "0", "no such user"
-    userid = values[0][0]
-    password = values[0][1]
-    if pwd == password:
-        return "1", userid
-    return "0", "password error"
-
 
 def updatePassword(username, password, newpassword):
     isAuthenticated = authenticateUser(username, password)
@@ -137,7 +140,7 @@ def updatePassword(username, password, newpassword):
 if __name__ == '__main__':
     u = User('alice', 'f', '15882205392')
     l = UserLocation('15882205392', '11.1123234', '11.112', '20150920112222')
-    print getSOSNumber('alice')
+    print authenticateUser('alice', 'x')
 
 
 '''

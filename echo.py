@@ -10,7 +10,7 @@ class Echo(protocol.Protocol):
     def dataReceived(self, rawData):
         #it seems that some time-comsuming and cpu blocking operation can be warpped in Deferred funtion
         log.msg(rawData)
-        d = threads.deferToThread(processRawData, rawData) 
+        d = threads.deferToThread(processRawData, rawData, self) 
         '''
         d.addCallback(getMsg)
         #the return value of getMsg will be passed to the next callback, aka sqlOperation in this case
@@ -25,9 +25,13 @@ class Echo(protocol.Protocol):
 class EchoFactory(protocol.Factory):
     protocol = Echo
 
-def processRawData(data):
+def processRawData(data, echo):
     #processData requires many steps like get phone number, get message, database operation...each step require a callbacks and errbacks
+    e = echo
+    log.msg(data)
     processData(data)
+    echo.transport.write('got your location')
+
     
     #data will be processed here, parse and put into database
 
