@@ -1,3 +1,5 @@
+# -*- coding:utf-8 -*-
+from twisted.python import log
 from twisted.internet import reactor
 from twisted.web.resource import Resource
 from twisted.web.server import Site
@@ -163,6 +165,9 @@ mainPage.putChild("getuserinfo", GetUserPage())
 mainPage.putChild("register", RegisterPage())
 mainPage.putChild("editsosnumber", EditNumberPage())
 
+
 factory = Site(tempPage)
+from sys import stdout
+log.startLogging(stdout)
 reactor.listenTCP(8082, factory)
 reactor.run()
