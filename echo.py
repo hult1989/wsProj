@@ -1,3 +1,5 @@
+# -*- coding:utf-8 -*-
+from twisted.python import log
 from twisted.internet import protocol, reactor, defer, threads
 from twisted.protocols import basic
 from processData import processData
@@ -7,6 +9,7 @@ class Echo(protocol.Protocol):
     #can add a log entry inside connectionMade
     def dataReceived(self, rawData):
         #it seems that some time-comsuming and cpu blocking operation can be warpped in Deferred funtion
+        log.msg(rawData)
         d = threads.deferToThread(processRawData, rawData) 
         '''
         d.addCallback(getMsg)
@@ -32,5 +35,7 @@ def onError(failure):
     print failure
 
 
+from sys import stdout
+log.startLogging(stdout)
 reactor.listenTCP(8081, EchoFactory())
 reactor.run()
