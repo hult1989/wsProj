@@ -110,6 +110,7 @@ class GetUserPage(Resource):
 class GetNumberPage(Resource):
     isLeaf = True
     def render_GET(self, request):
+        log.msg(request.getSession().uid)
         request.write("input phone number")
         return """
         <html>
@@ -164,7 +165,7 @@ class RegisterPage(Resource):
         newuserid = insertUser(newUser)
         return """
         <html>
-            <body>new userid is: </br>%d</body>
+            <body>new userid is: </br>%s</body>
         </html>
         """  % newuserid 
 
@@ -198,6 +199,26 @@ class EditNumberPage(Resource):
         </html>
         """  % str(result)
 
+class UploadPage(Resource):
+    isLeaf = True
+    def render_GET(self, request):
+        request.write("upload a file")
+        return """
+        <html>
+            <body>
+                <form method="POST">
+                    <input name="upload" type="file" />
+                    <input type="submit" />
+                </form>
+            </body>
+        </html>
+        """
+
+    def render_POST(self, request):
+        form =  cgi.FieldStorage()
+        f = form.fp
+        print 'file is:',  f.read()
+
     
 
 mainPage = Resource()
@@ -208,10 +229,12 @@ mainPage.putChild("getlocation", GetLocationPage())
 mainPage.putChild("getuserinfo", GetUserPage())
 mainPage.putChild("register", RegisterPage())
 mainPage.putChild("editsosnumber", EditNumberPage())
+mainPage.putChild("upload", UploadPage())
 
 
 factory = Site(tempPage)
 from sys import stdout
 log.startLogging(stdout)
+log.startLogging(open('handleweb.log', 'w'))
 reactor.listenTCP(8082, factory)
 reactor.run()

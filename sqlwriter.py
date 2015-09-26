@@ -22,8 +22,8 @@ def selectSQL(sql):
     return values
 
 def insertLocation(userlocation):
-    sql = 'insert into location (userid, longitude, latitude, timestamp) values ("%s", %f, %f, "%s" );' % (userlocation.userid, float(userlocation.longitude), float(userlocation.latitude), userlocation.timestamp)
-    #print sql
+    sql = 'insert into location (userid, longitude, latitude, timestamp) values ("%s", %.8f, %.8f, "%s" );' % (userlocation.userid, float(userlocation.longitude), float(userlocation.latitude), userlocation.timestamp)
+    print sql
     try:
         executeSQL(sql)
         return 1

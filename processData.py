@@ -4,7 +4,7 @@ from decoding import *
 import time
 
 def processData(data):
-    userid = getPhoneNoFromHex(data[1:9])
+    userid = getPhoneNoFromRaw(data)
     #print userid
     message = getMessage(data)
     longitude = getLongitudeFromMessage(message)
@@ -13,8 +13,11 @@ def processData(data):
 
     #print gpsInfo
     location = UserLocation(userid, longitude, latitude, timestamp)
-    #print vars(location)
-    insertLocation(location)
-    return True
+    print vars(location)
+    try:
+        insertLocation(location)
+        return True
+    except:
+        return False
 
 

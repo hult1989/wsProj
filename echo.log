@@ -1,0 +1,28 @@
+2015-09-26 09:23:30+0800 [-] Log opened.
+2015-09-26 09:23:30+0800 [-] EchoFactory starting on 8081
+2015-09-26 09:23:30+0800 [-] Starting factory <__main__.EchoFactory instance at 0x7f43c92d38c0>
+2015-09-26 09:23:36+0800 [Echo,0,127.0.0.1] Unhandled Error
+	Traceback (most recent call last):
+	  File "/usr/lib/python2.7/dist-packages/twisted/python/log.py", line 88, in callWithLogger
+	    return callWithContext({"system": lp}, func, *args, **kw)
+	  File "/usr/lib/python2.7/dist-packages/twisted/python/log.py", line 73, in callWithContext
+	    return context.call({ILogContext: newCtx}, func, *args, **kw)
+	  File "/usr/lib/python2.7/dist-packages/twisted/python/context.py", line 118, in callWithContext
+	    return self.currentContext().callWithContext(ctx, func, *args, **kw)
+	  File "/usr/lib/python2.7/dist-packages/twisted/python/context.py", line 81, in callWithContext
+	    return func(*args,**kw)
+	--- <exception caught here> ---
+	  File "/usr/lib/python2.7/dist-packages/twisted/internet/posixbase.py", line 614, in _doReadOrWrite
+	    why = selectable.doRead()
+	  File "/usr/lib/python2.7/dist-packages/twisted/internet/tcp.py", line 214, in doRead
+	    return self._dataReceived(data)
+	  File "/usr/lib/python2.7/dist-packages/twisted/internet/tcp.py", line 220, in _dataReceived
+	    rval = self.protocol.dataReceived(data)
+	  File "echo.py", line 13, in dataReceived
+	    print 'THREAD: dataReceived at:\t', threading.Thread.getName()
+	exceptions.TypeError: unbound method getName() must be called with Thread instance as first argument (got nothing instead)
+	
+2015-09-26 09:23:51+0800 [-] Received SIGINT, shutting down.
+2015-09-26 09:23:51+0800 [__main__.EchoFactory] (TCP Port 8081 Closed)
+2015-09-26 09:23:51+0800 [__main__.EchoFactory] Stopping factory <__main__.EchoFactory instance at 0x7f43c92d38c0>
+2015-09-26 09:23:51+0800 [-] Main loop terminated.
