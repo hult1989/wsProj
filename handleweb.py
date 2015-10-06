@@ -9,29 +9,12 @@ from walkingstickbasic import User, UserLocation, SOSNumberList
 from json import dumps
 
 
-
 def register(request):
     username = str(cgi.escape(request.args["username"][0]))
     password = str(cgi.escape(request.args["password"][0]))
     phone = str(cgi.escape(request.args["phone"][0]))
     newUser = User(phone = phone, username = username, password = password)
     newuserid = insertUser(newUser)
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 class UserPage(Resource):
@@ -47,10 +30,6 @@ class UserPage(Resource):
             return giveFeedback(request)
         elif request.args['action'] == ['rate']:
             return giveRate(request)
-        
-
-
-
 
 class GetLocationPage(Resource):
     isLeaf = True

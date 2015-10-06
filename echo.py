@@ -29,6 +29,7 @@ class EchoFactory(protocol.Factory):
     protocol = Echo
 
 def processRawData(data, echo):
+    time.sleep(5)
     #processData requires many steps like get phone number, get message, database operation...each step require a callbacks and errbacks
     e = echo
     #log.msg(data)

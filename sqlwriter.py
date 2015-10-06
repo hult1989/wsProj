@@ -21,8 +21,8 @@ def selectSQL(sql):
     cur.close()
     return values
 
-def insertLocation(userlocation):
-    sql = 'insert into location (userid, longitude, latitude, timestamp) values ("%s", %.8f, %.8f, "%s" );' % (userlocation.userid, float(userlocation.longitude), float(userlocation.latitude), userlocation.timestamp)
+def insertLocation(imei, longitude, latitude, timestamp):
+    sql = 'insert into location (imei, longitude, latitude, timestamp) values ("%s", %.8f, %.8f, "%s" );' % (userlocation.userid, float(userlocation.longitude), float(userlocation.latitude), userlocation.timestamp)
     print sql
     try:
         executeSQL(sql)
@@ -31,7 +31,7 @@ def insertLocation(userlocation):
         return 0
  
 def getLocation(userid):
-    sqlStr = 'select * from location where userid = "%s"; ' % userid
+    sqlStr = 'select * from location where imei = "%s"; ' % userid
     connector = mysql.connector.connect(user=SQLUSER, password=PASSWORD, database = 'walkingstickdb', use_unicode=True)
     cur = connector.cursor()
     cur.execute(sqlStr)
