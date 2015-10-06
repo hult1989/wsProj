@@ -1,7 +1,0 @@
-2015-09-30 13:31:52+0800 [-] Log opened.
-2015-09-30 13:31:52+0800 [-] EchoFactory starting on 8081
-2015-09-30 13:31:52+0800 [-] Starting factory <__main__.EchoFactory instance at 0x7fa6268a7758>
-2015-09-30 13:31:56+0800 [-] Received SIGINT, shutting down.
-2015-09-30 13:31:56+0800 [__main__.EchoFactory] (TCP Port 8081 Closed)
-2015-09-30 13:31:56+0800 [__main__.EchoFactory] Stopping factory <__main__.EchoFactory instance at 0x7fa6268a7758>
-2015-09-30 13:31:56+0800 [-] Main loop terminated.

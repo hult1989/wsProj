@@ -1,0 +1,7 @@
+2015-10-05 22:13:36+0800 [-] Log opened.
+2015-10-05 22:13:36+0800 [-] WsServerFactory starting on 8081
+2015-10-05 22:13:36+0800 [-] Starting factory <__main__.WsServerFactory instance at 0x7f9d200c40e0>
+2015-10-05 22:14:40+0800 [-] Received SIGINT, shutting down.
+2015-10-05 22:14:40+0800 [__main__.WsServerFactory] (TCP Port 8081 Closed)
+2015-10-05 22:14:40+0800 [__main__.WsServerFactory] Stopping factory <__main__.WsServerFactory instance at 0x7f9d200c40e0>
+2015-10-05 22:14:40+0800 [-] Main loop terminated.
