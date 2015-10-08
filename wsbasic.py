@@ -1,4 +1,6 @@
+# -*- coding:utf-8 -*-
 import copy
+
 class User:
     def __init__(self, username, password, phone=None, email=None, userid=None):
         #time means craeted date and time
