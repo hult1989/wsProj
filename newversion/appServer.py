@@ -354,6 +354,7 @@ if __name__ == '__main__':
     mainPage.putChild('wsinfo', WsinfoPage())
 
     dbpool = adbapi.ConnectionPool("MySQLdb", db="wsdb", user='tanghao', passwd='123456')
+    #dbpool = adbapi.ConnectionPool("MySQLdb", db="wsdb", user='tanghao', passwd='123456', unix_socket='/tmp/mariadb3306.sock')
 
     #log.startLogging(open('app.log', 'w'))
     from sys import stdout
