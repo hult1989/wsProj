@@ -156,6 +156,8 @@ class UserPage(Resource):
             self.request.write(resultValue(result))
         elif type(result) == tuple and len(result) != 0:
             self.request.write(dumps({'result': '1', 'imei': result[0][1], 'name': result[0][2]}))
+        elif type(result) == tuple and len(result) == 0:
+            self.request.write(resultValue(404))
         else:
             self.request.write(resultValue(1))
         self.request.finish()
@@ -172,7 +174,7 @@ class UserPage(Resource):
         if self.request.args['action'] == ['login']:
             return selectDefaultRelationSql(dbpool, self.payload['username'])
         if self.request.args['action'] == ['updatepassword']:
-            return UpdateUserPasswordSql(dbpool, username=self.payload['username'], newpassword=['newpassword'])
+            return UpdateUserPasswordSql(dbpool, username=self.payload['username'], newpassword=self.payload['newpassword'])
     
     def onChangeName(self, result):
         if len(result) == 0:
@@ -219,7 +221,121 @@ class UserPage(Resource):
             return NOT_DONE_YET
 
 
+class LocationPage(Resource):
+    isLeaf = True
 
+    def render_GET(self, request):
+        request.write("input imei")
+        return """
+        <html>
+            <body>
+                <form method="POST">
+                    <input name="imei" type="text" />
+                    <input type="submit" />
+                </form>
+            </body>
+        </html>
+        """
+
+    def render_POST(self, request):
+        self.request = request
+        imei = str(cgi.escape(request.args["imei"][0]))
+        dbpool.runQuery('select * from location where imei = %s', (imei,)).addCallbacks(self.onSuccess, self.onError)
+        return NOT_DONE_YET
+        
+    def onSuccess(self, location):
+        result = ''
+        for i in location:
+            result = result + str(i) + '</br>'
+
+        self.request.write( """
+        <html>
+        <body>Location is: </br>%s</body>
+        </html>
+        """  % result)
+        self.request.finish()
+
+    
+    def onError(self, error):
+        log.msg(str(error))
+
+
+class NumberPage(Resource):
+    isLeaf = True
+
+    def render_GET(self, request):
+        request.write("input imei")
+        return """
+        <html>
+            <body>
+                <form method="POST">
+                    <input name="imei" type="text" />
+                    <input type="submit" />
+                </form>
+            </body>
+        </html>
+        """
+
+    def render_POST(self, request):
+        self.request = request
+        imei = str(cgi.escape(request.args["imei"][0]))
+        dbpool.runQuery('select * from sosnumber where imei = %s', (imei,)).addCallbacks(self.onSuccess, self.onError)
+        return NOT_DONE_YET
+        
+    def onSuccess(self, numbers):
+        result = ''
+        for i in numbers:
+            result = result + str(i) + '</br>'
+
+        self.request.write( """
+        <html>
+        <body>numbers is: </br>%s</body>
+        </html>
+        """  % result)
+        self.request.finish()
+
+    
+    def onError(self, error):
+        log.msg(str(error))
+
+
+class WsinfoPage(Resource):
+    isLeaf = True
+
+    def render_GET(self, request):
+        request.write("input imei")
+        return """
+        <html>
+            <body>
+                <form method="POST">
+                    <input name="imei" type="text" />
+                    <input type="submit" />
+                </form>
+            </body>
+        </html>
+        """
+
+    def render_POST(self, request):
+        self.request = request
+        imei = str(cgi.escape(request.args["imei"][0]))
+        dbpool.runQuery('select * from wsinfo where imei = %s', (imei,)).addCallbacks(self.onSuccess, self.onError)
+        return NOT_DONE_YET
+        
+    def onSuccess(self, numbers):
+        result = ''
+        for i in numbers:
+            result = result + str(i) + '</br>'
+
+        self.request.write( """
+        <html>
+        <body>wsinfo is: </br>%s</body>
+        </html>
+        """  % result)
+        self.request.finish()
+
+    
+    def onError(self, error):
+        log.msg(str(error))
 
 
 
@@ -231,6 +347,11 @@ if __name__ == '__main__':
     apiPage.putChild('stick', StickPage())
     apiPage.putChild('sos', SosPage())
     apiPage.putChild('user', UserPage())
+
+
+    mainPage.putChild('location', LocationPage())
+    mainPage.putChild('sos', NumberPage())
+    mainPage.putChild('wsinfo', WsinfoPage())
 
     dbpool = adbapi.ConnectionPool("MySQLdb", db="wsdb", user='tanghao', passwd='123456')
 

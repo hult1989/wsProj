@@ -48,13 +48,17 @@ def printError(failure):
 def stop(result):
     reactor.stop()
 
+'''
+location = '3,123456789abcedf0,150930141223,23.12321W,87.22234N'
+addsos = '2,2046,+15882205392'
+delsos = '2,2046,-15882205392'
+imsi = '4,123456789abcedf0,123150930141223'
+bind = '1,123456789abcedf0,123150930141223,15882205392'
+'''
 
 
 
-
-
-
-gpsrequest = dumps({'imei': '2014', 'timestamp': '1400030032000'})
+gpsrequest = dumps({'imei': '1024', 'timestamp': '1400030032000'})
 bindrequest = dumps({'username': 'alice', 'simnum': '13836435683'})
 imeirequest = dumps({'username': 'alice', 'simnum': '13836435683'})
 setsosrequest = dumps({'imei': '1029', 'adminpwd': '123456', 'contactentry': {'sosnumber': '13456412345', 'contact':'超人'}})
@@ -101,13 +105,28 @@ def makeTest(request, address):
     d.addCallbacks(printResource, printError)
     d.addBoth(stop)
     reactor.run()
+'''
     
-
+import socket
+sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server_address = ('localhost', 8081)
+sock.connect(server_address)
+log.startLogging(sys.stdout)
+def testTcp(message):
+    try:
+        sock.sendall(message)
+        data = sock.recv(96)
+        print >> sys.stdout, 'RECEIVED: %s' % data
+    finally:
+        print >> sys.stdout.stderr, 'CLOSING SOCKET'
+        sock.close()
+'''
 
 if sys.argv[1] == 'gps':
     makeTest(gpsrequest, gpsaddress)
 if sys.argv[1] == 'bind':
     makeTest(bindrequest, bindaddress)
+    import socket
 if sys.argv[1] == 'getimei':
     makeTest(imeirequest, imeiaddress)
 if sys.argv[1] == 'setsos':

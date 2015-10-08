@@ -64,19 +64,22 @@ def _handleSos(txn, message):
     return True 
 
 
+def handleImsiSql(dbpool, message):
+    return dbpool.runInteraction(_handleImsi, message)
 
-'''
-def handleImeiRequestSql(dbpool, username, simnum):
-    return dbpool.runInteraction(_handleImeiRequest, username, simnum)
-
-def _handleImeiRequest(txn, username, simnum):
-    txn.execute('select from wsinfo where simnum = %s', (simnum,))
+def _handleImsi(txn, message):
+    message = message.split(',')
+    imei = message[1]
+    imsi = message[2]
+    txn.execute('select * from wsinfo where imei = %s', (imei,))
     result = txn.fetchall()
     if len(result) == 0:
-        return result
-    imei = result[0][0]
-    txn.execute('s
-'''
+        txn.execute('insert into wsinfo (imei, imsi, adminpwd) values(%s, %s, "123456")', (imei, imsi))
+    else:
+        txn.execute('update wsinfo set imsi = %s where imei = %s', (imsi, imei))
+    txn.execute('select * from wsinfo where imei = %s', (imei,))
+    return txn.fetchall()
+
 
     
 
