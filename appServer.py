@@ -24,9 +24,9 @@ class GpsPage(Resource):
         locations = list()
         for r in result:
             location = dict()
-            location['timestamp'] = r[0]
-            location['longitude'] = r[1]
-            location['latitude'] = r[2]
+            location['longitude'] = str(r[1])
+            location['latitude'] = str(r[2])
+            location['timestamp'] = str(r[3]) + '000'
             locations.append(location)
 
         self.request.write(dumps({'result': '1', 'locations': locations}))
@@ -54,6 +54,12 @@ class StickPage(Resource):
         else:
             self.request.write(dumps({'result':'1', 'imei': result[0][0]}))
         self.request.finish()
+    def onCurrentImei(self, result):
+        if result == True:
+            self.request.write(resultValue(1))
+        else:
+            self.request.write(resultValue(result))
+        self.request.finish()
 
     def render_POST(self, request):
         self.request = request
@@ -63,7 +69,10 @@ class StickPage(Resource):
             insertTempRelationSql(dbpool, simnum=payload['simnum'], username=payload['username']).addCallbacks(self.onBindResult, onError)
             return NOT_DONE_YET
         if request.args['action'] == ['getimei']:
-            selectWsinfoBySimnum(dbpool, payload['simnum']).addCallbacks(self.onImeiResult, onError)
+            selectRelationByUsernameSimnumSql(dbpool, payload['username'], payload['simnum']).addCallbacks(self.onImeiResult, onError)
+            return NOT_DONE_YET
+        if request.args['action'] == ['setcurrentimei']:
+            handleCurrentWsSql(dbpool, payload['username'], payload['imei']).addCallbacks(self.onCurrentImei, onError)
             return NOT_DONE_YET
 
 
@@ -105,9 +114,14 @@ class SosPage(Resource):
             self.request.write(dumps({'result':'1', 'sosnumber':result[0][1]}))
         self.request.finish()
 
+    def varifyDel(self, result):
+        if len(result) == 0:
+            self.request.write(dumps({'result':'1', 'sosnumber':self.payload['sosnumber']}))
+        self.request.finish()
+
     def onGetsos(self, result):
         if len(result) == 0:
-            self.request.write(resultValue(403))
+            self.request.write(resultValue(503))
         else:
             contactentries = list()
             for r in result:
@@ -128,8 +142,14 @@ class SosPage(Resource):
         if request.args['action'] == ['addnumber']:
             selectWsinfoSql(dbpool, payload['imei']).addCallback(self.varifyPwd).addCallbacks(self.onSetResult, onError)
             return NOT_DONE_YET
+        if request.args['action'] == ['delnumber']:
+            selectWsinfoSql(dbpool, payload['imei']).addCallback(self.varifyPwd).addCallbacks(self.onSetResult, onError)
+            return NOT_DONE_YET
         if request.args['action'] == ['varifyadd']:
             checkSosnumberSql(dbpool, payload['imei'], payload['sosnumber']).addCallbacks(self.varifySos, onError)
+            return NOT_DONE_YET
+        if request.args['action'] == ['varifydel']:
+            checkSosnumberSql(dbpool, payload['imei'], payload['sosnumber']).addCallbacks(self.varifyDel, onError)
             return NOT_DONE_YET
         if request.args['action'] == ['getnumber']:
             selectSosnumberSql(dbpool, payload['imei']).addCallbacks(self.onGetsos, onError)
@@ -155,7 +175,7 @@ class UserPage(Resource):
         if result in ['400', '401', '402', '403', '404']:
             self.request.write(resultValue(result))
         elif type(result) == tuple and len(result) != 0:
-            self.request.write(dumps({'result': '1', 'imei': result[0][1], 'name': result[0][2]}))
+            self.request.write(dumps({'result': '1', 'imei': result[0][1], 'name': result[0][2], 'simnum': result[0][3]}))
         elif type(result) == tuple and len(result) == 0:
             self.request.write(resultValue(404))
         else:
@@ -172,7 +192,7 @@ class UserPage(Resource):
             d.callback('402')
             return d
         if self.request.args['action'] == ['login']:
-            return selectDefaultRelationSql(dbpool, self.payload['username'])
+            return selectLoginInfoSql(dbpool, self.payload['username'])
         if self.request.args['action'] == ['updatepassword']:
             return UpdateUserPasswordSql(dbpool, username=self.payload['username'], newpassword=self.payload['newpassword'])
     
@@ -190,8 +210,9 @@ class UserPage(Resource):
             sticks = list()
             for r in result:
                 stick = dict()
-                stick['name'] = result[2]
-                stick['imei'] = result[1]
+                stick['simnum'] = str(r[2])
+                stick['name'] = str(r[1])
+                stick['imei'] = str(r[0])
                 sticks.append(stick)
             self.request.write(dumps({'result': '1', 'sticks': sticks}))
         self.request.finish()
@@ -353,8 +374,8 @@ if __name__ == '__main__':
     mainPage.putChild('sos', NumberPage())
     mainPage.putChild('wsinfo', WsinfoPage())
 
-    dbpool = adbapi.ConnectionPool("MySQLdb", db="wsdb", user='tanghao', passwd='123456')
-    #dbpool = adbapi.ConnectionPool("MySQLdb", db="wsdb", user='tanghao', passwd='123456', unix_socket='/tmp/mariadb3306.sock')
+    #dbpool = adbapi.ConnectionPool("MySQLdb", db="wsdb", user='tanghao', passwd='123456')
+    dbpool = adbapi.ConnectionPool("MySQLdb", db="wsdb", user='tanghao', passwd='123456', unix_socket='/tmp/mysql.sock')
 
     #log.startLogging(open('app.log', 'w'))
     from sys import stdout

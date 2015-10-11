@@ -1,6 +1,5 @@
 # -*- coding:utf-8 -*-
 import mysql.connector
-from wsbasic import *
 import time
 from twisted.internet import reactor, defer
 from twisted.enterprise import adbapi
@@ -19,6 +18,8 @@ def selectUserSql(dbpool, username):
 def UpdateUserPasswordSql(dbpool, username, newpassword):
     return dbpool.runOperation('update userinfo set password = %s where username = %s', (newpassword, username))
 
+def selectLoginInfoSql(dbpool, username):
+    return dbpool.runQuery('select user_ws.username, user_ws.imei, user_ws.name, wsinfo.simnum from user_ws, wsinfo where user_ws.imei = wsinfo.imei and user_ws.username = %s and user_ws.isdefault = 1', (username,))
 
 
 def handleBindSql(dbpool, message):
@@ -27,12 +28,14 @@ def handleBindSql(dbpool, message):
 def _handleBind(txn, message):
     message = message.split(',')
     imei = message[1]
-    simnum = message[3]
+    simnum = message[2]
+    userphone = message[3]
     txn.execute('select username from temp_user_ws where simnum = %s', (simnum,))
     result = txn.fetchall()
     if len(result) == 0:
         return False
     username = result[0][0]
+    txn.execute('update userinfo set phone = %s where username = %s', (userphone, username))
     txn.execute('replace into user_ws (username, imei, isdefault) values (%s, %s, "1")', (username, imei))
     txn.execute('delete from temp_user_ws where simnum = %s', (simnum,))
     txn.execute('replace into wsinfo (imei, imsi, simnum, adminpwd) values (%s, "", %s, "123456")', (imei, simnum))
@@ -56,7 +59,7 @@ def _handleSos(txn, message):
         return False
     
     if message[2][0] == '-':
-        txn.execute('delete from sosnumber where imei = %s', (imei,))
+        txn.execute('delete from sosnumber where imei = %s and sosnumber = %s', (imei,sosnumber))
     if message[2][0] == '+':
         txn.execute('replace into sosnumber (imei, sosnumber, contact) values (%s, %s, %s)', (contactentry[0], contactentry[1], contactentry[2]))
 
@@ -82,27 +85,20 @@ def _handleImsi(txn, message):
 
 
     
+def handleCurrentWsSql(dbpool, username, imei):
+    return dbpool.runInteraction(_handleCurrentWs, username, imei)
 
-
-def transactionTest(dbpool, username, passwd, phone=None, email=None):
-    return dbpool.runInteraction(_interactionTest, username, passwd, phone, email)
-
-def _interactionTest(txn, username, passwd, phone, email):
-    txn.execute('replace into userinfo (username, password, phone, email, date) values (%s, %s, %s, %s, CURDATE())', (username, passwd, phone, email))
-    txn.execute('select * from userinfo where username = %s', (username,))
+def _handleCurrentWs(txn, username, imei):
+    txn.execute('select imei from user_ws where isdefault = "1" and username = %s', (username,))
     result = txn.fetchall()
-    return result
+    if len(result) == 0:
+        return 404
+    for r in result:
+        txn.execute('update user_ws set isdefault = "0" where username = %s and imei = %s', (username, r[0]))
+    txn.execute('update user_ws set isdefault = "1" where username = %s and imei = %s', (username, imei))
+    return True
+    
 
-def errTest(num):
-    d = defer.Deferred()
-    if num == 'a':
-        '''
-        here explictly callback already fired reactor and reactor will stop, it willnot stop in addCallback method
-        '''
-        d.errback(failure.Failure(TypeError('just error')))
-    else:
-        d.callback('hi body~')
-    return d
 
 
 
@@ -110,10 +106,13 @@ def insertRelationSql(dbpool, username, imei, name=None, isdefault='1'):
     return dbpool.runOperation('replace into user_ws (username, imei, name, isdefault) values(%s, %s, %s, %s)', (username, imei, name, isdefault))
 
 def selectRelationSql(dbpool, username):
-    return dbpool.runQuery('select * from user_ws where username = %s', (username,))
+    return dbpool.runQuery('select  wsinfo.imei, user_ws.name, wsinfo.simnum from user_ws, wsinfo where user_ws.imei = wsinfo.imei and user_ws.username = %s', (username,))
 
 def selectRelationByImeiSql(dbpool, username, imei):
     return dbpool.runQuery('select * from user_ws where username = %s and imei =%s', (username, imei))
+
+def selectRelationByUsernameSimnumSql(dbpool, username, simnum):
+    return dbpool.runQuery('select wsinfo.imei from user_ws, wsinfo where user_ws.imei = wsinfo.imei and user_ws.username = %s and wsinfo.simnum = %s', (username, simnum))
 
 def deleteRelationSql(dbpool, username, imei):
     return dbpool.runOperation('delete from user_ws where username = %s and imei = %s', (username, imei))
@@ -219,8 +218,8 @@ def onError(failure):
 
 if __name__ == '__main__':
     import sys
-    #dbpool = adbapi.ConnectionPool("MySQLdb", db="wsdb", user='tanghao', passwd='123456', unix_socket='/tmp/mariadb3306.sock')
-    dbpool = adbapi.ConnectionPool("MySQLdb", db="wsdb", user='tanghao', passwd='123456')
+    dbpool = adbapi.ConnectionPool("MySQLdb", db="wsdb", user='tanghao', passwd='123456', unix_socket='/tmp/mysql.sock')
+    #dbpool = adbapi.ConnectionPool("MySQLdb", db="wsdb", user='tanghao', passwd='123456')
 
     insertLocationSql(dbpool, '4321', '23.1298733', '12.1198712', '20151010120012').addCallback(onSuccess).addErrback(onError)
 
