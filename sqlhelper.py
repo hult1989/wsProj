@@ -99,6 +99,14 @@ def _handleCurrentWs(txn, username, imei):
     return True
     
 
+def handleUploadSql(dbpool, payload):
+    return dbpool.runInteraction(_handleUpload, payload)
+
+def _handleUpload(txn, payload):
+    for stick in payload['sticks']:
+        txn.execute('replace into user_ws (username, imei, name, isdefault) values (%s, %s, %s, "0")', (payload['username'], stick['imei'], stick['name']))
+    txn.execute('replace into user_ws (username, imei, name, isdefault) values (%s, %s, %s, "1")', (payload['username'], payload['sticks'][-1]['imei'], payload['sticks'][-1]['name']))
+    return True
 
 
 
@@ -221,11 +229,19 @@ if __name__ == '__main__':
     from sqlPool import dbpool
     #dbpool = adbapi.ConnectionPool("MySQLdb", db="wsdb", user='tanghao', passwd='123456', unix_socket='/tmp/mysql.sock')
     #dbpool = adbapi.ConnectionPool("MySQLdb", db="wsdb", user='tanghao', passwd='123456')
+    payload = dict()
+    payload['username'] = 'superman'
+    payload['sticks'] = list()
+    payload['sticks'].append({'name': 'alice', 'imei': '1024'})
+    payload['sticks'].append({'name': 'bob', 'imei': '2012'})
+    payload['sticks'].append({'name': 'cathy', 'imei': '2048'})
 
-    selectRelationSql(dbpool, 'alice').addCallback(testResult).addErrback(testResult)
+    handleUploadSql(dbpool, payload).addCallbacks(onSuccess, onError)
+
 
 
     '''
+    selectRelationSql(dbpool, 'alice').addCallback(testResult).addErrback(testResult)
     handleBindSql(dbpool, '1,2046,asdflkj,15652963154').addCallback(onSuccess).addErrback(onError)
     selectUserSql(dbpool, 'batman').addCallback(testResult).addErrback(testResult)
     insertLocationSql(dbpool, '4321', '23.1298733', '12.1198712', '20151010120012').addCallback(onSuccess).addErrback(onError)

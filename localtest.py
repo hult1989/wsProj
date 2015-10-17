@@ -71,6 +71,7 @@ upwd = dumps({'username': 'adice', 'password':'f', 'newpassword': 'g'})
 newname = dumps({'username': 'alice', 'imei': '1024', 'name': '绿巨人'})
 getstick = dumps({'username': 'zod'})
 current = dumps({'username': 'alice', 'imei': '2012'})
+upload = dumps({'username': 'batman', 'sticks': [{'name': 'hull', 'imei': '1024'}, {'name': 'del', 'imei': '1023'}] })
 
 host = 'http://localhost:8082/api'
 gpsaddress = host + '/gps?action=getuserlocation'
@@ -88,6 +89,7 @@ loginaddress = host + '/user?action=login'
 upwdaddress = host + '/user?action=updatepassword'
 newnameaddress = host + '/user?action=setstickname'
 getsticksaddress = host + '/user?action=getsticks'
+uploadsticksaddress = host + '/user?action=uploadsticks'
 
 agent = Agent(reactor)
 
@@ -122,6 +124,8 @@ def testTcp(message):
         print >> sys.stdout, 'CLOSING SOCKET'
         sock.close()
 
+if sys.argv[1] == 'upload':
+    makeTest(upload, uploadsticksaddress)
 if sys.argv[1] == 'gps':
     makeTest(gpsrequest, gpsaddress)
 if sys.argv[1] == 'bind':

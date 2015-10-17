@@ -217,6 +217,13 @@ class UserPage(Resource):
             self.request.write(dumps({'result': '1', 'sticks': sticks}))
         self.request.finish()
 
+    def onUpload(self, result):
+        if result:
+            self.request.write(resultValue(1))
+        else:
+            self.request.write(resultValue(403))
+        self.request.finish()
+
     def render_POST(self, request):
         self.request = request
         payload = eval(request.content.read())
@@ -240,7 +247,7 @@ class UserPage(Resource):
             selectRelationSql(dbpool, payload['username']).addCallbacks(self.onGetSticks, onError)
             return NOT_DONE_YET
         if request.args['action'] == ['uploadsticks']:
-            selectRelationSql(dbpool, payload['username']).addCallbacks(self.onGetSticks, onError)
+            handleUploadSql(dbpool, payload).addCallbacks(self.onUpload, onError)
             return NOT_DONE_YET
 
 
