@@ -218,28 +218,29 @@ def onError(failure):
 
 if __name__ == '__main__':
     import sys
-    dbpool = adbapi.ConnectionPool("MySQLdb", db="wsdb", user='tanghao', passwd='123456', unix_socket='/tmp/mysql.sock')
+    from sqlPool import dbpool
+    #dbpool = adbapi.ConnectionPool("MySQLdb", db="wsdb", user='tanghao', passwd='123456', unix_socket='/tmp/mysql.sock')
     #dbpool = adbapi.ConnectionPool("MySQLdb", db="wsdb", user='tanghao', passwd='123456')
 
-    insertLocationSql(dbpool, '4321', '23.1298733', '12.1198712', '20151010120012').addCallback(onSuccess).addErrback(onError)
+    selectRelationSql(dbpool, 'alice').addCallback(testResult).addErrback(testResult)
 
 
     '''
+    handleBindSql(dbpool, '1,2046,asdflkj,15652963154').addCallback(onSuccess).addErrback(onError)
+    selectUserSql(dbpool, 'batman').addCallback(testResult).addErrback(testResult)
+    insertLocationSql(dbpool, '4321', '23.1298733', '12.1198712', '20151010120012').addCallback(onSuccess).addErrback(onError)
     if sys.argv[1] == 'insert':
         insertTempSosSql(dbpool, '1024', '+8615652963154', '超人').addCallback(testResult).addErrback(testResult)
     elif sys.argv[1] == 'delete':
         deleteTempSosSql(dbpool, '1024', '+8615652963154').addCallback(testResult).addErrback(testResult)
     else:
-        handleBindSql(dbpool, '1,2046,asdflkj,15652963154').addCallback(onSuccess).addErrback(onError)
 
     insertTempRelationSql(dbpool, '15652963154', 'alice').addCallback(testResult).addErrback(testResult)
     selectTempRelationSql(dbpool, '15652963154').addCallback(testResult).addErrback(testResult)
     deleteTempRelationSql(dbpool, '15652963154').addCallback(testResult).addErrback(testResult)
-    selectUserSql(dbpool, 'batman').addCallback(testResult).addErrback(testResult)
     deleteSosnumberSql(dbpool, '1024', '+8615652963154', ).addCallback(testResult).addErrback(testResult)
     deleteRelationSql(dbpool, 'alice', '0').addCallback(testResult).addErrback(testResult)
     insertRelationSql(dbpool, 'alice', '3', 'batman').addCallback(testResult).addErrback(testResult)
-    selectRelationSql(dbpool, 'alice').addCallback(testResult).addErrback(testResult)
     selectSosnumberSql(dbpool, '1024').addCallback(testUtf).addErrback(testResult)
     insertSosnumberSql(dbpool, '1024', '+8615652963154', '超人').addCallback(testResult).addErrback(testResult)
     getLocationSql(dbpool, '4321', '1400000000000').addCallback(testResult).addErrback(testResult)

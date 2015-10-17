@@ -223,8 +223,7 @@ class UserPage(Resource):
         self.payload = payload
         log.msg(payload)
         if request.args['action'] == ['register']:
-            d = selectUserSql(dbpool, payload['username']).addCallback(self.checkUser)
-            d.addCallbacks(self.onResult, onError)
+            selectUserSql(dbpool, payload['username']).addCallback(self.checkUser).addCallbacks(self.onResult, onError)
             return NOT_DONE_YET
         if request.args['action'] == ['login']:
             selectUserSql(dbpool, payload['username']).addCallback(self.onLogin).addCallbacks(self.onResult, onError)
@@ -238,6 +237,9 @@ class UserPage(Resource):
             selectRelationByImeiSql(dbpool, payload['username'], payload['imei']).addCallback(self.onChangeName).addCallbacks(self.onResult, onError)
             return NOT_DONE_YET
         if request.args['action'] == ['getsticks']:
+            selectRelationSql(dbpool, payload['username']).addCallbacks(self.onGetSticks, onError)
+            return NOT_DONE_YET
+        if request.args['action'] == ['uploadsticks']:
             selectRelationSql(dbpool, payload['username']).addCallbacks(self.onGetSticks, onError)
             return NOT_DONE_YET
 
@@ -373,9 +375,9 @@ if __name__ == '__main__':
     mainPage.putChild('location', LocationPage())
     mainPage.putChild('sos', NumberPage())
     mainPage.putChild('wsinfo', WsinfoPage())
-
+    from sqlPool import dbpool
     #dbpool = adbapi.ConnectionPool("MySQLdb", db="wsdb", user='tanghao', passwd='123456')
-    dbpool = adbapi.ConnectionPool("MySQLdb", db="wsdb", user='tanghao', passwd='123456', unix_socket='/tmp/mysql.sock')
+    #dbpool = adbapi.ConnectionPool("MySQLdb", db="wsdb", user='tanghao', passwd='123456', unix_socket='/tmp/mysql.sock')
 
     #log.startLogging(open('app.log', 'w'))
     from sys import stdout

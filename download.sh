@@ -1,1 +1,1 @@
-scp tanghao@116.7.225.58:/home/tanghao/newversion/*.py ./
+scp tanghao@116.7.225.58:/home/tanghao/wsProj/*.py ./

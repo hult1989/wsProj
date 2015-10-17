@@ -57,9 +57,9 @@ class WsServerFactory(protocol.Factory):
     protocol = WsServer
 
 
+from sqlPool import dbpool
 from sys import stdout
 #dbpool = adbapi.ConnectionPool("MySQLdb", db="wsdb", user='tanghao', passwd='123456')
-dbpool = adbapi.ConnectionPool("MySQLdb", db="wsdb", user='tanghao', passwd='123456', unix_socket='/tmp/mysql.sock')
 log.startLogging(stdout)
 reactor.listenTCP(8081, WsServerFactory())
 reactor.run()

@@ -72,7 +72,7 @@ newname = dumps({'username': 'alice', 'imei': '1024', 'name': '绿巨人'})
 getstick = dumps({'username': 'zod'})
 current = dumps({'username': 'alice', 'imei': '2012'})
 
-host = 'http://huahai:8082/api'
+host = 'http://localhost:8082/api'
 gpsaddress = host + '/gps?action=getuserlocation'
 bindaddress = host + '/stick?action=bind'
 imeiaddress = host + '/stick?action=getimei'
@@ -110,7 +110,7 @@ def makeTest(request, address):
     
 import socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server_address = ('huahai', 8081)
+server_address = ('localhost', 8081)
 sock.connect(server_address)
 
 def testTcp(message):
