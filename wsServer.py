@@ -26,6 +26,8 @@ def insertLocation(dbpool, message):
 
 
 class WsServer(protocol.Protocol):
+    def __init__(self, factory):
+        self.factory = factory
     
     def onError(self, failure):
         log.msg(failure)
@@ -43,23 +45,27 @@ class WsServer(protocol.Protocol):
         #this is ok becase protocol is instantiated for each connection, so it won't has confusion
         self.message = message
         if message[0] == '1':
-            handleBindSql(dbpool, message).addCallbacks(self.onSuccess, self.onError)
+            handleBindSql(self.factory.dbpool, message).addCallbacks(self.onSuccess, self.onError)
         if message[0] == '2':
-            handleSosSql(dbpool, message).addCallbacks(self.onSuccess, self.onError)
+            handleSosSql(self.factory.dbpool, message).addCallbacks(self.onSuccess, self.onError)
         if message[0] == '3':
-            insertLocation(dbpool, message).addCallbacks(self.onSuccess, self.onError)
+            insertLocation(self.factory.dbpool, message).addCallbacks(self.onSuccess, self.onError)
         if message[0] == '4':
-            handleImsiSql(dbpool, message).addCallbacks(self.onSuccess, self.onError)
+            handleImsiSql(self.factory.dbpool, message).addCallbacks(self.onSuccess, self.onError)
 
 
 
 class WsServerFactory(protocol.Factory):
-    protocol = WsServer
+    def __init__(self, dbpool):
+        self.dbpool = dbpool
 
+    def buildProtocol(self):
+        return WsServer(self)
 
-from sqlPool import dbpool
-from sys import stdout
-#dbpool = adbapi.ConnectionPool("MySQLdb", db="wsdb", user='tanghao', passwd='123456')
-log.startLogging(stdout)
-reactor.listenTCP(8081, WsServerFactory())
-reactor.run()
+if __name__ == '__main__':
+    from sqlPool import dbpool
+    from sys import stdout
+    #dbpool = adbapi.ConnectionPool("MySQLdb", db="wsdb", user='tanghao', passwd='123456')
+    log.startLogging(stdout)
+    reactor.listenTCP(8081, WsServerFactory())
+    reactor.run()
