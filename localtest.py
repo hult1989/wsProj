@@ -72,6 +72,8 @@ newname = dumps({'username': 'alice', 'imei': '1024', 'name': '绿巨人'})
 getstick = dumps({'username': 'zod'})
 current = dumps({'username': 'alice', 'imei': '2012'})
 upload = dumps({'username': 'batman', 'sticks': [{'name': 'hull', 'imei': '1024'}, {'name': 'del', 'imei': '1023'}] })
+getcoderequest = dumps({'username': 'alice', 'imei': '1024'})
+
 
 host = 'http://localhost:8082/api'
 gpsaddress = host + '/gps?action=getuserlocation'
@@ -90,6 +92,8 @@ upwdaddress = host + '/user?action=updatepassword'
 newnameaddress = host + '/user?action=setstickname'
 getsticksaddress = host + '/user?action=getsticks'
 uploadsticksaddress = host + '/user?action=uploadsticks'
+getcodeaddress = host + '/stick?action=getverifycode'
+getbycodeaddress = host + '/stick?action=getimeibycode'
 
 agent = Agent(reactor)
 
@@ -126,6 +130,10 @@ def testTcp(message):
 
 if sys.argv[1] == 'upload':
     makeTest(upload, uploadsticksaddress)
+if sys.argv[1] == 'getcode':
+    makeTest(getcoderequest, getcodeaddress)
+if sys.argv[1] == 'getbycode':
+    makeTest(dumps({'code': str(sys.argv[2])}), getbycodeaddress)
 if sys.argv[1] == 'gps':
     makeTest(gpsrequest, gpsaddress)
 if sys.argv[1] == 'bind':

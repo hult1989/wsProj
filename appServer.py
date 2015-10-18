@@ -61,9 +61,24 @@ class StickPage(Resource):
             self.request.write(resultValue(result))
         self.request.finish()
 
+    def onGetCode(self, result):
+        if result == 0:
+            self.request.write(resultValue(403))
+        else:
+            self.request.write(dumps({'result': '1', 'code': str(result), 'imei': self.payload['imei']}))
+        self.request.finish()
+
+    def onGetImei(self, result):
+        if result == 0:
+            self.request.write(resultValue(601))
+        else:
+            self.request.write(dumps({'result': '1', 'imei': str(result)}))
+        self.request.finish()
+
     def render_POST(self, request):
         self.request = request
         payload = eval(request.content.read())
+        self.payload = payload
         log.msg(payload)
         if request.args['action'] == ['bind']:
             insertTempRelationSql(dbpool, simnum=payload['simnum'], username=payload['username']).addCallbacks(self.onBindResult, onError)
@@ -73,6 +88,12 @@ class StickPage(Resource):
             return NOT_DONE_YET
         if request.args['action'] == ['setcurrentimei']:
             handleCurrentWsSql(dbpool, payload['username'], payload['imei']).addCallbacks(self.onCurrentImei, onError)
+            return NOT_DONE_YET
+        if request.args['action'] == ['getverifycode']:
+            createVefiryCodeSql(dbpool, payload['imei']).addCallbacks(self.onGetCode, onError)
+            return NOT_DONE_YET
+        if request.args['action'] == ['getimeibycode']:
+            getImeiByCodeSql(dbpool, payload['code']).addCallbacks(self.onGetImei, onError)
             return NOT_DONE_YET
 
 
