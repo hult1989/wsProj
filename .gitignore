@@ -2,3 +2,4 @@
 ./**/*.pyc
 sqlPool.py
 *.log
+*.pid

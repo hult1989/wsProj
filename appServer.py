@@ -395,19 +395,21 @@ class WsinfoPage(Resource):
 
 
 
+mainPage = Resource()
+apiPage = Resource()
+mainPage.putChild('api', apiPage)
+apiPage.putChild('gps', GpsPage())
+apiPage.putChild('stick', StickPage())
+apiPage.putChild('sos', SosPage())
+apiPage.putChild('user', UserPage())
+
+
+mainPage.putChild('location', LocationPage())
+mainPage.putChild('sos', NumberPage())
+mainPage.putChild('wsinfo', WsinfoPage())
+
+
 if __name__ == '__main__':
-    mainPage = Resource()
-    apiPage = Resource()
-    mainPage.putChild('api', apiPage)
-    apiPage.putChild('gps', GpsPage())
-    apiPage.putChild('stick', StickPage())
-    apiPage.putChild('sos', SosPage())
-    apiPage.putChild('user', UserPage())
-
-
-    mainPage.putChild('location', LocationPage())
-    mainPage.putChild('sos', NumberPage())
-    mainPage.putChild('wsinfo', WsinfoPage())
     from sqlPool import dbpool
     #dbpool = adbapi.ConnectionPool("MySQLdb", db="wsdb", user='tanghao', passwd='123456')
     #dbpool = adbapi.ConnectionPool("MySQLdb", db="wsdb", user='tanghao', passwd='123456', unix_socket='/tmp/mysql.sock')
@@ -417,8 +419,4 @@ if __name__ == '__main__':
     log.startLogging(stdout)
     reactor.listenTCP(8082, Site(mainPage))
     reactor.run()
-    
-            
-
-
-
+   
