@@ -4,10 +4,42 @@ import time
 from twisted.internet import reactor, defer
 from twisted.enterprise import adbapi
 from twisted.python import failure
+import random
 
 SQLUSER = 'tanghao'
 PASSWORD = '123456'
 
+def createVefiryCodeSql(dbpool, imei):
+    return dbpool.runInteraction(_createVerifyCode, imei)
+
+def _createVerifyCode(txn, imei):
+    txn.execute('select * from wsinfo where imei = %s', (imei,))
+    if len(txn.fetchall()) == 0:
+        return 0
+    code = random.randint(100000, 999999)
+    #delete timeout code
+    txn.execute('delete from temp_code where unix_timestamp(timestamp) + 120 < unix_timestamp(now())', ())
+    txn.execute('select * from temp_code where code = %s', (code,))
+    result = txn.fetchall()
+    while len(result) != 0:
+        code = random.randint(100000, 999999)
+        txn.execute('select * from temp_code where code = %s', (code,))
+        result = txn.fetchall()
+    txn.execute('insert into temp_code (code, imei) values(%s, %s)', (code, imei))
+    return code
+
+    
+def getImeiByCodeSql(dbpool, code):
+    return dbpool.runInteraction(_getImeiByCode, code)
+
+def _getImeiByCode(txn, code):
+    txn.execute('delete from temp_code where unix_timestamp(timestamp) + 120 < unix_timestamp(now())', ())
+    txn.execute('select imei from temp_code where code = %s', (code,))
+    result = txn.fetchall()
+    if len(result) == 0:
+        return 0
+    return result[0][0]
+    
 
 def insertUserSql(dbpool, username, passwd, phone=None, email=None):
     return dbpool.runOperation('replace into userinfo (username, password, phone, email, date) values (%s, %s, %s, %s, CURDATE())', (username, passwd, phone, email))
@@ -78,8 +110,8 @@ def _handleImsi(txn, message):
     result = txn.fetchall()
     if len(result) == 0:
         txn.execute('insert into wsinfo (imei, imsi, adminpwd) values(%s, %s, "123456")', (imei, imsi))
-    else:
-        txn.execute('update wsinfo set imsi = %s where imei = %s', (imsi, imei))
+    elif result[0][1] != imsi:
+        txn.execute('update wsinfo set imsi = %s, simnum = 0 where imei = %s', (imsi, imei))
     txn.execute('select * from wsinfo where imei = %s', (imei,))
     return txn.fetchall()
 
@@ -229,6 +261,10 @@ if __name__ == '__main__':
     from sqlPool import dbpool
     #dbpool = adbapi.ConnectionPool("MySQLdb", db="wsdb", user='tanghao', passwd='123456', unix_socket='/tmp/mysql.sock')
     #dbpool = adbapi.ConnectionPool("MySQLdb", db="wsdb", user='tanghao', passwd='123456')
+    print createVefiryCodeSql(dbpool, '1024').addCallbacks(onSuccess, onError)
+    getImeiByCodeSql(dbpool, sys.argv[1]).addCallbacks(onSuccess, onError)
+
+    '''
     payload = dict()
     payload['username'] = 'superman'
     payload['sticks'] = list()
@@ -240,7 +276,6 @@ if __name__ == '__main__':
 
 
 
-    '''
     selectRelationSql(dbpool, 'alice').addCallback(testResult).addErrback(testResult)
     handleBindSql(dbpool, '1,2046,asdflkj,15652963154').addCallback(onSuccess).addErrback(onError)
     selectUserSql(dbpool, 'batman').addCallback(testResult).addErrback(testResult)

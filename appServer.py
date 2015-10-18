@@ -79,16 +79,21 @@ class StickPage(Resource):
 class SosPage(Resource): 
     isLeaf = True
     def onSetResult(self, result):
-        if result == '402' or result == '403':
+        if result in ['402', '403', '505']:
             self.request.write(resultValue(result))
         else:
             self.request.write(resultValue(1))
         self.request.finish()
 
     def varifyPwd(self, result):
+        log.msg('RESULT' + str(result))
         if len(result) == 0:
             d = defer.Deferred()
             d.callback('403')
+            return d
+        if result[0][2] == '0':
+            d = defer.Deferred()
+            d.callback('505')
             return d
         if result[0][3] != self.payload['adminpwd']:
             d = defer.Deferred()

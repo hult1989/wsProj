@@ -51,7 +51,7 @@ def stop(result):
 tcplocation = '3,123456789abcedf0,150930141223,23.12321W,87.22234N'
 tcpaddsos = '2,1024,+13456412345'
 tcpdelsos = '2,1024,-15652963154'
-tcpimsi = '4,123456789abcedf0,123150930141223'
+tcpimsi = '4,22,33'
 tcpbind = '1,7878,11111111111,15882205392'
 
 
@@ -59,7 +59,7 @@ tcpbind = '1,7878,11111111111,15882205392'
 gpsrequest = dumps({'imei': '1024', 'timestamp': '1400030032000'})
 bindrequest = dumps({'username': 'zod', 'simnum': '11111111111'})
 imeirequest = dumps({'username': 'zod', 'simnum': '11111111111'})
-setsosrequest = dumps({'imei': '1024', 'adminpwd': '123456', 'contactentry': {'sosnumber': '13836435683', 'contact':'蝙蝠侠'}})
+setsosrequest = dumps({'imei': '1024', 'adminpwd': '123454', 'contactentry': {'sosnumber': '13836435683', 'contact':'蝙蝠侠'}})
 delsosrequest = dumps({'imei': '1024', 'adminpwd': '123456', 'contactentry': {'sosnumber': '15652963154', 'contact':'蝙蝠侠'}})
 varifyadd = dumps({'imei': '1024', 'sosnumber': '13836435683'})
 varifydel = dumps({'imei': '1024', 'sosnumber': '15652963154'})
