@@ -51,7 +51,7 @@ def stop(result):
 tcplocation = '3,123456789abcedf0,150930141223,23.12321W,87.22234N'
 tcpaddsos = '2,1024,+13456412345'
 tcpdelsos = '2,1024,-15652963154'
-tcpimsi = '4,22,33'
+tcpimsi = '4,123456789abcedf0,123150930141223'
 tcpbind = '1,7878,11111111111,15882205392'
 
 
@@ -59,21 +59,20 @@ tcpbind = '1,7878,11111111111,15882205392'
 gpsrequest = dumps({'imei': '1024', 'timestamp': '1400030032000'})
 bindrequest = dumps({'username': 'zod', 'simnum': '11111111111'})
 imeirequest = dumps({'username': 'zod', 'simnum': '11111111111'})
-setsosrequest = dumps({'imei': '1024', 'adminpwd': '123454', 'contactentry': {'sosnumber': '13836435683', 'contact':'蝙蝠侠'}})
+setsosrequest = dumps({'imei': '1024', 'adminpwd': '123456', 'contactentry': {'sosnumber': '13836435683', 'contact':'蝙蝠侠'}})
 delsosrequest = dumps({'imei': '1024', 'adminpwd': '123456', 'contactentry': {'sosnumber': '15652963154', 'contact':'蝙蝠侠'}})
 varifyadd = dumps({'imei': '1024', 'sosnumber': '13836435683'})
 varifydel = dumps({'imei': '1024', 'sosnumber': '15652963154'})
 getsos = dumps({'imei': '1024'})
 updatepwd = dumps({'imei': '1324', 'adminpwd': '654321', 'newadminpwd': '123456'})
-register = dumps({'username': 'wonderman', 'password':'f'})
-login = dumps({'username': 'wonderman', 'password':'f'})
+register = dumps({'username': 'wonderwoman', 'password':'f'})
+login = dumps({'username': 'superman', 'password':'f'})
 upwd = dumps({'username': 'adice', 'password':'f', 'newpassword': 'g'})
 newname = dumps({'username': 'alice', 'imei': '1024', 'name': '绿巨人'})
 getstick = dumps({'username': 'zod'})
 current = dumps({'username': 'alice', 'imei': '2012'})
 upload = dumps({'username': 'batman', 'sticks': [{'name': 'hull', 'imei': '1024'}, {'name': 'del', 'imei': '1023'}] })
 getcoderequest = dumps({'username': 'alice', 'imei': '1024'})
-
 
 host = 'http://localhost:8082/api'
 gpsaddress = host + '/gps?action=getuserlocation'
@@ -91,18 +90,12 @@ loginaddress = host + '/user?action=login'
 upwdaddress = host + '/user?action=updatepassword'
 newnameaddress = host + '/user?action=setstickname'
 getsticksaddress = host + '/user?action=getsticks'
-uploadsticksaddress = host + '/user?action=uploadsticks'
 getcodeaddress = host + '/stick?action=getverifycode'
 getbycodeaddress = host + '/stick?action=getimeibycode'
 
 agent = Agent(reactor)
-count = 1
 
 def printResource(response):
-    print time.time(), '\tresponse ', count
-    '''
-    count += 1
-    '''
     finished = Deferred()
     response.deliverBody(ResourcePrinter(finished))
     return finished
@@ -119,6 +112,7 @@ def makeTest(request, address):
     d.addBoth(stop)
     reactor.run()
     
+
 def asynchroTest(requests, addresses):
     dl = list()
     for z in zip(requests, addresses):
@@ -129,8 +123,6 @@ def asynchroTest(requests, addresses):
     deferList.addCallback(printResource)
     deferList.addBoth(stop)
     reactor.run()
-
-
 
 
 
@@ -148,12 +140,6 @@ def testTcp(message):
         print >> sys.stdout, 'CLOSING SOCKET'
         sock.close()
 
-if sys.argv[1] == 'upload':
-    makeTest(upload, uploadsticksaddress)
-if sys.argv[1] == 'getcode':
-    makeTest(getcoderequest, getcodeaddress)
-if sys.argv[1] == 'getbycode':
-    makeTest(dumps({'code': str(sys.argv[2])}), getbycodeaddress)
 if sys.argv[1] == 'gps':
     makeTest(gpsrequest, gpsaddress)
 if sys.argv[1] == 'bind':
@@ -194,7 +180,10 @@ if sys.argv[1] == 'tcpsetsos':
     testTcp(tcpaddsos)
 if sys.argv[1] == 'tcpdelsos':
     testTcp(tcpdelsos)
-
+if sys.argv[1] == 'getcode':
+    makeTest(getcoderequest, getcodeaddress)
+if sys.argv[1] == 'getbycode':
+    makeTest(dumps({'code': str(sys.argv[2])}), getbycodeaddress)
 
 if sys.argv[1] == 'asynchro':
     requests = list()

@@ -2,7 +2,7 @@
 import sys
 from twisted.python import log
 from twisted.internet import reactor
-from twisted.internet.defer import Deferred, succeed
+from twisted.internet.defer import Deferred, succeed, DeferredList
 from twisted.internet.protocol import Protocol
 from twisted.web.client import Agent
 from twisted.web.iweb import IBodyProducer
@@ -66,11 +66,13 @@ varifydel = dumps({'imei': '1024', 'sosnumber': '15652963154'})
 getsos = dumps({'imei': '1024'})
 updatepwd = dumps({'imei': '1324', 'adminpwd': '654321', 'newadminpwd': '123456'})
 register = dumps({'username': 'wonderwoman', 'password':'f'})
-login = dumps({'username': 'superman', 'password':'f'})
+login = dumps({'username': 'zod', 'password':'f'})
 upwd = dumps({'username': 'adice', 'password':'f', 'newpassword': 'g'})
 newname = dumps({'username': 'alice', 'imei': '1024', 'name': '绿巨人'})
 getstick = dumps({'username': 'zod'})
 current = dumps({'username': 'alice', 'imei': '2012'})
+upload = dumps({'username': 'batman', 'sticks': [{'name': 'hull', 'imei': '1024'}, {'name': 'del', 'imei': '1023'}] })
+getcoderequest = dumps({'username': 'alice', 'imei': '1024'})
 
 host = 'http://huahai:8082/api'
 gpsaddress = host + '/gps?action=getuserlocation'
@@ -88,6 +90,8 @@ loginaddress = host + '/user?action=login'
 upwdaddress = host + '/user?action=updatepassword'
 newnameaddress = host + '/user?action=setstickname'
 getsticksaddress = host + '/user?action=getsticks'
+getcodeaddress = host + '/stick?action=getverifycode'
+getbycodeaddress = host + '/stick?action=getimeibycode'
 
 agent = Agent(reactor)
 
@@ -108,6 +112,20 @@ def makeTest(request, address):
     d.addBoth(stop)
     reactor.run()
     
+
+def asynchroTest(requests, addresses):
+    dl = list()
+    for z in zip(requests, addresses):
+        d = agent.request('POST', z[1], bodyProducer=StringProducer(z[0]))
+        d.addCallback(printResource)
+        dl.append(d)
+    deferList = DeferredList(dl, consumeErrors=True)
+    deferList.addCallback(printResource)
+    deferList.addBoth(stop)
+    reactor.run()
+
+
+
 import socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server_address = ('huahai', 8081)
@@ -162,3 +180,17 @@ if sys.argv[1] == 'tcpsetsos':
     testTcp(tcpaddsos)
 if sys.argv[1] == 'tcpdelsos':
     testTcp(tcpdelsos)
+if sys.argv[1] == 'getcode':
+    makeTest(getcoderequest, getcodeaddress)
+if sys.argv[1] == 'getbycode':
+    makeTest(dumps({'code': str(sys.argv[2])}), getbycodeaddress)
+
+if sys.argv[1] == 'asynchro':
+    requests = list()
+    requests.append(login)
+    requests.append(gpsrequest)
+    addresses = list()
+    addresses.append(loginaddress)
+    addresses.append(gpsaddress)
+    asynchroTest(requests, addresses)
+
