@@ -14,6 +14,7 @@ def onError(failure):
     log.msg(failure)
 
 class GpsPage(Resource):
+
     isLeaf = True
 
     def gpsResult(self, result):
@@ -98,6 +99,8 @@ class StickPage(Resource):
 
 
 class SosPage(Resource): 
+
+
     isLeaf = True
     def onSetResult(self, result):
         if result in ['402', '403', '505']:
@@ -395,6 +398,7 @@ class WsinfoPage(Resource):
 
 
 
+from sqlPool import dbpool
 mainPage = Resource()
 apiPage = Resource()
 mainPage.putChild('api', apiPage)
@@ -410,7 +414,6 @@ mainPage.putChild('wsinfo', WsinfoPage())
 
 
 if __name__ == '__main__':
-    from sqlPool import dbpool
     #dbpool = adbapi.ConnectionPool("MySQLdb", db="wsdb", user='tanghao', passwd='123456')
     #dbpool = adbapi.ConnectionPool("MySQLdb", db="wsdb", user='tanghao', passwd='123456', unix_socket='/tmp/mysql.sock')
 
