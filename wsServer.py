@@ -28,7 +28,7 @@ def insertLocation(dbpool, message):
 class WsServer(protocol.Protocol):
     def __init__(self, factory):
         self.factory = factory
-        log.msg('in wsServer, dbpool id: ' + str(id(self.factory.dbpool)))
+        #log.msg('in wsServer, dbpool id: ' + str(id(self.factory.dbpool)))
     
     def onError(self, failure):
         log.msg(failure)

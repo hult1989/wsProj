@@ -2,7 +2,7 @@
 import sys
 from twisted.python import log
 from twisted.internet import reactor
-from twisted.internet.defer import Deferred, succeed
+from twisted.internet.defer import Deferred, succeed, DeferredList
 from twisted.internet.protocol import Protocol
 from twisted.web.client import Agent
 from twisted.web.iweb import IBodyProducer
@@ -65,8 +65,8 @@ varifyadd = dumps({'imei': '1024', 'sosnumber': '13836435683'})
 varifydel = dumps({'imei': '1024', 'sosnumber': '15652963154'})
 getsos = dumps({'imei': '1024'})
 updatepwd = dumps({'imei': '1324', 'adminpwd': '654321', 'newadminpwd': '123456'})
-register = dumps({'username': 'wonderwoman', 'password':'f'})
-login = dumps({'username': 'batman', 'password':'f'})
+register = dumps({'username': 'wonderman', 'password':'f'})
+login = dumps({'username': 'wonderman', 'password':'f'})
 upwd = dumps({'username': 'adice', 'password':'f', 'newpassword': 'g'})
 newname = dumps({'username': 'alice', 'imei': '1024', 'name': '绿巨人'})
 getstick = dumps({'username': 'zod'})
@@ -96,8 +96,13 @@ getcodeaddress = host + '/stick?action=getverifycode'
 getbycodeaddress = host + '/stick?action=getimeibycode'
 
 agent = Agent(reactor)
+count = 1
 
 def printResource(response):
+    print time.time(), '\tresponse ', count
+    '''
+    count += 1
+    '''
     finished = Deferred()
     response.deliverBody(ResourcePrinter(finished))
     return finished
@@ -114,6 +119,21 @@ def makeTest(request, address):
     d.addBoth(stop)
     reactor.run()
     
+def asynchroTest(requests, addresses):
+    dl = list()
+    for z in zip(requests, addresses):
+        d = agent.request('POST', z[1], bodyProducer=StringProducer(z[0]))
+        d.addCallback(printResource)
+        dl.append(d)
+    deferList = DeferredList(dl, consumeErrors=True)
+    deferList.addCallback(printResource)
+    deferList.addBoth(stop)
+    reactor.run()
+
+
+
+
+
 import socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server_address = ('localhost', 8081)
@@ -174,3 +194,14 @@ if sys.argv[1] == 'tcpsetsos':
     testTcp(tcpaddsos)
 if sys.argv[1] == 'tcpdelsos':
     testTcp(tcpdelsos)
+
+
+if sys.argv[1] == 'asynchro':
+    requests = list()
+    requests.append(login)
+    requests.append(gpsrequest)
+    addresses = list()
+    addresses.append(loginaddress)
+    addresses.append(gpsaddress)
+    asynchroTest(requests, addresses)
+
