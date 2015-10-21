@@ -51,8 +51,8 @@ def stop(result):
     reactor.stop()
 
 tcplocation = '3,123456789abcedf0,150930141223,23.12321W,87.22234N'
-tcpaddsos = '2,1024,+13456412345'
-tcpdelsos = '2,1024,-15652963154'
+tcpaddsos = '2,98789,+12332112345'
+tcpdelsos = '2,98789,-12332112345'
 tcpimsi = '4,123456789abcedf0,123150930141223'
 tcpbind = '1,7878,11111111111,15882205392'
 
@@ -61,18 +61,18 @@ tcpbind = '1,7878,11111111111,15882205392'
 gpsrequest = dumps({'imei': '1024', 'timestamp': '1400030032000'})
 bindrequest = dumps({'username': 'zod', 'simnum': '11111111111'})
 imeirequest = dumps({'username': 'zod', 'simnum': '11111111111'})
-setsosrequest = dumps({'imei': '1024', 'adminpwd': '123456', 'contactentry': {'sosnumber': '13836435683', 'contact':'蝙蝠侠'}})
-delsosrequest = dumps({'imei': '1024', 'adminpwd': '123456', 'contactentry': {'sosnumber': '15652963154', 'contact':'蝙蝠侠'}})
-varifyadd = dumps({'imei': '1024', 'sosnumber': '13836435683'})
-varifydel = dumps({'imei': '1024', 'sosnumber': '15652963154'})
+setsosrequest = dumps({'imei': '98789', 'adminpwd': '123456', 'contactentry': {'sosnumber': '12332112345', 'contact':'蝙蝠侠'}})
+delsosrequest = dumps({'imei': '98789', 'adminpwd': '123456', 'contactentry': {'sosnumber': '12332112345', 'contact':'蝙蝠侠'}})
+varifyadd = dumps({'imei': '98789', 'sosnumber': '12332112345'})
+varifydel = dumps({'imei': '98789', 'sosnumber': '12332112345'})
 getsos = dumps({'imei': '1024'})
-updatepwd = dumps({'imei': '1324', 'adminpwd': '654321', 'newadminpwd': '123456'})
+updatepwd = dumps({'imei': '2048', 'adminpwd': '123456', 'newadminpwd': '223456'})
 register = dumps({'username': 'zod', 'password':'f'})
 login = dumps({'username': 'zod', 'password':'f'})
 upwd = dumps({'username': 'adice', 'password':'f', 'newpassword': 'g'})
 newname = dumps({'username': 'alice', 'imei': '1024', 'name': '绿巨人'})
 getstick = dumps({'username': 'zod'})
-current = dumps({'username': 'alice', 'imei': '2012'})
+current = dumps({'username': 'zod', 'imei': '1024'})
 upload = dumps({'username': 'zod', 'sticks': [{'name': 'hull', 'imei': '1024'}, {'name': 'del', 'imei': '1023'}] })
 getcoderequest = dumps({'username': 'alice', 'imei': '1024'})
 
@@ -154,7 +154,6 @@ if sys.argv[1] == 'tcplocation':
     testTcp(tcplocation)
 if sys.argv[1] == 'getimei':
     makeTest(imeirequest, imeiaddress)
-    makeTest(getcoderequest, getcodeaddress)
 if sys.argv[1] == 'setsos':
     makeTest(setsosrequest, setsosaddress)
 if sys.argv[1] == 'delsos':
@@ -192,10 +191,11 @@ if sys.argv[1] == 'getcode':
 if sys.argv[1] == 'getbycode':
     makeTest(dumps({'code': str(sys.argv[2])}), getbycodeaddress)
 
-if sys.argv[1] == 'asynchro':
+if sys.argv[1] == 'gpspage':
     requests = list()
-    requests.append(imeirequest)
+    requests.append(bindrequest)
     requests.append(getcoderequest)
+    requests.append(current)
     '''
     requests.append(upload)
     requests.append(getstick)
@@ -205,15 +205,14 @@ if sys.argv[1] == 'asynchro':
     requests.append(getsos)
     '''
     addresses = list()
-    addresses.append(imeiaddress)
+    addresses.append(bindaddress)
     addresses.append(getcodeaddress)
+    addresses.append(currentaddress)
     '''
     addresses.append(gpsaddress)
     addresses.append(currentaddress)
     addresses.append(getsosaddress)
     addresses.append(loginaddress)
     '''
-    addresses.append(uploadaddress)
-    addresses.append(getsticksaddress)
     asynchroTest(requests, addresses)
 

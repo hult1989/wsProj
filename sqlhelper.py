@@ -85,11 +85,11 @@ def _handleSos(txn, message):
     imei = message[1]
     sosnumber = message[2][1:]
     txn.execute('select * from temp_sos where imei = %s and sosnumber = %s', (imei, sosnumber))
-    contactentry = txn.fetchall()[0]
+    contactentry = txn.fetchall()
     # sosnumber from walkingstick and what from app don't match
     if len(contactentry) == 0:
         return False
-    
+    contactentry = contactentry[0]
     if message[2][0] == '-':
         txn.execute('delete from sosnumber where imei = %s and sosnumber = %s', (imei,sosnumber))
     if message[2][0] == '+':

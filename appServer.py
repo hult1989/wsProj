@@ -13,181 +13,8 @@ def resultValue(n):
 def onError(failure):
     log.msg(failure)
 
-class GpsPage(Resource):
-
-    isLeaf = True
-
-    def gpsResult(self, result):
-        if len(result) == 0:
-            self.request.write(resultValue(504))
-            self.request.finish()
-        
-        locations = list()
-        for r in result:
-            location = dict()
-            location['longitude'] = str(r[1])
-            location['latitude'] = str(r[2])
-            location['timestamp'] = str(r[3]) + '000'
-            locations.append(location)
-
-        self.request.write(dumps({'result': '1', 'locations': locations}))
-        self.request.finish()
-
-            
-    def render_POST(self, request):
-        self.request = request
-        payload = loads(request.content.read())
-        selectLocationSql(dbpool, payload['imei'], payload['timestamp']).addCallbacks(self.gpsResult, onError)
-        return NOT_DONE_YET
 
 
-class StickPage(Resource):
-    isLeaf = True
-        
-    def onBindResult(self, result):
-        self.request.write(resultValue(1))
-        self.request.finish()
-
-    def onImeiResult(self, result):
-        log.msg('RESULT' + str(result))
-        if len(result) == 0:
-            self.request.write(resultValue(501))
-        else:
-            self.request.write(dumps({'result':'1', 'imei': result[0][0]}))
-        self.request.finish()
-    def onCurrentImei(self, result):
-        if result == True:
-            self.request.write(resultValue(1))
-        else:
-            self.request.write(resultValue(result))
-        self.request.finish()
-
-    def onGetCode(self, result):
-        if result == 0:
-            self.request.write(resultValue(403))
-        else:
-            self.request.write(dumps({'result': '1', 'code': str(result), 'imei': self.payload['imei']}))
-        self.request.finish()
-
-    def onGetImei(self, result):
-        if result == 0:
-            self.request.write(resultValue(601))
-        else:
-            self.request.write(dumps({'result': '1', 'imei': str(result)}))
-        self.request.finish()
-
-    def render_POST(self, request):
-        self.request = request
-        payload = eval(request.content.read())
-        self.payload = payload
-        log.msg(payload)
-        if request.args['action'] == ['bind']:
-            insertTempRelationSql(dbpool, simnum=payload['simnum'], username=payload['username']).addCallbacks(self.onBindResult, onError)
-            return NOT_DONE_YET
-        if request.args['action'] == ['getimei']:
-            selectRelationByUsernameSimnumSql(dbpool, payload['username'], payload['simnum']).addCallbacks(self.onImeiResult, onError)
-            return NOT_DONE_YET
-        if request.args['action'] == ['setcurrentimei']:
-            handleCurrentWsSql(dbpool, payload['username'], payload['imei']).addCallbacks(self.onCurrentImei, onError)
-            return NOT_DONE_YET
-        if request.args['action'] == ['getverifycode']:
-            createVefiryCodeSql(dbpool, payload['imei']).addCallbacks(self.onGetCode, onError)
-            return NOT_DONE_YET
-        if request.args['action'] == ['getimeibycode']:
-            getImeiByCodeSql(dbpool, payload['code']).addCallbacks(self.onGetImei, onError)
-            return NOT_DONE_YET
-
-
-class SosPage(Resource): 
-
-
-    isLeaf = True
-    def onSetResult(self, result):
-        if result in ['402', '403', '505']:
-            self.request.write(resultValue(result))
-        else:
-            self.request.write(resultValue(1))
-        self.request.finish()
-
-    def varifyPwd(self, result):
-        log.msg('RESULT' + str(result))
-        if len(result) == 0:
-            d = defer.Deferred()
-            d.callback('403')
-            return d
-        if result[0][2] == '0':
-            d = defer.Deferred()
-            d.callback('505')
-            return d
-        if result[0][3] != self.payload['adminpwd']:
-            d = defer.Deferred()
-            d.callback('402')
-            return d
-        return insertTempSosSql(dbpool, imei=self.payload['imei'], sosnumber=self.payload['contactentry']['sosnumber'], contact=self.payload['contactentry']['contact'])
-    
-    def updatePwd(self, result):
-        if len(result) == 0:
-            d = defer.Deferred()
-            d.callback('403')
-            return d
-        if result[0][3] != self.payload['adminpwd']:
-            d = defer.Deferred()
-            d.callback('402')
-            return d
-        return updateWsinfoPwdSql(dbpool, imei=self.payload['imei'], adminpwd=self.payload['newadminpwd'])
-    
-    def varifySos(self, result):
-        if len(result) == 0:
-            self.request.write(resultValue(501))
-        else:
-            self.request.write(dumps({'result':'1', 'sosnumber':result[0][1]}))
-        self.request.finish()
-
-    def varifyDel(self, result):
-        if len(result) == 0:
-            self.request.write(dumps({'result':'1', 'sosnumber':self.payload['sosnumber']}))
-        self.request.finish()
-
-    def onGetsos(self, result):
-        if len(result) == 0:
-            self.request.write(resultValue(503))
-        else:
-            contactentries = list()
-            for r in result:
-                contact = dict()
-                contact['sosnumber'] = r[1]
-                contact['contact'] = r[2]
-                contactentries.append(contact)
-            self.request.write(dumps({'result': '1', 'contactentries': contactentries}))
-        self.request.finish()
-
-            
-
-    def render_POST(self, request):
-        self.request = request
-        payload = eval(request.content.read())
-        self.payload = payload
-        log.msg(payload)
-        if request.args['action'] == ['addnumber']:
-            selectWsinfoSql(dbpool, payload['imei']).addCallback(self.varifyPwd).addCallbacks(self.onSetResult, onError)
-            return NOT_DONE_YET
-        if request.args['action'] == ['delnumber']:
-            selectWsinfoSql(dbpool, payload['imei']).addCallback(self.varifyPwd).addCallbacks(self.onSetResult, onError)
-            return NOT_DONE_YET
-        if request.args['action'] == ['varifyadd']:
-            checkSosnumberSql(dbpool, payload['imei'], payload['sosnumber']).addCallbacks(self.varifySos, onError)
-            return NOT_DONE_YET
-        if request.args['action'] == ['varifydel']:
-            checkSosnumberSql(dbpool, payload['imei'], payload['sosnumber']).addCallbacks(self.varifyDel, onError)
-            return NOT_DONE_YET
-        if request.args['action'] == ['getnumber']:
-            selectSosnumberSql(dbpool, payload['imei']).addCallbacks(self.onGetsos, onError)
-            return NOT_DONE_YET
-        if request.args['action'] == ['updatepassword']:
-            selectWsinfoSql(dbpool, payload['imei']).addCallback(self.updatePwd).addCallbacks(self.onSetResult, onError)
-            return NOT_DONE_YET
-
-            
 
 class UserPage(Resource):
     isLeaf = True
@@ -409,9 +236,12 @@ from sqlPool import dbpool
 mainPage = Resource()
 apiPage = Resource()
 mainPage.putChild('api', apiPage)
-apiPage.putChild('gps', GpsPage())
-apiPage.putChild('stick', StickPage())
-apiPage.putChild('sos', SosPage())
+from GpsPage import gpsPage
+apiPage.putChild('gps', gpsPage)
+from StickPage import stickPage
+apiPage.putChild('stick', stickPage)
+from SosPage import sosPage
+apiPage.putChild('sos', sosPage)
 apiPage.putChild('user', UserPage())
 
 
