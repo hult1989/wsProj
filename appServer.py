@@ -224,6 +224,15 @@ class UserPage(Resource):
             return selectLoginInfoSql(dbpool, self.payload['username'])
         if self.request.args['action'] == ['updatepassword']:
             return UpdateUserPasswordSql(dbpool, username=self.payload['username'], newpassword=self.payload['newpassword'])
+
+    def onRegister(self, result):
+        if str(result) == '400':
+            self.request.write(resultValue(result))
+        else:
+            self.request.write(resultValue('1'))
+
+        self.request.finish()
+        
     
     def onChangeName(self, result):
         if len(result) == 0:
@@ -259,7 +268,7 @@ class UserPage(Resource):
         self.payload = payload
         log.msg(payload)
         if request.args['action'] == ['register']:
-            selectUserSql(dbpool, payload['username']).addCallback(self.checkUser).addCallbacks(self.onResult, onError)
+            selectUserSql(dbpool, payload['username']).addCallback(self.checkUser).addCallbacks(self.onRegister, onError)
             return NOT_DONE_YET
         if request.args['action'] == ['login']:
             selectUserSql(dbpool, payload['username']).addCallback(self.onLogin).addCallbacks(self.onResult, onError)
@@ -268,8 +277,6 @@ class UserPage(Resource):
             selectUserSql(dbpool, payload['username']).addCallback(self.onLogin).addCallbacks(self.onResult, onError)
             return NOT_DONE_YET
         if request.args['action'] == ['setstickname']:
-            log.msg('GOINT TO CHANGE NAME')
-            print ('GOINT TO CHANGE NAME')
             selectRelationByImeiSql(dbpool, payload['username'], payload['imei']).addCallback(self.onChangeName).addCallbacks(self.onResult, onError)
             return NOT_DONE_YET
         if request.args['action'] == ['getsticks']:

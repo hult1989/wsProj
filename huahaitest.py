@@ -56,7 +56,7 @@ tcpbind = '1,7878,11111111111,15882205392'
 
 
 
-gpsrequest = dumps({'imei': '1024', 'timestamp': '1400030032000'})
+gpsrequest = dumps({'imei': '7878', 'timestamp': '1400030032000'})
 bindrequest = dumps({'username': 'zod', 'simnum': '11111111111'})
 imeirequest = dumps({'username': 'zod', 'simnum': '11111111111'})
 setsosrequest = dumps({'imei': '1024', 'adminpwd': '123456', 'contactentry': {'sosnumber': '13836435683', 'contact':'蝙蝠侠'}})

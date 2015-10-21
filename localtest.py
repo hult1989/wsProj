@@ -8,6 +8,7 @@ from twisted.web.client import Agent
 from twisted.web.iweb import IBodyProducer
 from zope.interface import implements
 from json import dumps
+import time
 
 
 class StringProducer(object):
@@ -32,6 +33,7 @@ class ResourcePrinter(Protocol):
         self.finished = finished
 
     def dataReceived(self, data):
+        #print time.time(), 'received data', data
         print data
 
     def connectionLost(self, reason):
@@ -65,13 +67,13 @@ varifyadd = dumps({'imei': '1024', 'sosnumber': '13836435683'})
 varifydel = dumps({'imei': '1024', 'sosnumber': '15652963154'})
 getsos = dumps({'imei': '1024'})
 updatepwd = dumps({'imei': '1324', 'adminpwd': '654321', 'newadminpwd': '123456'})
-register = dumps({'username': 'wonderwoman', 'password':'f'})
-login = dumps({'username': 'superman', 'password':'f'})
+register = dumps({'username': 'zod', 'password':'f'})
+login = dumps({'username': 'zod', 'password':'f'})
 upwd = dumps({'username': 'adice', 'password':'f', 'newpassword': 'g'})
 newname = dumps({'username': 'alice', 'imei': '1024', 'name': '绿巨人'})
 getstick = dumps({'username': 'zod'})
 current = dumps({'username': 'alice', 'imei': '2012'})
-upload = dumps({'username': 'batman', 'sticks': [{'name': 'hull', 'imei': '1024'}, {'name': 'del', 'imei': '1023'}] })
+upload = dumps({'username': 'zod', 'sticks': [{'name': 'hull', 'imei': '1024'}, {'name': 'del', 'imei': '1023'}] })
 getcoderequest = dumps({'username': 'alice', 'imei': '1024'})
 
 host = 'http://localhost:8082/api'
@@ -92,6 +94,7 @@ newnameaddress = host + '/user?action=setstickname'
 getsticksaddress = host + '/user?action=getsticks'
 getcodeaddress = host + '/stick?action=getverifycode'
 getbycodeaddress = host + '/stick?action=getimeibycode'
+uploadaddress = host + '/user?action=uploadsticks'
 
 agent = Agent(reactor)
 
@@ -104,6 +107,7 @@ def printError(failure):
     print >> sys.stderr, failure
 
 def stop(result):
+   # print time.time(), '\treactor stop'
     reactor.stop()
 
 def makeTest(request, address):
@@ -150,6 +154,7 @@ if sys.argv[1] == 'tcplocation':
     testTcp(tcplocation)
 if sys.argv[1] == 'getimei':
     makeTest(imeirequest, imeiaddress)
+    makeTest(getcoderequest, getcodeaddress)
 if sys.argv[1] == 'setsos':
     makeTest(setsosrequest, setsosaddress)
 if sys.argv[1] == 'delsos':
@@ -172,6 +177,8 @@ if sys.argv[1] == 'upwd':
     makeTest(upwd, upwdaddress)
 if sys.argv[1] == 'newname':
     makeTest(newname, newnameaddress)
+if sys.argv[1] == 'upload':
+    makeTest(upload, uploadaddress)
 if sys.argv[1] == 'getstick':
     makeTest(getstick, getsticksaddress)
 if sys.argv[1] == 'tcpimsi':
@@ -187,10 +194,26 @@ if sys.argv[1] == 'getbycode':
 
 if sys.argv[1] == 'asynchro':
     requests = list()
+    requests.append(imeirequest)
+    requests.append(getcoderequest)
+    '''
+    requests.append(upload)
+    requests.append(getstick)
     requests.append(login)
     requests.append(gpsrequest)
+    requests.append(current)
+    requests.append(getsos)
+    '''
     addresses = list()
-    addresses.append(loginaddress)
+    addresses.append(imeiaddress)
+    addresses.append(getcodeaddress)
+    '''
     addresses.append(gpsaddress)
+    addresses.append(currentaddress)
+    addresses.append(getsosaddress)
+    addresses.append(loginaddress)
+    '''
+    addresses.append(uploadaddress)
+    addresses.append(getsticksaddress)
     asynchroTest(requests, addresses)
 
