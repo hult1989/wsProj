@@ -44,13 +44,11 @@ def printResource(response):
     response.deliverBody(ResourcePrinter(finished))
     return finished
 
-def printError(failure):
-    print >> sys.stderr, failure
 
 def stop(result):
     reactor.stop()
 
-tcplocation = '3,123456789abcedf0,150930141223,23.12321W,87.22234N'
+tcplocation = '3,1024,150930141223,23.12321W,87.22234N'
 tcpaddsos = '2,98789,+12332112345'
 tcpdelsos = '2,98789,-12332112345'
 tcpimsi = '4,123456789abcedf0,123150930141223'
@@ -104,7 +102,10 @@ def printResource(response):
     return finished
 
 def printError(failure):
-    print >> sys.stderr, failure
+    import os
+    print  failure
+    #os.system('twistd -y init.py')
+    print 'SERVE　RESTARTED'
 
 def stop(result):
    # print time.time(), '\treactor stop'
@@ -171,7 +172,10 @@ if sys.argv[1] == 'register':
 if sys.argv[1] == 'current':
     makeTest(current, currentaddress)
 if sys.argv[1] == 'login':
-    makeTest(login, loginaddress)
+    try:
+        makeTest(login, loginaddress)
+    except Exception, e:
+        print 'Server gone away, err msg: ', e
 if sys.argv[1] == 'upwd':
     makeTest(upwd, upwdaddress)
 if sys.argv[1] == 'newname':
@@ -193,9 +197,10 @@ if sys.argv[1] == 'getbycode':
 
 if sys.argv[1] == 'gpspage':
     requests = list()
-    requests.append(bindrequest)
-    requests.append(getcoderequest)
-    requests.append(current)
+    for i in xrange(300):
+        requests.append(register)
+        requests.append(gpsrequest)
+        requests.append(current)
     '''
     requests.append(upload)
     requests.append(getstick)
@@ -205,9 +210,10 @@ if sys.argv[1] == 'gpspage':
     requests.append(getsos)
     '''
     addresses = list()
-    addresses.append(bindaddress)
-    addresses.append(getcodeaddress)
-    addresses.append(currentaddress)
+    for i in xrange(300):
+        addresses.append(registeraddress)
+        addresses.append(gpsaddress)
+        addresses.append(currentaddress)
     '''
     addresses.append(gpsaddress)
     addresses.append(currentaddress)

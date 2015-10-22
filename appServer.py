@@ -7,13 +7,6 @@ from twisted.web.resource import Resource
 from twisted.web.server import Site, NOT_DONE_YET
 import cgi
 
-def resultValue(n):
-    return dumps({'result': str(n)})
-
-def onError(failure):
-    log.msg(failure)
-
-
 class LocationPage(Resource):
     isLeaf = True
 

@@ -261,8 +261,7 @@ if __name__ == '__main__':
     from sqlPool import dbpool
     #dbpool = adbapi.ConnectionPool("MySQLdb", db="wsdb", user='tanghao', passwd='123456', unix_socket='/tmp/mysql.sock')
     #dbpool = adbapi.ConnectionPool("MySQLdb", db="wsdb", user='tanghao', passwd='123456')
-    print createVefiryCodeSql(dbpool, '1024').addCallbacks(onSuccess, onError)
-    getImeiByCodeSql(dbpool, sys.argv[1]).addCallbacks(onSuccess, onError)
+    print pingMysql(dbpool).addCallbacks(onSuccess, onError)
 
     '''
     payload = dict()
