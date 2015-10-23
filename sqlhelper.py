@@ -225,16 +225,7 @@ def deleteTempSosSql(dbpool, imei, sosnumber):
     return dbpool.runOperation('delete from temp_sos where imei = %s and sosnumber = %s', (imei, sosnumber))
 
 
-
-
-    '''
-    print type(values)
-    locations = []
-    for v in values:
-        locations.append({'imei': str(v[0]), 'longitude': str(float(v[1])), 'latitude': str(float(v[2])), 'timestamp': str(v[3])+'000' })
-    return locations
-    '''
-   
+  
 def testResult(result):
     if type(result) == tuple and len(result) == 0:
         print 'No result'

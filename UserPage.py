@@ -87,21 +87,29 @@ class UserPage(Resource):
         payload = eval(request.content.read())
 
         if request.args['action'] == ['register']:
+            if len(payload['username']) == 0 or len(payload['password']) == 0:
+                return resultValue(300)
             d = selectUserSql(dbpool, payload['username']).addCallback(self.checkUser, payload)
             d.addCallback(self.onRegister, request)
             d.addErrback(onError)
             return NOT_DONE_YET
 
         if request.args['action'] == ['login']:
+            if len(payload['username']) == 0 or len(payload['password']) == 0:
+                return resultValue(300)
             d = selectUserSql(dbpool, payload['username']).addCallback(self.onLogin, request, payload).addCallback(self.onResult, request)
             d.addErrback(onError)
             return NOT_DONE_YET
         if request.args['action'] == ['updatepassword']:
+            if len(payload['username']) == 0 or len(payload['newpassword']) == 0:
+                return resultValue(300)
             d = selectUserSql(dbpool, payload['username']).addCallback(self.onLogin, request, payload).addCallback(self.onResult, request)
             d.addErrback(onError)
             return NOT_DONE_YET
 
         if request.args['action'] == ['setstickname']:
+            if len(payload['username']) == 0 or len(payload['name']) == 0 or len(payload['imei']) == 0:
+                return resultValue(300)
             d = selectRelationByImeiSql(dbpool, payload['username'], payload['imei']).addCallback(self.onChangeName, payload)
             d.addCallback(self.onResult, request)
             d.addErrback(onError)
@@ -114,6 +122,8 @@ class UserPage(Resource):
             return NOT_DONE_YET
 
         if request.args['action'] == ['uploadsticks']:
+            if len(payload['username']) == 0 or len(payload['sticks']) == 0 or len(payload['sticks']['name']) == 0 or len(payload['sticks']['imei']) == 0:
+                return resultValue(300)
             d = handleUploadSql(dbpool, payload)
             d.addCallback(self.onUpload, request)
             d.addErrback(onError)
