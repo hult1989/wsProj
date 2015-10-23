@@ -146,6 +146,30 @@ def testTcp(message):
         print >> sys.stdout, 'CLOSING SOCKET'
         sock.close()
 
+def multiTest():
+    try:
+        server_address = ('localhost', 8081)
+        sock1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock1.connect(server_address)
+        sock2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock2.connect(server_address)
+
+        location1 = '3,1024,150930141223,23.a12321,87.2b2234'
+        location2 = '3,1024,150930141223,23.12321W,87.22234N'
+        data1 = sock1.recv(96)
+        data2 = sock1.recv(96)
+        
+        print >> sys.stdout, 'RECEIVED: %s' % data1
+        print >> sys.stdout, 'RECEIVED: %s' % data2
+    finally:
+        print >> sys.stdout, 'CLOSING SOCKET'
+        sock1.close()
+        sock2.close()
+
+if sys.argv[1] == 'multi':
+    multiTest()
+
+
 if sys.argv[1] == 'gps':
     makeTest(gpsrequest, gpsaddress)
 if sys.argv[1] == 'bind':

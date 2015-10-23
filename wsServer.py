@@ -30,29 +30,28 @@ class WsServer(protocol.Protocol):
         self.factory = factory
         #log.msg('in wsServer, dbpool id: ' + str(id(self.factory.dbpool)))
     
-    def onError(self, failure):
+    def onError(self, failure, transport, message):
         log.msg(failure)
-        self.transport.write(''.join(("Result:", self.message[0], ',0')))
+        transport.write(''.join(("Result:", message[0], ',0')))
 
-    def onSuccess(self, result):
+    def onSuccess(self, result, transport, message):
         if result == True or result == None or type(result) == tuple:
-            self.transport.write(''.join(("Result:", self.message[0], ',1')))
+            transport.write(''.join(("Result:", message[0], ',1')))
         elif result == False:
-            self.transport.write(''.join(("Result:", self.message[0], ',0')))
+            transport.write(''.join(("Result:", message[0], ',0')))
 
 
     def dataReceived(self, message):
         log.msg(message)
         #this is ok becase protocol is instantiated for each connection, so it won't has confusion
-        self.message = message
         if message[0] == '1':
-            handleBindSql(self.factory.dbpool, message).addCallbacks(self.onSuccess, self.onError)
+            handleBindSql(self.factory.dbpool, message).addCallbacks(self.onSuccess, self.onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
         if message[0] == '2':
-            handleSosSql(self.factory.dbpool, message).addCallbacks(self.onSuccess, self.onError)
+            handleSosSql(self.factory.dbpool, message).addCallbacks(self.onSuccess, self.onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
         if message[0] == '3':
-            insertLocation(self.factory.dbpool, message).addCallbacks(self.onSuccess, self.onError)
+            insertLocation(self.factory.dbpool, message).addCallbacks(self.onSuccess, self.onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
         if message[0] == '4':
-            handleImsiSql(self.factory.dbpool, message).addCallbacks(self.onSuccess, self.onError)
+            handleImsiSql(self.factory.dbpool, message).addCallbacks(self.onSuccess, self.onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
 
 
 

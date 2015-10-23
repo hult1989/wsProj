@@ -13,7 +13,7 @@ class GpsPage(Resource):
         payload = eval(request.content.read())
         imei = payload['imei']
         timestamp = payload['timestamp']
-        if len(imei) > 15 or len(imei) == 0 or len(timestamp) > 13 or len(timestamp == 0) or timestamp.isdigit == False:
+        if len(imei) > 15 or len(imei) == 0 or len(timestamp) > 13 or len(timestamp) == 0 or timestamp.isdigit == False:
             raise Exception('illegal input')
         return payload
         
