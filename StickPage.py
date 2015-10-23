@@ -51,9 +51,9 @@ class StickPage(Resource):
         payload = eval(request.content.read())
 
         if request.args['action'] == ['bind']:
-            if len(payload['username'])==0 or len(payload['simnum'])==0:
+            if len(payload['username'])==0 or len(payload['simnum'])==0 or len(payload['name'])==0:
                 return resultValue(300)
-            d = insertTempRelationSql(dbpool, simnum=payload['simnum'], username=payload['username'])
+            d = insertTempRelationSql(dbpool, simnum=payload['simnum'], username=payload['username'], name=payload['name'])
             d.addCallback(self.onBindResult, request)
             d.addErrback(onError)
             return NOT_DONE_YET

@@ -62,13 +62,14 @@ def _handleBind(txn, message):
     imei = message[1]
     simnum = message[2]
     userphone = message[3]
-    txn.execute('select username from temp_user_ws where simnum = %s', (simnum,))
+    txn.execute('select username, name from temp_user_ws where simnum = %s', (simnum,))
     result = txn.fetchall()
     if len(result) == 0:
         return False
     username = result[0][0]
+    name = result[0][1]
     txn.execute('update userinfo set phone = %s where username = %s', (userphone, username))
-    txn.execute('replace into user_ws (username, imei, isdefault) values (%s, %s, "1")', (username, imei))
+    txn.execute('replace into user_ws (username, imei, name, isdefault) values (%s, %s, %s, "1")', (username, imei, name))
     txn.execute('delete from temp_user_ws where simnum = %s', (simnum,))
     txn.execute('replace into wsinfo (imei, imsi, simnum, adminpwd) values (%s, "", %s, "123456")', (imei, simnum))
     return True 
@@ -203,8 +204,8 @@ def selectLocationSql(dbpool, imei, timestamp):
 
 
 
-def insertTempRelationSql(dbpool, simnum, username):
-    return dbpool.runOperation('replace into temp_user_ws (simnum, username) values( %s, %s)', (simnum, username))
+def insertTempRelationSql(dbpool, simnum, username, name):
+    return dbpool.runOperation('replace into temp_user_ws (simnum, username, name) values( %s, %s, %s)', (simnum, username, name))
 
 def deleteTempRelationSql(dbpool, simnum):
     return dbpool.runOperation('delete from temp_user_ws where simnum = %s', (simnum,))
