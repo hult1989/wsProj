@@ -12,7 +12,7 @@ import time
 from twisted.internet.task import LoopingCall
 
 import socket
-server_address = ('localhost', 8081)
+server_address = ('huahai', 8081)
 
 def testTcp():
     tcplocation = '3,1024,150930141223,23.12321W,87.22234N'
@@ -34,7 +34,6 @@ def finish():
 
 if __name__ == '__main__':
     log.startLogging(open('babysiter.log', 'w'))
-    LoopingCall(testTcp).start(5)
-    reactor.callLater(60, finish)
+    LoopingCall(testTcp).start(600)
     reactor.run()
 

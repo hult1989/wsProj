@@ -71,10 +71,12 @@ upwd = dumps({'username': 'adice', 'password':'f', 'newpassword': 'g'})
 newname = dumps({'username': 'alice', 'imei': '1024', 'name': '绿巨人'})
 getstick = dumps({'username': 'zod'})
 current = dumps({'username': 'alice', 'imei': '2012'})
-upload = dumps({'username': 'batman', 'sticks': [{'name': 'hull', 'imei': '1024'}, {'name': 'del', 'imei': '1023'}] })
+upload = dumps({'username': 'batman', 'sticks': [] })
+#upload = dumps({'username': 'batman', 'sticks': [{'name': 'hull', 'imei': '1024'}, {'name': 'del', 'imei': '1023'}] })
 getcoderequest = dumps({'username': 'alice', 'imei': '1024'})
 
 host = 'http://huahai:8082/api'
+uploadaddress = host + '/user?action=uploadsticks'
 gpsaddress = host + '/gps?action=getuserlocation'
 bindaddress = host + '/stick?action=bind'
 imeiaddress = host + '/stick?action=getimei'
@@ -194,3 +196,5 @@ if sys.argv[1] == 'asynchro':
     addresses.append(gpsaddress)
     asynchroTest(requests, addresses)
 
+if sys.argv[1] == 'upload':
+    makeTest(upload, uploadaddress)
