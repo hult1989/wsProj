@@ -191,9 +191,11 @@ if sys.argv[1] == 'asynchro':
     requests = list()
     requests.append(login)
     requests.append(gpsrequest)
+    requests.append(getstick)
     addresses = list()
     addresses.append(loginaddress)
     addresses.append(gpsaddress)
+    addresses.append(getsticksaddress)
     asynchroTest(requests, addresses)
 
 if sys.argv[1] == 'upload':

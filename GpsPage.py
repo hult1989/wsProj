@@ -35,17 +35,15 @@ class GpsPage(Resource):
         if len(result) == 0:
             request.write(resultValue(504))
             request.finish()
-        
-        locations = list()
-        for r in result:
-            location = dict()
-            location['longitude'] = str(r[1])
-            location['latitude'] = str(r[2])
-            location['timestamp'] = str(r[3]) + '000'
-            locations.append(location)
+        else:
+            locations = list()
+            for r in result:
+                location = dict()
+                location['longitude'] = str(r[1])
+                location['latitude'] = str(r[2])
+                location['timestamp'] = str(r[3]) + '000'
+                locations.append(location)
+            request.write(dumps({'result': '1', 'locations': locations}))
+            request.finish()
 
-        request.write(dumps({'result': '1', 'locations': locations}))
-        request.finish()
-
-            
 gpsPage = GpsPage()
