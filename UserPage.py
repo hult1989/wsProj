@@ -122,8 +122,12 @@ class UserPage(Resource):
             return NOT_DONE_YET
 
         if request.args['action'] == ['uploadsticks']:
-            if len(payload['username']) == 0 or len(payload['sticks']) == 0 or len(payload['sticks']['name']) == 0 or len(payload['sticks']['imei']) == 0:
+            if len(payload['username']) == 0 or len(payload['sticks']) == 0:
                 return resultValue(300)
+            for s in payload['sticks']:
+                if len(s['name']) == 0 or len(s['imei']) == 0:
+                    return resultValue(300)
+
             d = handleUploadSql(dbpool, payload)
             d.addCallback(self.onUpload, request)
             d.addErrback(onError)
