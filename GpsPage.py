@@ -1,7 +1,7 @@
 from twisted.web.resource import Resource
 from appServerCommon import resultValue, onError
 from sqlhelper import selectLocationSql
-from sqlPool import dbpool
+from sqlPool import wsdbpool
 from twisted.web.server import Site, NOT_DONE_YET
 from twisted.python import log
 from json import dumps
@@ -25,7 +25,7 @@ class GpsPage(Resource):
             log.msg(e)
             return resultValue(300)
 
-        d = selectLocationSql(dbpool, payload['imei'], payload['timestamp'])
+        d = selectLocationSql(wsdbpool, payload['imei'], payload['timestamp'])
         d.addCallback(self.OnGpsResult, request)
         d.addErrback(onError)
         return NOT_DONE_YET

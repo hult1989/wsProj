@@ -9,8 +9,8 @@ import random
 SQLUSER = 'tanghao'
 PASSWORD = '123456'
 
-def createVefiryCodeSql(dbpool, imei):
-    return dbpool.runInteraction(_createVerifyCode, imei)
+def createVefiryCodeSql(wsdbpool, imei):
+    return wsdbpool.runInteraction(_createVerifyCode, imei)
 
 def _createVerifyCode(txn, imei):
     txn.execute('select * from wsinfo where imei = %s', (imei,))
@@ -28,9 +28,9 @@ def _createVerifyCode(txn, imei):
     txn.execute('insert into temp_code (code, imei) values(%s, %s)', (code, imei))
     return code
 
-    
-def getImeiByCodeSql(dbpool, code):
-    return dbpool.runInteraction(_getImeiByCode, code)
+
+def getImeiByCodeSql(wsdbpool, code):
+    return wsdbpool.runInteraction(_getImeiByCode, code)
 
 def _getImeiByCode(txn, code):
     txn.execute('delete from temp_code where unix_timestamp(timestamp) + 120 < unix_timestamp(now())', ())
@@ -40,22 +40,21 @@ def _getImeiByCode(txn, code):
         return 0
     return result[0][0]
     
+def insertUserSql(wsdbpool, username, passwd, phone=None, email=None):
+    return wsdbpool.runOperation('replace into userinfo (username, password, phone, email, date) values (%s, %s, %s, %s, CURDATE())', (username, passwd, phone, email))
 
-def insertUserSql(dbpool, username, passwd, phone=None, email=None):
-    return dbpool.runOperation('replace into userinfo (username, password, phone, email, date) values (%s, %s, %s, %s, CURDATE())', (username, passwd, phone, email))
+def selectUserSql(wsdbpool, username):
+    return wsdbpool.runQuery('select * from userinfo where username = %s', (username,))
 
-def selectUserSql(dbpool, username):
-    return dbpool.runQuery('select * from userinfo where username = %s', (username,))
+def UpdateUserPasswordSql(wsdbpool, username, newpassword):
+    return wsdbpool.runOperation('update userinfo set password = %s where username = %s', (newpassword, username))
 
-def UpdateUserPasswordSql(dbpool, username, newpassword):
-    return dbpool.runOperation('update userinfo set password = %s where username = %s', (newpassword, username))
-
-def selectLoginInfoSql(dbpool, username):
-    return dbpool.runQuery('select user_ws.username, user_ws.imei, user_ws.name, wsinfo.simnum from user_ws, wsinfo where user_ws.imei = wsinfo.imei and user_ws.username = %s and user_ws.isdefault = 1', (username,))
+def selectLoginInfoSql(wsdbpool, username):
+    return wsdbpool.runQuery('select user_ws.username, user_ws.imei, user_ws.name, wsinfo.simnum from user_ws, wsinfo where user_ws.imei = wsinfo.imei and user_ws.username = %s and user_ws.isdefault = 1', (username,))
 
 
-def handleBindSql(dbpool, message):
-    return dbpool.runInteraction(_handleBind, message)
+def handleBindSql(wsdbpool, message):
+    return wsdbpool.runInteraction(_handleBind, message)
 
 def _handleBind(txn, message):
     message = message.split(',')
@@ -77,8 +76,8 @@ def _handleBind(txn, message):
 
 
 
-def handleSosSql(dbpool, message):
-    return dbpool.runInteraction(_handleSos, message)
+def handleSosSql(wsdbpool, message):
+    return wsdbpool.runInteraction(_handleSos, message)
 
 def _handleSos(txn, message):
 
@@ -100,8 +99,8 @@ def _handleSos(txn, message):
     return True 
 
 
-def handleImsiSql(dbpool, message):
-    return dbpool.runInteraction(_handleImsi, message)
+def handleImsiSql(wsdbpool, message):
+    return wsdbpool.runInteraction(_handleImsi, message)
 
 def _handleImsi(txn, message):
     message = message.split(',')
@@ -118,8 +117,8 @@ def _handleImsi(txn, message):
 
 
     
-def handleCurrentWsSql(dbpool, username, imei):
-    return dbpool.runInteraction(_handleCurrentWs, username, imei)
+def handleCurrentWsSql(wsdbpool, username, imei):
+    return wsdbpool.runInteraction(_handleCurrentWs, username, imei)
 
 def _handleCurrentWs(txn, username, imei):
     txn.execute('select imei from user_ws where isdefault = "1" and username = %s', (username,))
@@ -132,8 +131,8 @@ def _handleCurrentWs(txn, username, imei):
     return True
     
 
-def handleUploadSql(dbpool, payload):
-    return dbpool.runInteraction(_handleUpload, payload)
+def handleUploadSql(wsdbpool, payload):
+    return wsdbpool.runInteraction(_handleUpload, payload)
 
 def _handleUpload(txn, payload):
     for stick in payload['sticks']:
@@ -143,117 +142,118 @@ def _handleUpload(txn, payload):
 
 
 
-def insertRelationSql(dbpool, username, imei, name=None, isdefault='1'):
-    return dbpool.runOperation('replace into user_ws (username, imei, name, isdefault) values(%s, %s, %s, %s)', (username, imei, name, isdefault))
+def insertRelationSql(wsdbpool, username, imei, name=None, isdefault='1'):
+    return wsdbpool.runOperation('replace into user_ws (username, imei, name, isdefault) values(%s, %s, %s, %s)', (username, imei, name, isdefault))
 
-def selectRelationSql(dbpool, username):
-    return dbpool.runQuery('select  wsinfo.imei, user_ws.name, wsinfo.simnum from user_ws, wsinfo where user_ws.imei = wsinfo.imei and user_ws.username = %s', (username,))
+def selectRelationSql(wsdbpool, username):
+    return wsdbpool.runQuery('select  wsinfo.imei, user_ws.name, wsinfo.simnum from user_ws, wsinfo where user_ws.imei = wsinfo.imei and user_ws.username = %s', (username,))
 
-def selectRelationByImeiSql(dbpool, username, imei):
-    return dbpool.runQuery('select * from user_ws where username = %s and imei =%s', (username, imei))
+def selectRelationByImeiSql(wsdbpool, username, imei):
+    return wsdbpool.runQuery('select * from user_ws where username = %s and imei =%s', (username, imei))
 
-def selectRelationByUsernameSimnumSql(dbpool, username, simnum):
-    return dbpool.runQuery('select wsinfo.imei from user_ws, wsinfo where user_ws.imei = wsinfo.imei and user_ws.username = %s and wsinfo.simnum = %s', (username, simnum))
+def selectRelationByUsernameSimnumSql(wsdbpool, username, simnum):
+    return wsdbpool.runQuery('select wsinfo.imei from user_ws, wsinfo where user_ws.imei = wsinfo.imei and user_ws.username = %s and wsinfo.simnum = %s', (username, simnum))
 
-def deleteRelationSql(dbpool, username, imei):
-    return dbpool.runOperation('delete from user_ws where username = %s and imei = %s', (username, imei))
+def deleteRelationSql(wsdbpool, username, imei):
+    return wsdbpool.runOperation('delete from user_ws where username = %s and imei = %s', (username, imei))
 
-def selectDefaultRelationSql(dbpool, username):
-    return dbpool.runQuery('select * from user_ws where username = %s and isdefault = "1"', (username,))
+def selectDefaultRelationSql(wsdbpool, username):
+    return wsdbpool.runQuery('select * from user_ws where username = %s and isdefault = "1"', (username,))
 
-def updateStickNameSql(dbpool, username, imei, name):
-    dbpool.runOperation('update user_ws set name = %s where username = %s and imei = %s', (name, username, imei))
-
-
-
-
-def insertSosnumberSql(dbpool, imei, sosnumber, contact):
-    return dbpool.runOperation('replace into sosnumber (imei, sosnumber, contact) values(%s, %s, %s)', (imei, sosnumber, contact))
-
-def selectSosnumberSql(dbpool, imei):
-    return dbpool.runQuery('select * from sosnumber where imei = %s', (imei,))
-
-def deleteSosnumberSql(dbpool, imei, sosnumber):
-    return dbpool.runOperation('delete from sosnumber where imei = %s and sosnumber = %s', (imei, sosnumber))
-
-
-def checkSosnumberSql(dbpool, imei, sosnumber):
-    return dbpool.runQuery('select * from sosnumber where imei = %s and sosnumber = %s', (imei, sosnumber))
-
-
-
-def insertLocationSql(dbpool, imei, longitude, latitude, timestamp):
-    return dbpool.runOperation('replace into location (imei, longitude, latitude, timestamp) values (%s, %s, %s, %s)', (imei, float(longitude), float(latitude), timestamp))
-
-def selectWsinfoSql(dbpool, imei):
-    return dbpool.runQuery('select * from wsinfo where imei = %s', (imei,))
-
-def updateWsinfoPwdSql(dbpool, imei, adminpwd):
-    return dbpool.runOperation('update wsinfo set adminpwd = %s where imei = %s', (adminpwd, imei))
-
-def selectWsinfoBySimnum(dbpool, simnum):
-    return dbpool.runQuery('select * from wsinfo where simnum = %s', (simnum,))
-
-
-def insertWsinfoSql(dbpool, imei, imsi = None, simnum = None, adminpwd='123456'):
-    return dbpool.runOperation('replace into wsinfo (imei, imsi, simnum, adminpwd) values (%s, %s, %s, %s)', (imei, imsi, simnum, adminpwd))
-
-def selectLocationSql(dbpool, imei, timestamp):
-    return dbpool.runQuery('select imei, longitude, latitude, unix_timestamp(timestamp) from location where imei = %s and unix_timestamp(timestamp) > %s', (imei, timestamp[0:-3]))
+def updateStickNameSql(wsdbpool, username, imei, name):
+    wsdbpool.runOperation('update user_ws set name = %s where username = %s and imei = %s', (name, username, imei))
 
 
 
 
-def insertTempRelationSql(dbpool, simnum, username, name):
-    return dbpool.runOperation('replace into temp_user_ws (simnum, username, name) values( %s, %s, %s)', (simnum, username, name))
+def insertSosnumberSql(wsdbpool, imei, sosnumber, contact):
+    return wsdbpool.runOperation('replace into sosnumber (imei, sosnumber, contact) values(%s, %s, %s)', (imei, sosnumber, contact))
 
-def deleteTempRelationSql(dbpool, simnum):
-    return dbpool.runOperation('delete from temp_user_ws where simnum = %s', (simnum,))
+def selectSosnumberSql(wsdbpool, imei):
+    return wsdbpool.runQuery('select * from sosnumber where imei = %s', (imei,))
 
-def selectTempRelationSql(dbpool, simnum):
-    return dbpool.runQuery('select * from temp_user_ws where simnum = %s', (simnum,))
-
-
+def deleteSosnumberSql(wsdbpool, imei, sosnumber):
+    return wsdbpool.runOperation('delete from sosnumber where imei = %s and sosnumber = %s', (imei, sosnumber))
 
 
-def insertTempSosSql(dbpool, imei, sosnumber, contact):
-    return dbpool.runOperation('replace into temp_sos (imei, sosnumber, contact) values(%s, %s, %s)', (imei, sosnumber, contact))
+def checkSosnumberSql(wsdbpool, imei, sosnumber):
+    return wsdbpool.runQuery('select * from sosnumber where imei = %s and sosnumber = %s', (imei, sosnumber))
 
-def selectTempSosSql(dbpool, imei, sosnumber):
-    return dbpool.runQuery('select * from temp_sos where imei = %s and sosnumber = %s', (imei, sosnumber))
 
-def deleteTempSosSql(dbpool, imei, sosnumber):
-    return dbpool.runOperation('delete from temp_sos where imei = %s and sosnumber = %s', (imei, sosnumber))
+
+def insertLocationSql(wsdbpool, imei, longitude, latitude, timestamp):
+    return wsdbpool.runOperation('replace into location (imei, longitude, latitude, timestamp) values (%s, %s, %s, %s)', (imei, float(longitude), float(latitude), timestamp))
+
+def selectWsinfoSql(wsdbpool, imei):
+    return wsdbpool.runQuery('select * from wsinfo where imei = %s', (imei,))
+
+def updateWsinfoPwdSql(wsdbpool, imei, adminpwd):
+    return wsdbpool.runOperation('update wsinfo set adminpwd = %s where imei = %s', (adminpwd, imei))
+
+def selectWsinfoBySimnum(wsdbpool, simnum):
+    return wsdbpool.runQuery('select * from wsinfo where simnum = %s', (simnum,))
+
+
+def insertWsinfoSql(wsdbpool, imei, imsi = None, simnum = None, adminpwd='123456'):
+    return wsdbpool.runOperation('replace into wsinfo (imei, imsi, simnum, adminpwd) values (%s, %s, %s, %s)', (imei, imsi, simnum, adminpwd))
+
+def selectLocationSql(wsdbpool, imei, timestamp):
+    return wsdbpool.runQuery('select imei, longitude, latitude, unix_timestamp(timestamp) from location where imei = %s and unix_timestamp(timestamp) > %s', (imei, timestamp[0:-3]))
+
+
+
+
+def insertTempRelationSql(wsdbpool, simnum, username, name):
+    return wsdbpool.runOperation('replace into temp_user_ws (simnum, username, name) values( %s, %s, %s)', (simnum, username, name))
+
+def deleteTempRelationSql(wsdbpool, simnum):
+    return wsdbpool.runOperation('delete from temp_user_ws where simnum = %s', (simnum,))
+
+def selectTempRelationSql(wsdbpool, simnum):
+    return wsdbpool.runQuery('select * from temp_user_ws where simnum = %s', (simnum,))
+
+
+
+
+def insertTempSosSql(wsdbpool, imei, sosnumber, contact):
+    return wsdbpool.runOperation('replace into temp_sos (imei, sosnumber, contact) values(%s, %s, %s)', (imei, sosnumber, contact))
+
+def selectTempSosSql(wsdbpool, imei, sosnumber):
+    return wsdbpool.runQuery('select * from temp_sos where imei = %s and sosnumber = %s', (imei, sosnumber))
+
+def deleteTempSosSql(wsdbpool, imei, sosnumber):
+    return wsdbpool.runOperation('delete from temp_sos where imei = %s and sosnumber = %s', (imei, sosnumber))
 
 
   
-def testResult(result):
-    if type(result) == tuple and len(result) == 0:
-        print 'No result'
-    print result
-    reactor.stop()
-
-def testUtf(result):
-    for r in result:
-        for i  in r:
-            print i
-    reactor.stop()
-
-def onSuccess(success):
-    print success
-    reactor.stop()
-
-def onError(failure):
-    print failure
-    reactor.stop()
-
 
 if __name__ == '__main__':
+
+    def testResult(result):
+        if type(result) == tuple and len(result) == 0:
+            print 'No result'
+        print result
+        reactor.stop()
+
+    def testUtf(result):
+        for r in result:
+            for i  in r:
+                print i
+        reactor.stop()
+
+    def onSuccess(success):
+        print success
+        reactor.stop()
+
+    def onError(failure):
+        print failure
+        reactor.stop()
+
     import sys
-    from sqlPool import dbpool
-    #dbpool = adbapi.ConnectionPool("MySQLdb", db="wsdb", user='tanghao', passwd='123456', unix_socket='/tmp/mysql.sock')
-    #dbpool = adbapi.ConnectionPool("MySQLdb", db="wsdb", user='tanghao', passwd='123456')
-    print pingMysql(dbpool).addCallbacks(onSuccess, onError)
+    from sqlPool import wsdbpool
+    #wsdbpool = adbapi.ConnectionPool("MySQLdb", db="wsdb", user='tanghao', passwd='123456', unix_socket='/tmp/mysql.sock')
+    #wsdbpool = adbapi.ConnectionPool("MySQLdb", db="wsdb", user='tanghao', passwd='123456')
+    print createTableSql(wsdbpool).addCallbacks(onSuccess, onError)
 
     '''
     payload = dict()
@@ -263,31 +263,31 @@ if __name__ == '__main__':
     payload['sticks'].append({'name': 'bob', 'imei': '2012'})
     payload['sticks'].append({'name': 'cathy', 'imei': '2048'})
 
-    handleUploadSql(dbpool, payload).addCallbacks(onSuccess, onError)
+    handleUploadSql(wsdbpool, payload).addCallbacks(onSuccess, onError)
 
 
 
-    selectRelationSql(dbpool, 'alice').addCallback(testResult).addErrback(testResult)
-    handleBindSql(dbpool, '1,2046,asdflkj,15652963154').addCallback(onSuccess).addErrback(onError)
-    selectUserSql(dbpool, 'batman').addCallback(testResult).addErrback(testResult)
-    insertLocationSql(dbpool, '4321', '23.1298733', '12.1198712', '20151010120012').addCallback(onSuccess).addErrback(onError)
+    selectRelationSql(wsdbpool, 'alice').addCallback(testResult).addErrback(testResult)
+    handleBindSql(wsdbpool, '1,2046,asdflkj,15652963154').addCallback(onSuccess).addErrback(onError)
+    selectUserSql(wsdbpool, 'batman').addCallback(testResult).addErrback(testResult)
+    insertLocationSql(wsdbpool, '4321', '23.1298733', '12.1198712', '20151010120012').addCallback(onSuccess).addErrback(onError)
     if sys.argv[1] == 'insert':
-        insertTempSosSql(dbpool, '1024', '+8615652963154', '超人').addCallback(testResult).addErrback(testResult)
+        insertTempSosSql(wsdbpool, '1024', '+8615652963154', '超人').addCallback(testResult).addErrback(testResult)
     elif sys.argv[1] == 'delete':
-        deleteTempSosSql(dbpool, '1024', '+8615652963154').addCallback(testResult).addErrback(testResult)
+        deleteTempSosSql(wsdbpool, '1024', '+8615652963154').addCallback(testResult).addErrback(testResult)
     else:
 
-    insertTempRelationSql(dbpool, '15652963154', 'alice').addCallback(testResult).addErrback(testResult)
-    selectTempRelationSql(dbpool, '15652963154').addCallback(testResult).addErrback(testResult)
-    deleteTempRelationSql(dbpool, '15652963154').addCallback(testResult).addErrback(testResult)
-    deleteSosnumberSql(dbpool, '1024', '+8615652963154', ).addCallback(testResult).addErrback(testResult)
-    deleteRelationSql(dbpool, 'alice', '0').addCallback(testResult).addErrback(testResult)
-    insertRelationSql(dbpool, 'alice', '3', 'batman').addCallback(testResult).addErrback(testResult)
-    selectSosnumberSql(dbpool, '1024').addCallback(testUtf).addErrback(testResult)
-    insertSosnumberSql(dbpool, '1024', '+8615652963154', '超人').addCallback(testResult).addErrback(testResult)
-    getLocationSql(dbpool, '4321', '1400000000000').addCallback(testResult).addErrback(testResult)
-    insertWsinfoSql(dbpool, '1984').addCallback(testResult).addErrback(testResult)
-    selectWsinfoSql(dbpool, '1984').addCallback(testResult).addErrback(testResult)
-    selectLocationSql(dbpool, '4321', '1400000000').addCallback(testResult).addErrback(testResult)
+    insertTempRelationSql(wsdbpool, '15652963154', 'alice').addCallback(testResult).addErrback(testResult)
+    selectTempRelationSql(wsdbpool, '15652963154').addCallback(testResult).addErrback(testResult)
+    deleteTempRelationSql(wsdbpool, '15652963154').addCallback(testResult).addErrback(testResult)
+    deleteSosnumberSql(wsdbpool, '1024', '+8615652963154', ).addCallback(testResult).addErrback(testResult)
+    deleteRelationSql(wsdbpool, 'alice', '0').addCallback(testResult).addErrback(testResult)
+    insertRelationSql(wsdbpool, 'alice', '3', 'batman').addCallback(testResult).addErrback(testResult)
+    selectSosnumberSql(wsdbpool, '1024').addCallback(testUtf).addErrback(testResult)
+    insertSosnumberSql(wsdbpool, '1024', '+8615652963154', '超人').addCallback(testResult).addErrback(testResult)
+    getLocationSql(wsdbpool, '4321', '1400000000000').addCallback(testResult).addErrback(testResult)
+    insertWsinfoSql(wsdbpool, '1984').addCallback(testResult).addErrback(testResult)
+    selectWsinfoSql(wsdbpool, '1984').addCallback(testResult).addErrback(testResult)
+    selectLocationSql(wsdbpool, '4321', '1400000000').addCallback(testResult).addErrback(testResult)
     '''
     reactor.run()

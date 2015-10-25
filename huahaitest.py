@@ -8,6 +8,7 @@ from twisted.web.client import Agent
 from twisted.web.iweb import IBodyProducer
 from zope.interface import implements
 from json import dumps
+import time
 
 
 class StringProducer(object):
@@ -32,6 +33,7 @@ class ResourcePrinter(Protocol):
         self.finished = finished
 
     def dataReceived(self, data):
+        #print time.time(), 'received data', data
         print data
 
     def connectionLost(self, reason):
@@ -42,40 +44,38 @@ def printResource(response):
     response.deliverBody(ResourcePrinter(finished))
     return finished
 
-def printError(failure):
-    print >> sys.stderr, failure
 
 def stop(result):
     reactor.stop()
 
-tcplocation = '3,123456789abcedf0,150930141223,23.12321W,87.22234N'
-tcpaddsos = '2,1024,+13456412345'
-tcpdelsos = '2,1024,-15652963154'
+tcplocation = '3,1024,150930141223,23.12321W,87.22234N'
+tcpaddsos = '2,98789,+12332112345'
+tcpdelsos = '2,98789,-12332112345'
 tcpimsi = '4,123456789abcedf0,123150930141223'
-tcpbind = '1,7878,11111111111,15882205392'
+tcpbind = '1,7878,1234567890,15882205392'
 
 
 
-gpsrequest = dumps({'imei': '7878', 'timestamp': '1400030032000'})
-bindrequest = dumps({'username': 'zod', 'simnum': '11111111111', 'name': '木头'})
+gpsrequest = dumps({'imei': '1024', 'timestamp': '1400030032000'})
+bindrequest = dumps({'username': 'zod', 'simnum': '1234567890', 'name': '拐杖'})
 imeirequest = dumps({'username': 'zod', 'simnum': '11111111111'})
-setsosrequest = dumps({'imei': '1024', 'adminpwd': '123456', 'contactentry': {'sosnumber': '13836435683', 'contact':'蝙蝠侠'}})
-delsosrequest = dumps({'imei': '1024', 'adminpwd': '123456', 'contactentry': {'sosnumber': '15652963154', 'contact':'蝙蝠侠'}})
-varifyadd = dumps({'imei': '1024', 'sosnumber': '13836435683'})
-varifydel = dumps({'imei': '1024', 'sosnumber': '15652963154'})
+setsosrequest = dumps({'imei': '98789', 'adminpwd': '123456', 'contactentry': {'sosnumber': '12332112345', 'contact':'蝙蝠侠'}})
+delsosrequest = dumps({'imei': '98789', 'adminpwd': '123456', 'contactentry': {'sosnumber': '12332112345', 'contact':'蝙蝠侠'}})
+varifyadd = dumps({'imei': '98789', 'sosnumber': '12332112345'})
+varifydel = dumps({'imei': '98789', 'sosnumber': '12332112345'})
 getsos = dumps({'imei': '1024'})
-updatepwd = dumps({'imei': '1324', 'adminpwd': '654321', 'newadminpwd': '123456'})
-register = dumps({'username': 'wonderwoman', 'password':'f'})
+updatepwd = dumps({'imei': '2048', 'adminpwd': '123456', 'newadminpwd': '223456'})
+register = dumps({'username': 'zod', 'password':'f'})
 login = dumps({'username': 'zod', 'password':'f'})
-upwd = dumps({'username': 'adice', 'password':'f', 'newpassword': 'g'})
-newname = dumps({'username': 'alice', 'imei': '1024', 'name': '绿巨人'})
+upwd = dumps({'username': 'wonderwoman', 'password':'f', 'newpassword': 'g'})
+newname = dumps({'username': 'zod', 'imei': '1024', 'name': '绿巨人'})
 getstick = dumps({'username': 'zod'})
-current = dumps({'username': 'alice', 'imei': '2012'})
-upload = dumps({'username': 'batman', 'sticks': [{'name': 'hull', 'imei': '1023'}, {'name': 'del', 'imei': '1023'}] })
+current = dumps({'username': 'zod', 'imei': '1024'})
+upload = dumps({'username': 'zod', 'sticks': [{'name': 'hull', 'imei': '1024'}, {'name': 'del', 'imei': '1023'}] })
+#upload = dumps({'username': 'zod', 'sticks': [] })
 getcoderequest = dumps({'username': 'alice', 'imei': '1024'})
 
 host = 'http://huahai:8082/api'
-uploadaddress = host + '/user?action=uploadsticks'
 gpsaddress = host + '/gps?action=getuserlocation'
 bindaddress = host + '/stick?action=bind'
 imeiaddress = host + '/stick?action=getimei'
@@ -93,6 +93,7 @@ newnameaddress = host + '/user?action=setstickname'
 getsticksaddress = host + '/user?action=getsticks'
 getcodeaddress = host + '/stick?action=getverifycode'
 getbycodeaddress = host + '/stick?action=getimeibycode'
+uploadaddress = host + '/user?action=uploadsticks'
 
 agent = Agent(reactor)
 
@@ -102,9 +103,13 @@ def printResource(response):
     return finished
 
 def printError(failure):
-    print >> sys.stderr, failure
+    import os
+    print  failure
+    #os.system('twistd -y init.py')
+    print 'SERVE　RESTARTED'
 
 def stop(result):
+   # print time.time(), '\treactor stop'
     reactor.stop()
 
 def makeTest(request, address):
@@ -141,6 +146,30 @@ def testTcp(message):
         print >> sys.stdout, 'CLOSING SOCKET'
         sock.close()
 
+def multiTest():
+    try:
+        server_address = ('huahai', 8081)
+        sock1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock1.connect(server_address)
+        sock2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock2.connect(server_address)
+
+        location1 = '3,1024,150930141223,23.a12321,87.2b2234'
+        location2 = '3,1024,150930141223,23.12321W,87.22234N'
+        data1 = sock1.recv(96)
+        data2 = sock1.recv(96)
+        
+        print >> sys.stdout, 'RECEIVED: %s' % data1
+        print >> sys.stdout, 'RECEIVED: %s' % data2
+    finally:
+        print >> sys.stdout, 'CLOSING SOCKET'
+        sock1.close()
+        sock2.close()
+
+if sys.argv[1] == 'multi':
+    multiTest()
+
+
 if sys.argv[1] == 'gps':
     makeTest(gpsrequest, gpsaddress)
 if sys.argv[1] == 'bind':
@@ -168,11 +197,16 @@ if sys.argv[1] == 'register':
 if sys.argv[1] == 'current':
     makeTest(current, currentaddress)
 if sys.argv[1] == 'login':
-    makeTest(login, loginaddress)
+    try:
+        makeTest(login, loginaddress)
+    except Exception, e:
+        print 'Server gone away, err msg: ', e
 if sys.argv[1] == 'upwd':
     makeTest(upwd, upwdaddress)
 if sys.argv[1] == 'newname':
     makeTest(newname, newnameaddress)
+if sys.argv[1] == 'upload':
+    makeTest(upload, uploadaddress)
 if sys.argv[1] == 'getstick':
     makeTest(getstick, getsticksaddress)
 if sys.argv[1] == 'tcpimsi':
@@ -186,16 +220,30 @@ if sys.argv[1] == 'getcode':
 if sys.argv[1] == 'getbycode':
     makeTest(dumps({'code': str(sys.argv[2])}), getbycodeaddress)
 
-if sys.argv[1] == 'asynchro':
+if sys.argv[1] == 'gpspage':
     requests = list()
+    for i in xrange(300):
+        requests.append(register)
+        requests.append(gpsrequest)
+        requests.append(current)
+    '''
+    requests.append(upload)
+    requests.append(getstick)
     requests.append(login)
     requests.append(gpsrequest)
-    requests.append(getstick)
+    requests.append(current)
+    requests.append(getsos)
+    '''
     addresses = list()
-    addresses.append(loginaddress)
+    for i in xrange(300):
+        addresses.append(registeraddress)
+        addresses.append(gpsaddress)
+        addresses.append(currentaddress)
+    '''
     addresses.append(gpsaddress)
-    addresses.append(getsticksaddress)
+    addresses.append(currentaddress)
+    addresses.append(getsosaddress)
+    addresses.append(loginaddress)
+    '''
     asynchroTest(requests, addresses)
 
-if sys.argv[1] == 'upload':
-    makeTest(upload, uploadaddress)

@@ -6,7 +6,7 @@ from twisted.web.server import Site, NOT_DONE_YET
 import cgi
 from appServerCommon import onError, resultValue
 from sqlhelper import *
-from sqlPool import dbpool
+from sqlPool import wsdbpool
 
 
 class SosPage(Resource): 
@@ -33,7 +33,7 @@ class SosPage(Resource):
             d = defer.Deferred()
             d.callback('402')
             return d
-        return insertTempSosSql(dbpool, imei=payload['imei'], sosnumber=payload['contactentry']['sosnumber'], contact=payload['contactentry']['contact'])
+        return insertTempSosSql(wsdbpool, imei=payload['imei'], sosnumber=payload['contactentry']['sosnumber'], contact=payload['contactentry']['contact'])
     
     def updatePwd(self, result, payload):
         if len(result) == 0:
@@ -44,7 +44,7 @@ class SosPage(Resource):
             d = defer.Deferred()
             d.callback('402')
             return d
-        return updateWsinfoPwdSql(dbpool, imei=payload['imei'], adminpwd=payload['newadminpwd'])
+        return updateWsinfoPwdSql(wsdbpool, imei=payload['imei'], adminpwd=payload['newadminpwd'])
     
     def varifySos(self, result, request):
         if len(result) == 0:
@@ -80,7 +80,7 @@ class SosPage(Resource):
         if request.args['action'] == ['addnumber']:
             if payload['imei'] == '0' or len(payload['imei']) == '0' or len(payload['contactentry']['sosnumber']) == 0 or payload['contactentry']['sosnumber'] == '0':
                 return resultValue(300)
-            d = selectWsinfoSql(dbpool, payload['imei']).addCallback(self.varifyPwd, payload)
+            d = selectWsinfoSql(wsdbpool, payload['imei']).addCallback(self.varifyPwd, payload)
             d.addCallback(self.onSetResult, request)
             d.addErrback(onError)
             return NOT_DONE_YET
@@ -88,7 +88,7 @@ class SosPage(Resource):
         if request.args['action'] == ['delnumber']:
             if payload['imei'] == '0' or len(payload['imei'])== '0' or len(payload['contactentry']['sosnumber']) == 0 or payload['contactentry']['sosnumber'] == '0':
                 return resultValue(300)
-            d = selectWsinfoSql(dbpool, payload['imei']).addCallback(self.varifyPwd, payload)
+            d = selectWsinfoSql(wsdbpool, payload['imei']).addCallback(self.varifyPwd, payload)
             d.addCallback(self.onSetResult, request)
             d.addErrback(onError)
             return NOT_DONE_YET
@@ -96,7 +96,7 @@ class SosPage(Resource):
         if request.args['action'] == ['varifyadd']:
             if payload['imei'] == '0' or len(payload['imei']) == '0' or len(payload['sosnumber']) == 0 or payload['sosnumber'] == '0':
                 return resultValue(300)
-            d = checkSosnumberSql(dbpool, payload['imei'], payload['sosnumber'])
+            d = checkSosnumberSql(wsdbpool, payload['imei'], payload['sosnumber'])
             d.addCallback(self.varifySos, request)
             d.addErrback(onError)
             return NOT_DONE_YET
@@ -104,13 +104,13 @@ class SosPage(Resource):
         if request.args['action'] == ['varifydel']:
             if payload['imei'] == '0' or len(payload['imei'] )== '0' or len(payload['sosnumber']) == 0 or payload['sosnumber'] == '0':
                 return resultValue(300)
-            d = checkSosnumberSql(dbpool, payload['imei'], payload['sosnumber'])
+            d = checkSosnumberSql(wsdbpool, payload['imei'], payload['sosnumber'])
             d.addCallback(self.varifyDel, request, payload)
             d.addErrback(onError)
             return NOT_DONE_YET
 
         if request.args['action'] == ['getnumber']:
-            d = selectSosnumberSql(dbpool, payload['imei'])
+            d = selectSosnumberSql(wsdbpool, payload['imei'])
             d.addCallback(self.onGetsos, request)
             d.addErrback(onError)
             return NOT_DONE_YET
@@ -118,7 +118,7 @@ class SosPage(Resource):
         if request.args['action'] == ['updatepassword']:
             if payload['imei'] == '0' or len(payload['imei']) == '0' or len(payload['newadminpwd']) == 0:
                 return resultValue(300)
-            d = selectWsinfoSql(dbpool, payload['imei']).addCallback(self.updatePwd, payload)
+            d = selectWsinfoSql(wsdbpool, payload['imei']).addCallback(self.updatePwd, payload)
             d.addCallback(self.onSetResult, request)
             d.addErrback(onError)
             return NOT_DONE_YET

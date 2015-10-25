@@ -6,7 +6,7 @@ from twisted.web.server import Site, NOT_DONE_YET
 import cgi
 from appServerCommon import onError, resultValue
 from sqlhelper import *
-from sqlPool import dbpool
+from sqlPool import wsdbpool
 
 
 class UserPage(Resource):
@@ -18,7 +18,7 @@ class UserPage(Resource):
             d.callback('400')
             return d
         else:
-            return insertUserSql(dbpool, username=payload['username'], passwd=payload['password'])
+            return insertUserSql(wsdbpool, username=payload['username'], passwd=payload['password'])
 
     def onResult(self, result, request):
         if result in ['400', '401', '402', '403', '404']:
@@ -42,9 +42,9 @@ class UserPage(Resource):
             d.callback('402')
             return d
         if request.args['action'] == ['login']:
-            return selectLoginInfoSql(dbpool, payload['username'])
+            return selectLoginInfoSql(wsdbpool, payload['username'])
         if request.args['action'] == ['updatepassword']:
-            return UpdateUserPasswordSql(dbpool, username=payload['username'], newpassword=payload['newpassword'])
+            return UpdateUserPasswordSql(wsdbpool, username=payload['username'], newpassword=payload['newpassword'])
 
     def onRegister(self, result, request):
         if str(result) == '400':
@@ -59,7 +59,7 @@ class UserPage(Resource):
         if len(result) == 0:
             return '403'
         else:
-            return updateStickNameSql(dbpool, username=payload['username'], imei=payload['imei'], name=payload['name'])
+            return updateStickNameSql(wsdbpool, username=payload['username'], imei=payload['imei'], name=payload['name'])
 
 
     def onGetSticks(self, result, request):
@@ -92,7 +92,7 @@ class UserPage(Resource):
                 return resultValue(300)
             if len(payload['username']) == 0 or len(payload['password']) == 0:
                 return resultValue(300)
-            d = selectUserSql(dbpool, payload['username']).addCallback(self.checkUser, payload)
+            d = selectUserSql(wsdbpool, payload['username']).addCallback(self.checkUser, payload)
             d.addCallback(self.onRegister, request)
             d.addErrback(onError)
             return NOT_DONE_YET
@@ -102,7 +102,7 @@ class UserPage(Resource):
                 return resultValue(300)
             if len(payload['username']) == 0 or len(payload['password']) == 0:
                 return resultValue(300)
-            d = selectUserSql(dbpool, payload['username']).addCallback(self.onLogin, request, payload).addCallback(self.onResult, request)
+            d = selectUserSql(wsdbpool, payload['username']).addCallback(self.onLogin, request, payload).addCallback(self.onResult, request)
             d.addErrback(onError)
             return NOT_DONE_YET
         if request.args['action'] == ['updatepassword']:
@@ -110,7 +110,7 @@ class UserPage(Resource):
                 return resultValue(300)
             if len(payload['username']) == 0 or len(payload['newpassword']) == 0:
                 return resultValue(300)
-            d = selectUserSql(dbpool, payload['username']).addCallback(self.onLogin, request, payload).addCallback(self.onResult, request)
+            d = selectUserSql(wsdbpool, payload['username']).addCallback(self.onLogin, request, payload).addCallback(self.onResult, request)
             d.addErrback(onError)
             return NOT_DONE_YET
 
@@ -119,7 +119,7 @@ class UserPage(Resource):
                 return resultValue(300)
             if len(payload['username']) == 0 or len(payload['name']) == 0 or len(payload['imei']) == 0:
                 return resultValue(300)
-            d = selectRelationByImeiSql(dbpool, payload['username'], payload['imei']).addCallback(self.onChangeName, payload)
+            d = selectRelationByImeiSql(wsdbpool, payload['username'], payload['imei']).addCallback(self.onChangeName, payload)
             d.addCallback(self.onResult, request)
             d.addErrback(onError)
             return NOT_DONE_YET
@@ -127,7 +127,7 @@ class UserPage(Resource):
         if request.args['action'] == ['getsticks']:
             if 'username' not in payload:
                 return resultValue(300)
-            d = selectRelationSql(dbpool, payload['username'])
+            d = selectRelationSql(wsdbpool, payload['username'])
             d.addCallback(self.onGetSticks, request)
             d.addErrback(onError)
             return NOT_DONE_YET
@@ -141,7 +141,7 @@ class UserPage(Resource):
                 if len(s['name']) == 0 or len(s['imei']) == 0:
                     return resultValue(300)
 
-            d = handleUploadSql(dbpool, payload)
+            d = handleUploadSql(wsdbpool, payload)
             d.addCallback(self.onUpload, request)
             d.addErrback(onError)
             return NOT_DONE_YET

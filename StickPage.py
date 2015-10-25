@@ -6,7 +6,7 @@ from twisted.web.server import Site, NOT_DONE_YET
 import cgi
 from appServerCommon import onError, resultValue
 from sqlhelper import *
-from sqlPool import dbpool
+from sqlPool import wsdbpool
 
 
 
@@ -53,14 +53,14 @@ class StickPage(Resource):
         if request.args['action'] == ['bind']:
             if len(payload['username'])==0 or len(payload['simnum'])==0 or len(payload['name'])==0:
                 return resultValue(300)
-            d = insertTempRelationSql(dbpool, simnum=payload['simnum'], username=payload['username'], name=payload['name'])
+            d = insertTempRelationSql(wsdbpool, simnum=payload['simnum'], username=payload['username'], name=payload['name'])
             d.addCallback(self.onBindResult, request)
             d.addErrback(onError)
             return NOT_DONE_YET
         if request.args['action'] == ['getimei']:
             if len(payload['username'])==0 or len(payload['simnum'])==0:
                 return resultValue(300)
-            d = selectRelationByUsernameSimnumSql(dbpool, payload['username'], payload['simnum'])
+            d = selectRelationByUsernameSimnumSql(wsdbpool, payload['username'], payload['simnum'])
             d.addCallback(self.onImeiResult, request)
             d.addErrback(onError)
             return NOT_DONE_YET
@@ -68,7 +68,7 @@ class StickPage(Resource):
         if request.args['action'] == ['setcurrentimei']:
             if len(payload['imei']) == 0 or len(payload['username']) == 0:
                 return resultValue(300)
-            d = handleCurrentWsSql(dbpool, payload['username'], payload['imei'])
+            d = handleCurrentWsSql(wsdbpool, payload['username'], payload['imei'])
             d.addCallback(self.onCurrentImei, request)
             d.addErrback(onError)
             return NOT_DONE_YET
@@ -76,13 +76,13 @@ class StickPage(Resource):
         if request.args['action'] == ['getverifycode']:
             if len(payload['imei']) == 0 or len(payload['username']) == 0:
                 return resultValue(300)
-            d = createVefiryCodeSql(dbpool, payload['imei'])
+            d = createVefiryCodeSql(wsdbpool, payload['imei'])
             d.addCallback(self.onGetCode, request, payload)
             d.addErrback(onError)
             return NOT_DONE_YET
 
         if request.args['action'] == ['getimeibycode']:
-            d = getImeiByCodeSql(dbpool, payload['code'])
+            d = getImeiByCodeSql(wsdbpool, payload['code'])
             d.addCallback(self.onGetImei, request)
             d.addErrback(onError)
             return NOT_DONE_YET

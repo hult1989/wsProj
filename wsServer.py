@@ -10,7 +10,7 @@ SQLUSER = 'tanghao'
 PASSWORD = '123456'
 
 
-def insertLocation(dbpool, message):
+def insertLocation(wsdbpool, message):
     message = message.split(',')
     imei = str(message[1]).strip()
     timestamp = '20'+ message[2].strip()
@@ -20,7 +20,7 @@ def insertLocation(dbpool, message):
         longitude = '-' + longitude
     if (message[4][-1] == 's') or (message[4][-1] == 'S'):
         latitude = '-' + latitude
-    return insertLocationSql(dbpool, imei, longitude, latitude,  timestamp)
+    return insertLocationSql(wsdbpool, imei, longitude, latitude,  timestamp)
 
 
 
@@ -28,7 +28,7 @@ def insertLocation(dbpool, message):
 class WsServer(protocol.Protocol):
     def __init__(self, factory):
         self.factory = factory
-        #log.msg('in wsServer, dbpool id: ' + str(id(self.factory.dbpool)))
+        #log.msg('in wsServer, wsdbpool id: ' + str(id(self.factory.wsdbpool)))
     
     def onError(self, failure, transport, message):
         log.msg(failure)
@@ -45,27 +45,27 @@ class WsServer(protocol.Protocol):
         log.msg(message)
         #this is ok becase protocol is instantiated for each connection, so it won't has confusion
         if message[0] == '1':
-            handleBindSql(self.factory.dbpool, message).addCallbacks(self.onSuccess, self.onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
+            handleBindSql(self.factory.wsdbpool, message).addCallbacks(self.onSuccess, self.onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
         if message[0] == '2':
-            handleSosSql(self.factory.dbpool, message).addCallbacks(self.onSuccess, self.onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
+            handleSosSql(self.factory.wsdbpool, message).addCallbacks(self.onSuccess, self.onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
         if message[0] == '3':
-            insertLocation(self.factory.dbpool, message).addCallbacks(self.onSuccess, self.onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
+            insertLocation(self.factory.wsdbpool, message).addCallbacks(self.onSuccess, self.onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
         if message[0] == '4':
-            handleImsiSql(self.factory.dbpool, message).addCallbacks(self.onSuccess, self.onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
+            handleImsiSql(self.factory.wsdbpool, message).addCallbacks(self.onSuccess, self.onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
 
 
 
 class WsServerFactory(protocol.Factory):
-    def __init__(self, dbpool):
-        self.dbpool = dbpool
+    def __init__(self, wsdbpool):
+        self.wsdbpool = wsdbpool
 
     def buildProtocol(self, addr):
         return WsServer(self)
 
 if __name__ == '__main__':
-    from sqlPool import dbpool
+    from sqlPool import wsdbpool
     from sys import stdout
-    #dbpool = adbapi.ConnectionPool("MySQLdb", db="wsdb", user='tanghao', passwd='123456')
+    #wsdbpool = adbapi.ConnectionPool("MySQLdb", db="wsdb", user='tanghao', passwd='123456')
     log.startLogging(stdout)
     reactor.listenTCP(8081, WsServerFactory())
     reactor.run()

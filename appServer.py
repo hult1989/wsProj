@@ -26,7 +26,7 @@ class LocationPage(Resource):
     def render_POST(self, request):
         self.request = request
         imei = str(cgi.escape(request.args["imei"][0]))
-        dbpool.runQuery('select * from location where imei = %s', (imei,)).addCallbacks(self.onSuccess, self.onError)
+        wsdbpool.runQuery('select * from location where imei = %s', (imei,)).addCallbacks(self.onSuccess, self.onError)
         return NOT_DONE_YET
         
     def onSuccess(self, location):
@@ -65,7 +65,7 @@ class NumberPage(Resource):
     def render_POST(self, request):
         self.request = request
         imei = str(cgi.escape(request.args["imei"][0]))
-        dbpool.runQuery('select * from sosnumber where imei = %s', (imei,)).addCallbacks(self.onSuccess, self.onError)
+        wsdbpool.runQuery('select * from sosnumber where imei = %s', (imei,)).addCallbacks(self.onSuccess, self.onError)
         return NOT_DONE_YET
         
     def onSuccess(self, numbers):
@@ -104,7 +104,7 @@ class WsinfoPage(Resource):
     def render_POST(self, request):
         self.request = request
         imei = str(cgi.escape(request.args["imei"][0]))
-        dbpool.runQuery('select * from wsinfo where imei = %s', (imei,)).addCallbacks(self.onSuccess, self.onError)
+        wsdbpool.runQuery('select * from wsinfo where imei = %s', (imei,)).addCallbacks(self.onSuccess, self.onError)
         return NOT_DONE_YET
         
     def onSuccess(self, numbers):
@@ -124,7 +124,7 @@ class WsinfoPage(Resource):
         log.msg(str(error))
 
 
-from sqlPool import dbpool
+from sqlPool import wsdbpool
 from GpsPage import gpsPage
 from StickPage import stickPage
 from SosPage import sosPage
@@ -146,8 +146,8 @@ mainPage.putChild('wsinfo', WsinfoPage())
 
 
 if __name__ == '__main__':
-    #dbpool = adbapi.ConnectionPool("MySQLdb", db="wsdb", user='tanghao', passwd='123456')
-    #dbpool = adbapi.ConnectionPool("MySQLdb", db="wsdb", user='tanghao', passwd='123456', unix_socket='/tmp/mysql.sock')
+    #wsdbpool = adbapi.ConnectionPool("MySQLdb", db="wsdb", user='tanghao', passwd='123456')
+    #wsdbpool = adbapi.ConnectionPool("MySQLdb", db="wsdb", user='tanghao', passwd='123456', unix_socket='/tmp/mysql.sock')
 
     #log.startLogging(open('app.log', 'w'))
     from sys import stdout
