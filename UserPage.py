@@ -85,8 +85,11 @@ class UserPage(Resource):
 
     def render_POST(self, request):
         payload = eval(request.content.read())
+        log.msg(str(payload))
 
         if request.args['action'] == ['register']:
+            if 'username' not in payload or 'password' not in payload:
+                return resultValue(300)
             if len(payload['username']) == 0 or len(payload['password']) == 0:
                 return resultValue(300)
             d = selectUserSql(dbpool, payload['username']).addCallback(self.checkUser, payload)
@@ -95,12 +98,16 @@ class UserPage(Resource):
             return NOT_DONE_YET
 
         if request.args['action'] == ['login']:
+            if 'username' not in payload or 'password' not in payload:
+                return resultValue(300)
             if len(payload['username']) == 0 or len(payload['password']) == 0:
                 return resultValue(300)
             d = selectUserSql(dbpool, payload['username']).addCallback(self.onLogin, request, payload).addCallback(self.onResult, request)
             d.addErrback(onError)
             return NOT_DONE_YET
         if request.args['action'] == ['updatepassword']:
+            if 'username' not in payload or 'password' not in payload or 'newpassword' not in payload:
+                return resultValue(300)
             if len(payload['username']) == 0 or len(payload['newpassword']) == 0:
                 return resultValue(300)
             d = selectUserSql(dbpool, payload['username']).addCallback(self.onLogin, request, payload).addCallback(self.onResult, request)
@@ -108,6 +115,8 @@ class UserPage(Resource):
             return NOT_DONE_YET
 
         if request.args['action'] == ['setstickname']:
+            if 'username' not in payload or 'imei' not in payload or 'name' not in payload:
+                return resultValue(300)
             if len(payload['username']) == 0 or len(payload['name']) == 0 or len(payload['imei']) == 0:
                 return resultValue(300)
             d = selectRelationByImeiSql(dbpool, payload['username'], payload['imei']).addCallback(self.onChangeName, payload)
@@ -116,12 +125,16 @@ class UserPage(Resource):
             return NOT_DONE_YET
 
         if request.args['action'] == ['getsticks']:
+            if 'username' not in payload:
+                return resultValue(300)
             d = selectRelationSql(dbpool, payload['username'])
             d.addCallback(self.onGetSticks, request)
             d.addErrback(onError)
             return NOT_DONE_YET
 
         if request.args['action'] == ['uploadsticks']:
+            if 'username' not in payload or 'sticks' not in payload:
+                return resultValue(300)
             if len(payload['username']) == 0 or len(payload['sticks']) == 0:
                 return resultValue(300)
             for s in payload['sticks']:

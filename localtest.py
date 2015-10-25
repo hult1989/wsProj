@@ -71,8 +71,8 @@ upwd = dumps({'username': 'wonderwoman', 'password':'f', 'newpassword': 'g'})
 newname = dumps({'username': 'zod', 'imei': '1024', 'name': '绿巨人'})
 getstick = dumps({'username': 'zod'})
 current = dumps({'username': 'zod', 'imei': '1024'})
-#upload = dumps({'username': 'zod', 'sticks': [{'name': 'hull', 'imei': '1024'}, {'name': 'del', 'imei': '1023'}] })
-upload = dumps({'username': 'zod', 'sticks': [] })
+upload = dumps({'username': 'zod', 'sticks': [{'name': 'hull', 'imei': '1024'}, {'name': 'del', 'imei': '1023'}] })
+#upload = dumps({'username': 'zod', 'sticks': [] })
 getcoderequest = dumps({'username': 'alice', 'imei': '1024'})
 
 host = 'http://localhost:8082/api'
