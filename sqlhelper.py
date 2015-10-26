@@ -29,8 +29,22 @@ def _handleRegisterUpload(txn, payload):
     return True
 
 
+def handleSubscribeByCodeSql(wsdbpool, payload):
+    return wsdbpool.runInteraction(_handleSubscribeByCode, payload)
 
-
+def _handleSubscribeByCode(txn, payload):
+    imei = _getImeiByCode(txn, payload['code'])
+    if imei == 0:
+        return 0
+    print 'code is: ', payload['code'], 'imei is: ', imei
+    #user didn't regist before and just want to get imei
+    txn.execute('select simnum from wsinfo where imei = %s', (imei,))
+    simnum = txn.fetchall()[0][0]
+    print 'simnum is: ', simnum
+    if 'username' in payload:
+        txn.execute('update user_ws set isdefault = 0 where username = %s', (str(payload['username']),))
+        txn.execute('replace into user_ws(username, imei, name, isdefault) values(%s, %s, %s, 1)', (str(payload['username']), imei, str(payload['name'])))
+    return (str(imei), str(simnum))
 
 
 

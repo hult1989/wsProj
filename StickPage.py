@@ -46,6 +46,15 @@ class StickPage(Resource):
             request.write(dumps({'result': '1', 'imei': str(result)}))
         request.finish()
 
+    def onSubscribe(self, result, request):
+        log.msg(str(result) + str(request))
+        if result == 0:
+            request.write(resultValue(601))
+        else:
+            request.write(dumps({'result': '1', 'imei': result[0], 'simnum': result[1]}))
+        request.finish()
+
+
     def render_POST(self, request):
 
         payload = eval(request.content.read())
@@ -86,5 +95,14 @@ class StickPage(Resource):
             d.addCallback(self.onGetImei, request)
             d.addErrback(onError)
             return NOT_DONE_YET
+
+        if request.args['action'] == ['subscribebycode']:
+            if len(payload['code']) == 0:
+                return resultValue(300)
+            handleSubscribeByCodeSql(wsdbpool, payload).addCallbacks(self.onSubscribe, onError, callbackArgs=(request,))
+            return NOT_DONE_YET
+
+            
+
 
 stickPage = StickPage()

@@ -75,7 +75,7 @@ upload = dumps({'username': 'zod', 'sticks': [{'name': 'hull', 'imei': '1024'}, 
 #rurequest = dumps({'username': 'zox', 'password': 'f', 'sticks': [{'name': 'hull', 'imei': '1024'}, {'name': 'del', 'imei': '1023'}] })
 rurequest = dumps({'username': 'zoo', 'password':'f'})
 #upload = dumps({'username': 'zod', 'sticks': [] })
-getcoderequest = dumps({'username': 'alice', 'imei': '1024'})
+getcoderequest = dumps({'username': 'alice', 'imei': '98789'})
 
 host = 'http://localhost:8082/api'
 gpsaddress = host + '/gps?action=getuserlocation'
@@ -97,6 +97,7 @@ getcodeaddress = host + '/stick?action=getverifycode'
 getbycodeaddress = host + '/stick?action=getimeibycode'
 uploadaddress = host + '/user?action=uploadsticks'
 ruaddress = host + '/user?action=registerandupload'
+subaddress = host + '/stick?action=subscribebycode'
 
 
 agent = Agent(reactor)
@@ -172,6 +173,11 @@ def multiTest():
 
 if sys.argv[1] == 'multi':
     multiTest()
+
+if sys.argv[1] == 'sub':
+    code = sys.argv[2]
+    subrequest = dumps({'username': 'hulk', 'name': 'needle', 'code': str(code)})
+    makeTest(subrequest, subaddress)
 
 if sys.argv[1] == 'ru':
     makeTest(rurequest, ruaddress)
