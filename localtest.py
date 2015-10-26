@@ -48,7 +48,7 @@ def printResource(response):
 def stop(result):
     reactor.stop()
 
-tcplocation = '3,1024,150930141223,23.12321W,87.22234N'
+tcplocation = '3,1024,150930141223,23.12321W,87.22234N,2623,0e92'
 tcpaddsos = '2,98789,+12332112345'
 tcpdelsos = '2,98789,-12332112345'
 tcpimsi = '4,123456789abcedf0,123150930141223'
@@ -72,6 +72,8 @@ newname = dumps({'username': 'zod', 'imei': '1024', 'name': '绿巨人'})
 getstick = dumps({'username': 'zod'})
 current = dumps({'username': 'zod', 'imei': '1024'})
 upload = dumps({'username': 'zod', 'sticks': [{'name': 'hull', 'imei': '1024'}, {'name': 'del', 'imei': '1023'}] })
+#rurequest = dumps({'username': 'zox', 'password': 'f', 'sticks': [{'name': 'hull', 'imei': '1024'}, {'name': 'del', 'imei': '1023'}] })
+rurequest = dumps({'username': 'zoo', 'password':'f'})
 #upload = dumps({'username': 'zod', 'sticks': [] })
 getcoderequest = dumps({'username': 'alice', 'imei': '1024'})
 
@@ -94,6 +96,8 @@ getsticksaddress = host + '/user?action=getsticks'
 getcodeaddress = host + '/stick?action=getverifycode'
 getbycodeaddress = host + '/stick?action=getimeibycode'
 uploadaddress = host + '/user?action=uploadsticks'
+ruaddress = host + '/user?action=registerandupload'
+
 
 agent = Agent(reactor)
 
@@ -169,6 +173,8 @@ def multiTest():
 if sys.argv[1] == 'multi':
     multiTest()
 
+if sys.argv[1] == 'ru':
+    makeTest(rurequest, ruaddress)
 
 if sys.argv[1] == 'gps':
     makeTest(gpsrequest, gpsaddress)

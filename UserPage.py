@@ -83,6 +83,13 @@ class UserPage(Resource):
             request.write(resultValue(403))
         request.finish()
 
+    def onRegisterUpload(self, result, request):
+        if result == True:
+            request.write(resultValue(1))
+        elif result == 400:
+            request.write(resultValue(400))
+        request.finish()
+
     def render_POST(self, request):
         payload = eval(request.content.read())
         log.msg(str(payload))
@@ -96,6 +103,17 @@ class UserPage(Resource):
             d.addCallback(self.onRegister, request)
             d.addErrback(onError)
             return NOT_DONE_YET
+        if request.args['action'] == ['registerandupload']:
+            if 'username' not in payload or 'password' not in payload:
+                return resultValue(300)
+            if 'sticks' in payload:
+                for s in payload['sticks']:
+                    if len(s['name']) == 0 or len(s['imei']) == 0:
+                        return resultValue(300)
+            handleRegisterandUploadSql(wsdbpool, payload).addCallbacks(self.onRegisterUpload, onError, callbackArgs=(request,))
+            return NOT_DONE_YET
+            
+
 
         if request.args['action'] == ['login']:
             if 'username' not in payload or 'password' not in payload:

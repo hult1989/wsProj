@@ -9,6 +9,41 @@ import random
 SQLUSER = 'tanghao'
 PASSWORD = '123456'
 
+
+def handleRegisterandUploadSql(wsdbpool, payload):
+    return wsdbpool.runInteraction(_handleRegisterUpload, payload)
+
+def _handleRegisterUpload(txn, payload):
+    #check if user already exists
+    txn.execute('select * from userinfo where username = %s', (str(payload['username']),))
+    if len(txn.fetchall()) != 0:
+        return 400
+    # register
+    txn.execute('replace into userinfo (username, password, date) values(%s, %s, curdate())', (payload['username'], payload['password']))
+
+    #if app do upload after register
+    if 'sticks' in payload:
+        for stick in payload['sticks']:
+            txn.execute('replace into user_ws (username, imei, name, isdefault) values (%s, %s, %s, "0")', (payload['username'], stick['imei'], stick['name']))
+        txn.execute('replace into user_ws (username, imei, name, isdefault) values (%s, %s, %s, "1")', (payload['username'], payload['sticks'][-1]['imei'], payload['sticks'][-1]['name']))
+    return True
+
+
+
+
+
+
+
+
+def insertBsLocationSql(bsdbpool, mcc, mnc, lac, cid, longitude, latitude):
+    return bsdbpool.runInteraction(_insertBsLocation, mcc, mnc, lac, cid, longitude, latitude)
+
+def _insertBsLocation(txn, mcc, mnc, lac, cid, longitude, latitude):
+    tableName = 'mcc' + str(mcc) + 'mnc' + str(mnc)
+    txn.execute('insert into ' + tableName + ' (lac, cid, longitude, latitude, date) values(%s, %s, %s, %s, curdate())', (lac, cid, float(longitude), float(latitude)))
+    return True
+
+
 def createVefiryCodeSql(wsdbpool, imei):
     return wsdbpool.runInteraction(_createVerifyCode, imei)
 
@@ -250,44 +285,9 @@ if __name__ == '__main__':
         reactor.stop()
 
     import sys
-    from sqlPool import wsdbpool
+    from sqlPool import wsdbpool, bsdbpool
     #wsdbpool = adbapi.ConnectionPool("MySQLdb", db="wsdb", user='tanghao', passwd='123456', unix_socket='/tmp/mysql.sock')
     #wsdbpool = adbapi.ConnectionPool("MySQLdb", db="wsdb", user='tanghao', passwd='123456')
-    print createTableSql(wsdbpool).addCallbacks(onSuccess, onError)
+    print insertBsLocationSql(bsdbpool, 460, '01', 123, 121, 1.11111, 2.22222).addCallbacks(onSuccess, onError)
 
-    '''
-    payload = dict()
-    payload['username'] = 'superman'
-    payload['sticks'] = list()
-    payload['sticks'].append({'name': 'alice', 'imei': '1024'})
-    payload['sticks'].append({'name': 'bob', 'imei': '2012'})
-    payload['sticks'].append({'name': 'cathy', 'imei': '2048'})
-
-    handleUploadSql(wsdbpool, payload).addCallbacks(onSuccess, onError)
-
-
-
-    selectRelationSql(wsdbpool, 'alice').addCallback(testResult).addErrback(testResult)
-    handleBindSql(wsdbpool, '1,2046,asdflkj,15652963154').addCallback(onSuccess).addErrback(onError)
-    selectUserSql(wsdbpool, 'batman').addCallback(testResult).addErrback(testResult)
-    insertLocationSql(wsdbpool, '4321', '23.1298733', '12.1198712', '20151010120012').addCallback(onSuccess).addErrback(onError)
-    if sys.argv[1] == 'insert':
-        insertTempSosSql(wsdbpool, '1024', '+8615652963154', '超人').addCallback(testResult).addErrback(testResult)
-    elif sys.argv[1] == 'delete':
-        deleteTempSosSql(wsdbpool, '1024', '+8615652963154').addCallback(testResult).addErrback(testResult)
-    else:
-
-    insertTempRelationSql(wsdbpool, '15652963154', 'alice').addCallback(testResult).addErrback(testResult)
-    selectTempRelationSql(wsdbpool, '15652963154').addCallback(testResult).addErrback(testResult)
-    deleteTempRelationSql(wsdbpool, '15652963154').addCallback(testResult).addErrback(testResult)
-    deleteSosnumberSql(wsdbpool, '1024', '+8615652963154', ).addCallback(testResult).addErrback(testResult)
-    deleteRelationSql(wsdbpool, 'alice', '0').addCallback(testResult).addErrback(testResult)
-    insertRelationSql(wsdbpool, 'alice', '3', 'batman').addCallback(testResult).addErrback(testResult)
-    selectSosnumberSql(wsdbpool, '1024').addCallback(testUtf).addErrback(testResult)
-    insertSosnumberSql(wsdbpool, '1024', '+8615652963154', '超人').addCallback(testResult).addErrback(testResult)
-    getLocationSql(wsdbpool, '4321', '1400000000000').addCallback(testResult).addErrback(testResult)
-    insertWsinfoSql(wsdbpool, '1984').addCallback(testResult).addErrback(testResult)
-    selectWsinfoSql(wsdbpool, '1984').addCallback(testResult).addErrback(testResult)
-    selectLocationSql(wsdbpool, '4321', '1400000000').addCallback(testResult).addErrback(testResult)
-    '''
     reactor.run()
