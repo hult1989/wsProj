@@ -67,5 +67,5 @@ if __name__ == '__main__':
     from sys import stdout
     #wsdbpool = adbapi.ConnectionPool("MySQLdb", db="wsdb", user='tanghao', passwd='123456')
     log.startLogging(stdout)
-    reactor.listenTCP(8081, WsServerFactory())
+    reactor.listenTCP(8081, WsServerFactory(wsdbpool))
     reactor.run()

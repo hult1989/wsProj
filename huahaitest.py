@@ -48,17 +48,17 @@ def printResource(response):
 def stop(result):
     reactor.stop()
 
-tcplocation = '3,1024,150930141223,23.12321W,87.22234N'
+tcplocation = '3,1024,150930141223,23.12321W,87.22234N,2623,0e92'
 tcpaddsos = '2,98789,+12332112345'
 tcpdelsos = '2,98789,-12332112345'
 tcpimsi = '4,123456789abcedf0,123150930141223'
-tcpbind = '1,7878,1234567890,15882205392'
+tcpbind = '1,9898,1234567890,15882205392'
 
 
 
 gpsrequest = dumps({'imei': '1024', 'timestamp': '1400030032000'})
-bindrequest = dumps({'username': 'zod', 'simnum': '1234567890', 'name': '拐杖'})
-imeirequest = dumps({'username': 'zod', 'simnum': '11111111111'})
+bindrequest = dumps({'username': 'zod', 'simnum': '1234567890', 'name': 'noogler'})
+imeirequest = dumps({'username': 'zod', 'simnum': '1234567890'})
 setsosrequest = dumps({'imei': '98789', 'adminpwd': '123456', 'contactentry': {'sosnumber': '12332112345', 'contact':'蝙蝠侠'}})
 delsosrequest = dumps({'imei': '98789', 'adminpwd': '123456', 'contactentry': {'sosnumber': '12332112345', 'contact':'蝙蝠侠'}})
 varifyadd = dumps({'imei': '98789', 'sosnumber': '12332112345'})
@@ -72,6 +72,7 @@ newname = dumps({'username': 'zod', 'imei': '1024', 'name': '绿巨人'})
 getstick = dumps({'username': 'zod'})
 current = dumps({'username': 'zod', 'imei': '1024'})
 upload = dumps({'username': 'zod', 'sticks': [{'name': 'hull', 'imei': '1024'}, {'name': 'del', 'imei': '1023'}] })
+rurequest = dumps({'username': 'zox', 'password': 'f', 'sticks': [{'name': 'hull', 'imei': '1024'}, {'name': 'del', 'imei': '1023'}] })
 #upload = dumps({'username': 'zod', 'sticks': [] })
 getcoderequest = dumps({'username': 'alice', 'imei': '1024'})
 
@@ -94,6 +95,8 @@ getsticksaddress = host + '/user?action=getsticks'
 getcodeaddress = host + '/stick?action=getverifycode'
 getbycodeaddress = host + '/stick?action=getimeibycode'
 uploadaddress = host + '/user?action=uploadsticks'
+ruaddress = host + '/user?action=registerandupload'
+subaddress = host + '/stick?action=subscribebycode'
 
 agent = Agent(reactor)
 
@@ -168,6 +171,14 @@ def multiTest():
 
 if sys.argv[1] == 'multi':
     multiTest()
+
+if sys.argv[1] == 'sub':
+    code = sys.argv[2]
+    subrequest = dumps({'username': 'hulk', 'name': 'needle', 'code': str(code)})
+    makeTest(subrequest, subaddress)
+
+if sys.argv[1] == 'ru':
+    makeTest(rurequest, ruaddress)
 
 
 if sys.argv[1] == 'gps':

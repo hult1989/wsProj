@@ -21,6 +21,7 @@ class UserPage(Resource):
             return insertUserSql(wsdbpool, username=payload['username'], passwd=payload['password'])
 
     def onResult(self, result, request):
+        log.msg(str(result))
         if result in ['400', '401', '402', '403', '404']:
             request.write(resultValue(result))
         elif type(result) == tuple and len(result) != 0:

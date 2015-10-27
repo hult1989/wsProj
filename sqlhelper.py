@@ -117,6 +117,7 @@ def _handleBind(txn, message):
     username = result[0][0]
     name = result[0][1]
     txn.execute('update userinfo set phone = %s where username = %s', (userphone, username))
+    txn.execute('update user_ws set isdefault = 0 where username = %s', (username,))
     txn.execute('replace into user_ws (username, imei, name, isdefault) values (%s, %s, %s, "1")', (username, imei, name))
     txn.execute('delete from temp_user_ws where simnum = %s', (simnum,))
     txn.execute('replace into wsinfo (imei, imsi, simnum, adminpwd) values (%s, "", %s, "123456")', (imei, simnum))
