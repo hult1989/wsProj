@@ -56,6 +56,8 @@ class SosPage(Resource):
     def varifyDel(self, result, request, payload):
         if len(result) == 0:
             request.write(dumps({'result':'1', 'sosnumber':payload['sosnumber']}))
+        else:
+            request.write(resultValue(501))
         request.finish()
 
     def onGetsos(self, result, request):
