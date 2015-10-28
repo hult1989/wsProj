@@ -60,6 +60,8 @@ class StickPage(Resource):
         payload = eval(request.content.read())
 
         if request.args['action'] == ['bind']:
+            if 'username' not in payload or 'simnum' not in payload or 'name' not in payload:
+                return resultValue(300)
             if len(payload['username'])==0 or len(payload['simnum'])==0 or len(payload['name'])==0:
                 return resultValue(300)
             d = insertTempRelationSql(wsdbpool, simnum=payload['simnum'], username=payload['username'], name=payload['name'])
@@ -67,6 +69,8 @@ class StickPage(Resource):
             d.addErrback(onError)
             return NOT_DONE_YET
         if request.args['action'] == ['getimei']:
+            if 'username' not in payload or 'simnum' not in payload:
+                return resultValue(300)
             if len(payload['username'])==0 or len(payload['simnum'])==0:
                 return resultValue(300)
             d = selectRelationByUsernameSimnumSql(wsdbpool, payload['username'], payload['simnum'])
@@ -75,6 +79,8 @@ class StickPage(Resource):
             return NOT_DONE_YET
 
         if request.args['action'] == ['setcurrentimei']:
+            if 'imei' not in payload or 'username' not in payload:
+                return resultValue(300)
             if len(payload['imei']) == 0 or len(payload['username']) == 0:
                 return resultValue(300)
             d = handleCurrentWsSql(wsdbpool, payload['username'], payload['imei'])
@@ -83,6 +89,8 @@ class StickPage(Resource):
             return NOT_DONE_YET
 
         if request.args['action'] == ['getverifycode']:
+            if 'imei' not in payload or 'username' not in payload:
+                return resultValue(300)
             if len(payload['imei']) == 0 or len(payload['username']) == 0:
                 return resultValue(300)
             d = createVefiryCodeSql(wsdbpool, payload['imei'])
@@ -91,12 +99,16 @@ class StickPage(Resource):
             return NOT_DONE_YET
 
         if request.args['action'] == ['getimeibycode']:
+            if 'code' not in payload or len(payload['code']) == 0:
+                return resultValue(300)
             d = getImeiByCodeSql(wsdbpool, payload['code'])
             d.addCallback(self.onGetImei, request)
             d.addErrback(onError)
             return NOT_DONE_YET
 
         if request.args['action'] == ['subscribebycode']:
+            if 'code' not in payload or len(payload['code']) == 0:
+                return resultValue(300)
             if len(payload['code']) == 0:
                 return resultValue(300)
             handleSubscribeByCodeSql(wsdbpool, payload).addCallbacks(self.onSubscribe, onError, callbackArgs=(request,))
