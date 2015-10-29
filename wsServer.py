@@ -37,6 +37,7 @@ def insertLocation(wsdbpool, message):
         latitude = 0 - latitude
     
     if longitude == 0 and latitude == 0:
+        #not insert into database
         d = defer.Deferred()
         d.callback(None)
         return d
@@ -54,12 +55,14 @@ class WsServer(protocol.Protocol):
     def onError(self, failure, transport, message):
         log.msg(failure)
         transport.write(''.join(("Result:", message[0], ',0')))
+        transport.loseConnection()
 
     def onSuccess(self, result, transport, message):
         if result == True or result == None or type(result) == tuple:
             transport.write(''.join(("Result:", message[0], ',1')))
         elif result == False:
             transport.write(''.join(("Result:", message[0], ',0')))
+        transport.loseConnection()
 
 
     def dataReceived(self, message):
@@ -67,6 +70,7 @@ class WsServer(protocol.Protocol):
         for m in message.split(','):
             if len(m) == 0:
                 self.transport.write(''.join(("Result:", message[0], ',0')))
+                self.transport.loseConnection()
                 return
 
         #this is ok becase protocol is instantiated for each connection, so it won't has confusion

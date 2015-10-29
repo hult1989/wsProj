@@ -1,2 +1,4 @@
-python wsServer.py &> ws.log 
-python appServer.py &> app.log 
+python init.py&
+python babysiter.py&
+tail -f server.log&
+

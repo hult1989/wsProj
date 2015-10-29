@@ -48,7 +48,7 @@ def printResource(response):
 def stop(result):
     reactor.stop()
 
-tcplocation = '3,1024,150930141223,2312.12321,8722.22234,2623,0e92'
+tcplocation = '3,1024,150930141223,0060.0000w,0006.0000s,2623,0e92'
 tcpaddsos = '2,98789,+12332112345'
 tcpdelsos = '2,98789,-12332112345'
 tcpimsi = '4,867715029555583,460002606774193'
