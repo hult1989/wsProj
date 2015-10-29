@@ -48,10 +48,10 @@ def printResource(response):
 def stop(result):
     reactor.stop()
 
-tcplocation = '3,1024,150930141223,23.12321W,87.22234N,2623,0e92'
+tcplocation = '3,1024,190930141223,0000.00000W,0000.000000N,2623,0e92'
 tcpaddsos = '2,98789,+12332112345'
 tcpdelsos = '2,98789,-12332112345'
-tcpimsi = '4,123456789abcedf0,123150930141223'
+tcpimsi = '4,,123150930141223'
 tcpbind = '1,7878,1234567890,15882205392'
 
 
@@ -159,8 +159,10 @@ def multiTest():
         sock2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock2.connect(server_address)
 
-        location1 = '3,1024,150930141223,23.a12321,87.2b2234'
+        location1 = '3,1025,150930141223,23.12321,87.22234'
         location2 = '3,1024,150930141223,23.12321W,87.22234N'
+        sock1.sendall(location1)
+        sock2.sendall(location2)
         data1 = sock1.recv(96)
         data2 = sock1.recv(96)
         

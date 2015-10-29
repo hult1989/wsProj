@@ -57,17 +57,17 @@ tcpbind = '1,4545,1234567890,15882205392'
 
 
 
-gpsrequest = dumps({'imei': '867715029635500', 'timestamp': '1400030032000'})
-bindrequest = dumps({'username': '金刚狼', 'simnum': '1234567890', 'name': '爪子'})
-imeirequest = dumps({'username': '金刚狼', 'simnum': '1234567890'})
+gpsrequest = dumps({'imei': '1024', 'timestamp': '1400030032000'})
+bindrequest = dumps({'username': 'zod', 'simnum': '1234567890', 'name': 'bookerr'})
+imeirequest = dumps({'username': 'zod', 'simnum': '1234567890'})
 setsosrequest = dumps({'imei': '98789', 'adminpwd': '123456', 'contactentry': {'sosnumber': '12332112345', 'contact':'蝙蝠侠'}})
 delsosrequest = dumps({'imei': '867715029551939', 'adminpwd': '123456', 'contactentry': {'sosnumber': '12332112345', 'contact':'蝙蝠侠'}})
 varifyadd = dumps({'imei': '98789', 'sosnumber': '12332112345'})
 varifydel = dumps({'imei': '867715029551939', 'sosnumber': '13243725267'})
 getsos = dumps({'imei': '1024'})
 updatepwd = dumps({'imei': '2048', 'adminpwd': '123456', 'newadminpwd': '223456'})
-register = dumps({'username': '金刚狼', 'password':'f'})
-login = dumps({'username': '金刚狼', 'password':'f'})
+register = dumps({'username': 'zod', 'password':'f'})
+login = dumps({'username': 'zod', 'password':'f'})
 upwd = dumps({'username': 'wonderwoman', 'password':'f', 'newpassword': 'g'})
 newname = dumps({'username': 'zod', 'imei': '1024', 'name': '绿巨人'})
 getstick = dumps({'username': 'zod'})
@@ -77,7 +77,7 @@ rurequest = dumps({'username': 'zox', 'password': 'f', 'sticks': [{'name': 'hull
 #upload = dumps({'username': 'zod', 'sticks': [] })
 getcoderequest = dumps({'username': 'alice', 'imei': '1024'})
 
-host = 'http://huahai:8082/api'
+host = 'http://ec2-54-191-111-179.us-west-2.compute.amazonaws.com:8082/api'
 gpsaddress = host + '/gps?action=getuserlocation'
 bindaddress = host + '/stick?action=bind'
 imeiaddress = host + '/stick?action=getimei'
@@ -138,7 +138,7 @@ def asynchroTest(requests, addresses):
 
 import socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server_address = ('huahai', 8081)
+server_address = ('ec2-54-191-111-179.us-west-2.compute.amazonaws.com', 8081)
 sock.connect(server_address)
 
 def testTcp(message):
@@ -152,7 +152,7 @@ def testTcp(message):
 
 def multiTest():
     try:
-        server_address = ('huahai', 8081)
+        server_address = ('ec2-54-191-111-179.us-west-2.compute.amazonaws.com', 8081)
         sock1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock1.connect(server_address)
         sock2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
