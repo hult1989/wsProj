@@ -12,10 +12,10 @@ import time
 from twisted.internet.task import LoopingCall
 
 import socket
-server_address = ('huahai', 8081)
+server_address = ('localhost', 8081)
 
 def testTcp():
-    tcplocation = '3,1024,150930141223,23.12321W,87.22234N'
+    tcplocation = '3,1024,150930141223,11123.12321W,2287.22234N,1212,2323'
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect(server_address)
