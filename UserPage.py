@@ -12,6 +12,16 @@ from sqlPool import wsdbpool
 class UserPage(Resource):
     isLeaf = True
 
+    def unSubSuccess(self, result, request, imei):
+        request.write(dumps({'imei': imei, 'result': '1'}))
+        request.finish()
+
+    def unSubError(self, failure, request, imei):
+        request.write(dumps({'imei': imei, 'result': str(failure.value.errCode)}))
+        request.finish()
+
+
+
     def checkUser(self, result, payload):
         if len(result) != 0:
             d = defer.Deferred()
@@ -162,6 +172,15 @@ class UserPage(Resource):
 
             d = handleUploadSql(wsdbpool, payload)
             d.addCallback(self.onUpload, request)
+            d.addErrback(onError)
+            return NOT_DONE_YET
+        
+        if request.args['action'] == ['unsubscribe']:
+            if 'username' not in payload or 'imei' not in payload:
+                return resultValue(300)
+            if len(payload['username']) == 0 or len(payload['imei']) == 0:
+                return resultValue(300)
+            d = handleUnsubscribeSql(wsdbpool, payload['username'], payload['imei']).addCallbacks(self.unSubSuccess, self.unSubError, callbackArgs=(request, payload['imei']), errbackArgs=(request, payload['imei']))
             d.addErrback(onError)
             return NOT_DONE_YET
 

@@ -76,6 +76,7 @@ upload = dumps({'username': 'zod', 'sticks': [{'name': 'hull', 'imei': '1024'}, 
 rurequest = dumps({'username': 'zoo', 'password':'f'})
 #upload = dumps({'username': 'zod', 'sticks': [] })
 getcoderequest = dumps({'username': 'alice', 'imei': '98789'})
+unsubrequest = dumps({'username': 'zod', 'imei': '1024'})
 
 host = 'http://localhost:8082/api'
 gpsaddress = host + '/gps?action=getuserlocation'
@@ -96,6 +97,7 @@ getsticksaddress = host + '/user?action=getsticks'
 getcodeaddress = host + '/stick?action=getverifycode'
 getbycodeaddress = host + '/stick?action=getimeibycode'
 uploadaddress = host + '/user?action=uploadsticks'
+unsubaddress = host + '/user?action=unsubscribe'
 ruaddress = host + '/user?action=registerandupload'
 subaddress = host + '/stick?action=subscribebycode'
 
@@ -183,6 +185,9 @@ if sys.argv[1] == 'sub':
 
 if sys.argv[1] == 'ru':
     makeTest(rurequest, ruaddress)
+
+if sys.argv[1] == 'unsub':
+    makeTest(unsubrequest, unsubaddress)
 
 if sys.argv[1] == 'gps':
     makeTest(gpsrequest, gpsaddress)

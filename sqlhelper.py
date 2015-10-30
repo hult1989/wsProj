@@ -5,9 +5,26 @@ from twisted.internet import reactor, defer
 from twisted.enterprise import adbapi
 from twisted.python import failure
 import random
+from appException import *
 
 SQLUSER = 'tanghao'
 PASSWORD = '123456'
+
+def handleUnsubscribeSql(wsdbpool, username, imei):
+    return wsdbpool.runInteraction(_handleUnsubscribe, username, imei)
+
+def _handleUnsubscribe(txn, username, imei):
+    txn.execute('select * from userinfo where username = %s', (username,))
+    if len(txn.fetchall()) == 0:
+        raise NoUserException
+    txn.execute('select * from wsinfo where imei = %s', (imei,))
+    if len(txn.fetchall()) == 0:
+        raise NoImeiException
+    txn.execute('select * from user_ws where username = %s and imei = %s', (username, imei))
+    if len(txn.fetchall()) == 0:
+        raise NoSubException
+    return txn.execute('delete from user_ws where username = %s and imei = %s', (username, imei))
+
 
 
 def handleRegisterandUploadSql(wsdbpool, payload):
@@ -296,13 +313,13 @@ if __name__ == '__main__':
         reactor.stop()
 
     def onError(failure):
-        print failure
+        print failure.value.errCode
         reactor.stop()
 
     import sys
     from sqlPool import wsdbpool, bsdbpool
     #wsdbpool = adbapi.ConnectionPool("MySQLdb", db="wsdb", user='tanghao', passwd='123456', unix_socket='/tmp/mysql.sock')
     #wsdbpool = adbapi.ConnectionPool("MySQLdb", db="wsdb", user='tanghao', passwd='123456')
-    print insertBsLocationSql(bsdbpool, 460, '01', 123, 121, 1.11111, 2.22222).addCallbacks(onSuccess, onError)
+    handleUnsubscribeSql(wsdbpool, 'alice', '1024').addCallbacks(onSuccess, onError)
 
     reactor.run()
