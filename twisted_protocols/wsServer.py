@@ -1,8 +1,8 @@
 # -*- coding:utf-8 -*-
+import time
 from twisted.python import log
 from twisted.internet import protocol, reactor, defer, threads
 from twisted.protocols import basic
-import time
 from twisted.enterprise import adbapi
 from sqlhelper import handleSosSql, handleBindSql, insertLocationSql, handleImsiSql
 

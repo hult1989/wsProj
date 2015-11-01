@@ -32,7 +32,7 @@ def finish():
     reactor.stop()
 
 if __name__ == '__main__':
-    log.startLogging(open('babysiter.log', 'w'))
+    log.startLogging(open('./log_file/babysiter.log', 'w'))
     LoopingCall(testTcp).start(600)
     reactor.run()
 

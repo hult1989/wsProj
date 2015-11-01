@@ -1,4 +1,4 @@
 python init.py&
 python babysiter.py&
-tail -f server.log&
+tail -f ./log_file/server.log&
 

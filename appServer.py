@@ -123,12 +123,11 @@ class WsinfoPage(Resource):
     def onError(self, error):
         log.msg(str(error))
 
-
 from sqlPool import wsdbpool
-from GpsPage import gpsPage
-from StickPage import stickPage
-from SosPage import sosPage
-from UserPage import userPage
+from twisted_protocols.GpsPage import gpsPage
+from twisted_protocols.StickPage import stickPage
+from twisted_protocols.SosPage import sosPage
+from twisted_protocols.UserPage import userPage
 
 mainPage = Resource()
 apiPage = Resource()

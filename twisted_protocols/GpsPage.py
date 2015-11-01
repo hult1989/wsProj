@@ -1,10 +1,12 @@
+from json import dumps
+
 from twisted.web.resource import Resource
+from twisted.web.server import Site, NOT_DONE_YET
+from twisted.python import log
+
 from appServerCommon import resultValue, onError
 from sqlhelper import selectLocationSql
 from sqlPool import wsdbpool
-from twisted.web.server import Site, NOT_DONE_YET
-from twisted.python import log
-from json import dumps
 
 class GpsPage(Resource):
     isLeaf = True
