@@ -76,7 +76,7 @@ upload = dumps({'username': 'zod', 'sticks': [{'name': 'hull', 'imei': '1024'}, 
 rurequest = dumps({'username': 'zoo', 'password':'f'})
 #upload = dumps({'username': 'zod', 'sticks': [] })
 getcoderequest = dumps({'username': 'alice', 'imei': '98789'})
-unsubrequest = dumps({'username': 'zod', 'imei': '1024'})
+unsubrequest = dumps({'username': 'zox', 'imei': '1024'})
 
 host = 'http://localhost:8082/api'
 gpsaddress = host + '/gps?action=getuserlocation'

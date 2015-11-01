@@ -25,7 +25,6 @@ def testTcp():
     except Exception, e:
         log.msg(e)
         log.msg('\tSERVER RESTART')
-        os.system('twistd -y init.py')
     finally:
         sock.close()
 
