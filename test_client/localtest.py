@@ -52,7 +52,7 @@ tcplocation = '3,1,190930141223,0000.00001W,0000.000001N,2623,0e92'
 tcpaddsos = '2,98789,add12332112345'
 tcpdelsos = '2,98789,del12332112345'
 tcpimsi = '4,2,123150930141223'
-tcpbind = '1,7878,1234567890,15882205392'
+tcpbind = '1,1028,bon1234567890,15882205392'
 tcpdelete = '6,1024,ooko'
 tcpsync = '5,1023,3,7,12345678901,22345678901'
 
@@ -74,7 +74,7 @@ upwd = dumps({'username': 'wonderwoman', 'password':'f', 'newpassword': 'g'})
 newname = dumps({'username': 'zod', 'imei': '1024', 'name': '绿巨人'})
 getstick = dumps({'username': 'zod'})
 current = dumps({'username': 'zod', 'imei': '1024'})
-upload = dumps({'username': 'zod', 'sticks': [{'name': 'hull', 'imei': '1024'}, {'name': 'del', 'imei': '1023'}] })
+upload = dumps({'username': 'zod', 'sticks': [{'name': 'hull', 'imei': '9981'}, {'name': 'del', 'imei': '1028'}] })
 #rurequest = dumps({'username': 'zox', 'password': 'f', 'sticks': [{'name': 'hull', 'imei': '1024'}, {'name': 'del', 'imei': '1023'}] })
 rurequest = dumps({'username': 'zoo', 'password':'f'})
 #upload = dumps({'username': 'zod', 'sticks': [] })

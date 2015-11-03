@@ -83,6 +83,7 @@ class UserPage(Resource):
             sticks = list()
             for r in result:
                 stick = dict()
+                stick['type'] = str(r[3])
                 stick['simnum'] = str(r[2])
                 stick['name'] = str(r[1])
                 stick['imei'] = str(r[0])

@@ -41,8 +41,8 @@ def _handleRegisterUpload(txn, payload):
     #if app do upload after register
     if 'sticks' in payload:
         for stick in payload['sticks']:
-            txn.execute('replace into user_ws (username, imei, name, isdefault) values (%s, %s, %s, "0")', (payload['username'], stick['imei'], stick['name']))
-        txn.execute('replace into user_ws (username, imei, name, isdefault) values (%s, %s, %s, "1")', (payload['username'], payload['sticks'][-1]['imei'], payload['sticks'][-1]['name']))
+            txn.execute('replace into user_ws (username, imei, name, isdefault, state) values (%s, %s, %s, "0", "s")', (payload['username'], stick['imei'], stick['name']))
+        txn.execute('replace into user_ws (username, imei, name, isdefault, state) values (%s, %s, %s, "1", "s")', (payload['username'], payload['sticks'][-1]['imei'], payload['sticks'][-1]['name']))
     return True
 
 
@@ -59,8 +59,8 @@ def _handleSubscribeByCode(txn, payload):
     simnum = txn.fetchall()[0][0]
     print 'simnum is: ', simnum
     if 'username' in payload:
-        txn.execute('update user_ws set isdefault = 0 where username = %s', (str(payload['username']),))
-        txn.execute('replace into user_ws(username, imei, name, isdefault) values(%s, %s, %s, 1)', (str(payload['username']), imei, str(payload['name'])))
+        txn.execute('update user_ws set isdefault = 0 and state = "s" where username = %s', (str(payload['username']),))
+        txn.execute('replace into user_ws(username, imei, name, isdefault, state) values(%s, %s, %s, 1, "s")', (str(payload['username']), imei, str(payload['name'])))
     return (str(imei), str(simnum))
 
 
@@ -128,15 +128,37 @@ def _handleBind(txn, message):
     imei = message[1]
     simnum = message[2][3:]
     userphone = message[3]
+
+    #check if stick has already accepted bind request from app by sms 
     txn.execute('select username, name from temp_user_ws where simnum = %s', (simnum,))
     result = txn.fetchall()
     if len(result) == 0:
         return False
+
+    #stick did receive bind request from app
     username = result[0][0]
     name = result[0][1]
+    #get user's phone number from his sms, which was sent to stick
     txn.execute('update userinfo set phone = %s where username = %s', (userphone, username))
+
+    #new bind stick will be set as default
     txn.execute('update user_ws set isdefault = 0 where username = %s', (username,))
-    txn.execute('replace into user_ws (username, imei, name, isdefault) values (%s, %s, %s, "1")', (username, imei, name))
+
+    #if the user is the first to bind the stick, he will be set as the owner of the stick
+    txn.execute('select state from user_ws where imei = %s', (imei,))
+    if len(txn.fetchall()) == 0:
+        #stick has never been bond before
+        txn.execute('replace into user_ws (username, imei, name, isdefault, state) values (%s, %s, %s, "1", "o")', (username, imei, name))
+    else:
+        txn.execute('select state from user_ws where username = %s and imei = %s', (username, imei))
+        result = txn.fetchall()
+        if len(result) == 0:
+            #stick has been bound, but not by this user
+            txn.execute('replace into user_ws (username, imei, name, isdefault, state) values (%s, %s, %s, "1", "b")', (username, imei, name))
+            #this stick has been bond by this user
+        elif result[0][0] == 's':
+            txn.execute('update user_ws set state = "b" where username = %s and imei = %s', (username, imei))
+
     txn.execute('delete from temp_user_ws where simnum = %s', (simnum,))
     txn.execute('update wsinfo set simnum = %s, adminpwd = "123456" where imei = %s', (simnum, imei))
     return True
@@ -225,20 +247,20 @@ def handleUploadSql(wsdbpool, payload):
 
 def _handleUpload(txn, payload):
     for stick in payload['sticks']:
-        txn.execute('replace into user_ws (username, imei, name, isdefault) values (%s, %s, %s, "0")', (payload['username'], stick['imei'], stick['name']))
-    txn.execute('replace into user_ws (username, imei, name, isdefault) values (%s, %s, %s, "1")', (payload['username'], payload['sticks'][-1]['imei'], payload['sticks'][-1]['name']))
+        #check if relation between user and stick has be established before
+        txn.execute('select * from user_ws where username = %s and imei = %s', (payload['username'], stick['imei']))
+        if len(txn.fetchall()) == 0:
+            txn.execute('replace into user_ws (username, imei, name, isdefault, state) values (%s, %s, %s, "0", "s")', (payload['username'], stick['imei'], stick['name']))
+        txn.execute('replace into user_ws (username, imei, name, isdefault, state) values (%s, %s, %s, "1", "s")', (payload['username'], payload['sticks'][-1]['imei'], payload['sticks'][-1]['name']))
     return True
 
 
-
-def insertRelationSql(wsdbpool, username, imei, name=None, isdefault='1'):
-    return wsdbpool.runOperation('replace into user_ws (username, imei, name, isdefault) values(%s, %s, %s, %s)', (username, imei, name, isdefault))
-
-def selectRelationSql(wsdbpool, username):
-    return wsdbpool.runQuery('select  wsinfo.imei, user_ws.name, wsinfo.simnum from user_ws, wsinfo where user_ws.imei = wsinfo.imei and user_ws.username = %s', (username,))
-
 def selectRelationByImeiSql(wsdbpool, username, imei):
     return wsdbpool.runQuery('select * from user_ws where username = %s and imei =%s', (username, imei))
+
+def selectRelationSql(wsdbpool, username):
+    return wsdbpool.runQuery('select  wsinfo.imei, user_ws.name, wsinfo.simnum, user_ws.state from user_ws, wsinfo where user_ws.imei = wsinfo.imei and user_ws.username = %s', (username,))
+
 
 def selectRelationByUsernameSimnumSql(wsdbpool, username, simnum):
     return wsdbpool.runQuery('select wsinfo.imei from user_ws, wsinfo where user_ws.imei = wsinfo.imei and user_ws.username = %s and wsinfo.simnum = %s', (username, simnum))
@@ -344,6 +366,6 @@ if __name__ == '__main__':
     from sqlPool import wsdbpool, bsdbpool
     #wsdbpool = adbapi.ConnectionPool("MySQLdb", db="wsdb", user='tanghao', passwd='123456', unix_socket='/tmp/mysql.sock')
     #wsdbpool = adbapi.ConnectionPool("MySQLdb", db="wsdb", user='tanghao', passwd='123456')
-    handleUnsubscribeSql(wsdbpool, 'alice', '1024').addCallbacks(onSuccess, onError)
+    selectRelationSql(wsdbpool, 'zox').addCallbacks(onSuccess, onError)
 
     reactor.run()
