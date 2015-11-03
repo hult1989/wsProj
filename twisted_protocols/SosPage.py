@@ -48,16 +48,16 @@ class SosPage(Resource):
             return d
         return updateWsinfoPwdSql(wsdbpool, imei=payload['imei'], adminpwd=payload['newadminpwd'])
     
-    def varifySos(self, result, request):
+    def varifySos(self, result, request, payload):
         if len(result) == 0:
             request.write(resultValue(501))
         else:
-            request.write(dumps({'result':'1', 'sosnumber':result[0][1]}))
+            request.write(dumps({'result':"1", 'sosnumber':payload['sosnumber']}))
         request.finish()
 
     def varifyDel(self, result, request, payload):
         if len(result) == 0:
-            request.write(dumps({'result':'1', 'sosnumber':payload['sosnumber']}))
+            request.write(dumps({'result':"1", 'sosnumber':payload['sosnumber']}))
         else:
             request.write(resultValue(501))
         request.finish()
@@ -101,7 +101,7 @@ class SosPage(Resource):
             if payload['imei'] == '0' or len(payload['imei']) == '0' or len(payload['sosnumber']) == 0 or payload['sosnumber'] == '0':
                 return resultValue(300)
             d = checkSosnumberSql(wsdbpool, payload['imei'], payload['sosnumber'])
-            d.addCallback(self.varifySos, request)
+            d.addCallback(self.varifySos, request, payload)
             d.addErrback(onError)
             return NOT_DONE_YET
 

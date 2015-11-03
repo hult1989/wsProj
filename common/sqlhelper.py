@@ -175,14 +175,20 @@ def _handlleSyncSos(txn, message):
     for number in message[4:]:
         if len(number) != 0:
             numbersInStick.append(number)
-    txn.execute('select sosnumber from sosnumber where imei = %s', (imei,))
+            txn.execute('select contact from temp_sos where imei = %s and sosnumber = %s', (imei, number))
+            contact = txn.fetchall()
+            if len(contact) != 0:
+                #this number is both in temp_sos and in message5 from stick, it means that this number shoulde be added to the sosnumber table
+                txn.execute('replace into sosnumber (imei, sosnumber, contact) values(%s, %s, %s)', (imei, number, contact[0][0]))
+                txn.execute('delete from temp_sos where imei = %s and sosnumber = %s', (imei, number))
 
-    #check if stick has the same amount of sticks with server
+    txn.execute('select sosnumber from sosnumber where imei = %s', (imei,))
     numbersInDbEntries = txn.fetchall()
     for numberEntry in numbersInDbEntries:
         if numberEntry[0] not in numbersInStick:
-            #mark is some sosnumber entry was not in stick but in server
-            txn.execute('update sosnumber set contact = "NotInStick" where imei = %s and sosnumber = %s', (imei, numberEntry[0]))
+            #the number exists in server but not in the message from the stick, it means that this number shoule be deleted
+            txn.execute('delete from sosnumber where imei = %s and sosnumber = %s', (imei, numberEntry[0]))
+            txn.execute('delete from temp_sos where imei = %s and sosnumber = %s', (imei, numberEntry[0]))
     return True
 
 
@@ -200,6 +206,7 @@ def _handleSos(txn, message):
     # sosnumber from walkingstick and what from app don't match
     if len(contactentry) == 0:
         return False
+    '''
     contactentry = contactentry[0]
     if message[2][0:3] == 'del':
         txn.execute('delete from sosnumber where imei = %s and sosnumber = %s', (imei,sosnumber))
@@ -207,6 +214,7 @@ def _handleSos(txn, message):
         txn.execute('replace into sosnumber (imei, sosnumber, contact) values (%s, %s, %s)', (contactentry[0], contactentry[1], contactentry[2]))
 
     txn.execute('delete from temp_sos where imei = %s and sosnumber = %s', (imei, sosnumber))
+    '''
     return True 
 
 
@@ -290,9 +298,12 @@ def deleteAllSosSql(wsdbpool, imei):
     return wsdbpool.runOperation('delete from sosnumber where imei = %s', (imei,))
 
 def checkSosnumberSql(wsdbpool, imei, sosnumber):
-    return wsdbpool.runQuery('select * from sosnumber where imei = %s and sosnumber = %s', (imei, sosnumber))
+    return wsdbpool.runInteraction(_checkSosnumber, imei, sosnumber)
 
-
+def _checkSosnumber(txn, imei, sosnumber):
+    txn.execute('select * from sosnumber where imei = %s and sosnumber = %s', (imei, sosnumber))
+    return txn.fetchall()
+    
 
 def insertLocationSql(wsdbpool, imei, longitude, latitude, timestamp):
     return wsdbpool.runOperation('replace into location (imei, longitude, latitude, timestamp) values (%s, %s, %s, %s)', (imei, float(longitude), float(latitude), timestamp))
