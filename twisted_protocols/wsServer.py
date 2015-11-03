@@ -4,7 +4,7 @@ from twisted.python import log
 from twisted.internet import protocol, reactor, defer, threads
 from twisted.protocols import basic
 from twisted.enterprise import adbapi
-from sqlhelper import handleSosSql, handleBindSql, insertLocationSql, handleImsiSql
+from sqlhelper import handleSosSql, handleBindSql, insertLocationSql, handleImsiSql, deleteAllSosSql, handleSyncSosSql
 
 SQLUSER = 'tanghao'
 PASSWORD = '123456'
@@ -79,6 +79,15 @@ class WsServer(protocol.Protocol):
             insertLocation(self.factory.wsdbpool, message).addCallbacks(self.onSuccess, self.onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
         elif message[0] == '4':
             handleImsiSql(self.factory.wsdbpool, message).addCallbacks(self.onSuccess, self.onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
+        elif message[0] == '5':
+            handleSyncSosSql(self.factory.wsdbpool, message).addCallbacks(self.onSuccess, self.onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
+            
+        elif message[0] == '6':
+            if message[-2:] == 'ok' or message[-2:] == 'OK':
+                deleteAllSosSql(self.factory.wsdbpool, message.split(',')[1]).addCallbacks(self.onSuccess, self.onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
+            else:
+                self.transport.write(''.join(("Result:", message[0], ',0')))
+
 
 
 

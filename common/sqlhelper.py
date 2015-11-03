@@ -123,9 +123,10 @@ def handleBindSql(wsdbpool, message):
     return wsdbpool.runInteraction(_handleBind, message)
 
 def _handleBind(txn, message):
+    #1,123456789abcdef,bon13800000000,+8613600000000
     message = message.split(',')
     imei = message[1]
-    simnum = message[2]
+    simnum = message[2][3:]
     userphone = message[3]
     txn.execute('select username, name from temp_user_ws where simnum = %s', (simnum,))
     result = txn.fetchall()
@@ -141,25 +142,46 @@ def _handleBind(txn, message):
     return True
 
 
+def handleSyncSosSql(wsdbpool, message):
+    return wsdbpool.runInteraction(_handlleSyncSos, message)
+
+def _handlleSyncSos(txn, message):
+    #5,123456789abcdef,3,7,+8613800000000,+8613800000001,+8613800000002
+    message = message.split(',')
+    imei = message[1]
+    numbersInStick = list()
+    for number in message[4:]:
+        if len(number) != 0:
+            numbersInStick.append(number)
+    txn.execute('select sosnumber from sosnumber where imei = %s', (imei,))
+
+    #check if stick has the same amount of sticks with server
+    numbersInDbEntries = txn.fetchall()
+    for numberEntry in numbersInDbEntries:
+        if numberEntry[0] not in numbersInStick:
+            #mark is some sosnumber entry was not in stick but in server
+            txn.execute('update sosnumber set contact = "NotInStick" where imei = %s and sosnumber = %s', (imei, numberEntry[0]))
+    return True
+
 
 
 def handleSosSql(wsdbpool, message):
     return wsdbpool.runInteraction(_handleSos, message)
 
 def _handleSos(txn, message):
-
+    #2,123456789abcdef,add13800000000
     message = message.split(',')
     imei = message[1]
-    sosnumber = message[2][1:]
+    sosnumber = message[2][3:]
     txn.execute('select * from temp_sos where imei = %s and sosnumber = %s', (imei, sosnumber))
     contactentry = txn.fetchall()
     # sosnumber from walkingstick and what from app don't match
     if len(contactentry) == 0:
         return False
     contactentry = contactentry[0]
-    if message[2][0] == '-':
+    if message[2][0:3] == 'del':
         txn.execute('delete from sosnumber where imei = %s and sosnumber = %s', (imei,sosnumber))
-    if message[2][0] == '+':
+    elif message[2][0:3] == 'add':
         txn.execute('replace into sosnumber (imei, sosnumber, contact) values (%s, %s, %s)', (contactentry[0], contactentry[1], contactentry[2]))
 
     txn.execute('delete from temp_sos where imei = %s and sosnumber = %s', (imei, sosnumber))
@@ -242,6 +264,8 @@ def selectSosnumberSql(wsdbpool, imei):
 def deleteSosnumberSql(wsdbpool, imei, sosnumber):
     return wsdbpool.runOperation('delete from sosnumber where imei = %s and sosnumber = %s', (imei, sosnumber))
 
+def deleteAllSosSql(wsdbpool, imei):
+    return wsdbpool.runOperation('delete from sosnumber where imei = %s', (imei,))
 
 def checkSosnumberSql(wsdbpool, imei, sosnumber):
     return wsdbpool.runQuery('select * from sosnumber where imei = %s and sosnumber = %s', (imei, sosnumber))

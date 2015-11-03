@@ -48,11 +48,14 @@ def printResource(response):
 def stop(result):
     reactor.stop()
 
-tcplocation = '3,,190930141223,0000.00000W,0000.000000N,2623,0e92'
-tcpaddsos = '2,98789,+12332112345'
-tcpdelsos = '2,98789,-12332112345'
-tcpimsi = '4,,123150930141223'
+tcplocation = '3,1,190930141223,0000.00001W,0000.000001N,2623,0e92'
+tcpaddsos = '2,98789,add12332112345'
+tcpdelsos = '2,98789,del12332112345'
+tcpimsi = '4,2,123150930141223'
 tcpbind = '1,7878,1234567890,15882205392'
+tcpdelete = '6,1024,ooko'
+tcpsync = '5,1023,3,7,12345678901,22345678901'
+
 
 
 
@@ -139,12 +142,12 @@ def asynchroTest(requests, addresses):
 
 
 
-import socket
-sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server_address = ('localhost', 8081)
-sock.connect(server_address)
-
 def testTcp(message):
+    import socket
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_address = ('localhost', 8081)
+    sock.connect(server_address)
+
     try:
         sock.sendall(message)
         data = sock.recv(96)
@@ -234,10 +237,15 @@ if sys.argv[1] == 'tcpsetsos':
     testTcp(tcpaddsos)
 if sys.argv[1] == 'tcpdelsos':
     testTcp(tcpdelsos)
+if sys.argv[1] == 'tcpdelall':
+    testTcp(tcpdelete)
+if sys.argv[1] == 'tcpsync':
+    testTcp(tcpsync)
 if sys.argv[1] == 'getcode':
     makeTest(getcoderequest, getcodeaddress)
 if sys.argv[1] == 'getbycode':
     makeTest(dumps({'code': str(sys.argv[2])}), getbycodeaddress)
+
 
 if sys.argv[1] == 'gpspage':
     requests = list()
