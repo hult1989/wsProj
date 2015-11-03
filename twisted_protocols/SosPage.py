@@ -16,7 +16,7 @@ class SosPage(Resource):
     isLeaf = True
 
     def onSetResult(self, result, request):
-        if result in ['402', '403', '505']:
+        if result in ['402', '403', '505', '507']:
             request.write(resultValue(result))
         else:
             request.write(resultValue(1))

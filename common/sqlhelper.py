@@ -271,7 +271,7 @@ def selectRelationSql(wsdbpool, username):
 
 
 def selectRelationByUsernameSimnumSql(wsdbpool, username, simnum):
-    return wsdbpool.runQuery('select wsinfo.imei from user_ws, wsinfo where user_ws.imei = wsinfo.imei and user_ws.username = %s and wsinfo.simnum = %s', (username, simnum))
+    return wsdbpool.runQuery('select wsinfo.imei, user_ws.state from user_ws, wsinfo where user_ws.imei = wsinfo.imei and user_ws.username = %s and wsinfo.simnum = %s', (username, simnum))
 
 def deleteRelationSql(wsdbpool, username, imei):
     return wsdbpool.runOperation('delete from user_ws where username = %s and imei = %s', (username, imei))
@@ -340,7 +340,14 @@ def selectTempRelationSql(wsdbpool, simnum):
 
 
 def insertTempSosSql(wsdbpool, imei, sosnumber, contact):
-    return wsdbpool.runOperation('replace into temp_sos (imei, sosnumber, contact) values(%s, %s, %s)', (imei, sosnumber, contact))
+    return wsdbpool.runInteraction(_insertTempSos, imei, sosnumber, contact)
+
+def _insertTempSos(txn, imei, sosnumber, contact):
+    txn.execute('select * from sosnumber where imei = %s', (imei,))
+    if len(txn.fetchall()) >= 3:
+        return '507'
+    else:
+        txn.execute('replace into temp_sos (imei, sosnumber, contact) values(%s, %s, %s)', (imei, sosnumber, contact))
 
 def selectTempSosSql(wsdbpool, imei, sosnumber):
     return wsdbpool.runQuery('select * from temp_sos where imei = %s and sosnumber = %s', (imei, sosnumber))

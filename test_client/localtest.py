@@ -61,7 +61,7 @@ tcpsync = '5,98789,3,7,12332112345,92332112345,42332112345'
 
 gpsrequest = dumps({'imei': '1024', 'timestamp': '1400030032000'})
 bindrequest = dumps({'username': 'zod', 'simnum': '1234567890', 'name': '拐杖'})
-imeirequest = dumps({'username': 'zod', 'simnum': '11111111111'})
+imeirequest = dumps({'username': 'zod', 'simnum': '1234567890'})
 setsosrequest = dumps({'imei': '98789', 'adminpwd': '123456', 'contactentry': {'sosnumber': '42332112345', 'contact':'蝙蝠侠'}})
 delsosrequest = dumps({'imei': '98789', 'adminpwd': '123456', 'contactentry': {'sosnumber': '12332112345', 'contact':'蝙蝠侠'}})
 varifyadd = dumps({'imei': '98789', 'sosnumber': '12332112345'})

@@ -20,11 +20,10 @@ class StickPage(Resource):
         request.finish()
 
     def onImeiResult(self, result, request):
-        log.msg('RESULT' + str(result))
         if len(result) == 0:
             request.write(resultValue(501))
         else:
-            request.write(dumps({'result':'1', 'imei': result[0][0]}))
+            request.write(dumps({'result':'1', 'imei': result[0][0], 'type': result[0][1]}))
         request.finish()
 
     def onCurrentImei(self, result, request):
@@ -53,7 +52,7 @@ class StickPage(Resource):
         if result == 0:
             request.write(resultValue(601))
         else:
-            request.write(dumps({'result': '1', 'imei': result[0], 'simnum': result[1]}))
+            request.write(dumps({'result': '1', 'imei': result[0], 'simnum': result[1], 'type': 's'}))
         request.finish()
 
 
