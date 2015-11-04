@@ -142,7 +142,7 @@ def _handleBind(txn, message):
     txn.execute('update userinfo set phone = %s where username = %s', (userphone, username))
 
     #new bind stick will be set as default
-    txn.execute('update user_ws set isdefault = 0 where username = %s', (username,))
+    txn.execute('update user_ws set isdefault = 1 where username = %s', (username,))
 
     #if the user is the first to bind the stick, he will be set as the owner of the stick
     txn.execute('select state from user_ws where imei = %s', (imei,))
