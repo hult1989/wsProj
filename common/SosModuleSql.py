@@ -1,8 +1,8 @@
 from appException import *
 
 '''''''''''''''''''''''''''''''''''''''''''''
-1. check if imei exists
-2. check if adminpwd is correct
+1. check if adminpwd is correct
+2. check if imei exists and simnum remain unchanged
 3. check how many sosnumbers exists in stick
 '''''''''''''''''''''''''''''''''''''''''''''
 
@@ -15,6 +15,18 @@ def _checkAdminPwd(txn, imei, adminpwd):
         raise PasswordErrorException
     return True
 
+def checkImeiSimnumSql(wsdbpool, imei):
+    return wsdbpool.runInteraction(_checkImeiSimnum, imei)
+
+def _checkImeiSimnum(txn, imei):
+    txn.execute('select simnum from wsinfo where imei = %s', (imei,))
+    simnum = txn.fetchall()
+    if len(simnum) == 0:
+        raise NoImeiException
+    if simnum[0][0] in (0, '0'):
+        raise SimnumChangedException
+    return True
+ 
 def checkSosnumberSql(wsdbpool, imei, oper):
     return wsdbpool.runInteraction(_checkSosnumber, imei, oper)
 
@@ -29,18 +41,7 @@ def _checkSosnumber(txn, imei, oper):
         raise NoSosnumberException
     return True
 
-def checkImeiSimnumSql(wsdbpool, imei):
-    return wsdbpool.runInteraction(_checkImeiSimnum, imei)
-
-def _checkImeiSimnum(txn, imei):
-    txn.execute('select simnum from wsinfo where imei = %s', (imei,))
-    simnum = txn.fetchall()
-    if len(simnum) == 0:
-        raise NoImeiException
-    if simnum[0][0] in (0, '0'):
-        raise SimnumChangedException
-    return True
-    
+   
 
 
 '''''''''''''''''''''''''''''''''''''''''''''
@@ -63,7 +64,9 @@ These operation will be executed when server received ack from stick
 def insertSosNumberSql(wsdbpool, imei, number, contact):
     return wsdbpool.runOperation('replace into sosnumber (imei, sosnumber, contact) values(%s, %s, %s)', (imei, number, contact))
 
-def deleteSosNumberSql(wsdbpool, imei, number):
+def deleteSosNumberSql(wsdbpool, imei, number=None):
+    if number is None:
+        return wsdbpool.runOperation('delete from sosnumber where imei = %s', (imei,))
     return wsdbpool.runOperation('delete from sosnumber where imei = %s and sosnumber = %s', (imei, number))
 
 def selectSosNumberSql(wsdbpool, imei):
@@ -109,24 +112,25 @@ def _syncSos(txn, imei, numbersInStick):
     numbersInDb = set()
     txn.execute('select sosnumber from sosnumber where imei = %s', (imei,))
     for r in txn.fetchall():
-        assert type(r) is tuple and len(r) == 1, 'r is not tuple or len(r) != 1'
         numbersInDb.add(r[0])
 
-
-
+    #number in database but not in stick, to be deleted
     for number in numbersInDb.difference(numbersInStick):
-        assert number == '22345678901'
-        #number in database but not in stick, to be deleted
         txn.execute('delete from sosnumber where sosnumber = %s', (number,))
+        txn.execute('delete from temp_sos where imei = %s and sosnumber = %s', (imei, number))
 
+    #number in stick but not in database, to be added to table sosnumber
     for number in numbersInStick.difference(numbersInDb):
-        assert number == '42345678901'
-        #number in stick but not in database, to be added to table sosnumber
         txn.execute('select contact from temp_sos where imei = %s and sosnumber = %s', (imei, number))
         contact = txn.fetchall()
-        print contact
-        assert type(contact) is tuple and len(contact) == 1 and len(contact[0]) == 1
+        if len(contact) == 0:
+            contact = 'unnamed'
+        else:
+            contact = contact[0][0]
         txn.execute('replace into sosnumber (imei, sosnumber, contact) values(%s, %s, %s)', (imei, number, contact))
+        txn.execute('delete from temp_sos where imei = %s and sosnumber = %s', (imei, number))
+
+
     return True
         
 

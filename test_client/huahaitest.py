@@ -49,24 +49,24 @@ def stop(result):
     reactor.stop()
 
 tcplocation = '3,1,190930141223,0000.00001W,0000.000001N,2623,0e92'
-tcpaddsos = '2,98789,add12332112345'
+tcpaddsos = '2,98789,add42332112345'
 tcpdelsos = '2,98789,del12332112345'
 tcpimsi = '4,2,123150930141223'
 tcpbind = '1,1028,bon1234567890,15882205392'
 tcpdelete = '6,1024,ooko'
-tcpsync = '5,1023,3,7,12345678901,22345678901'
+tcpsync = '5,98789,3,7,12332112345,92332112345,42332112345'
 
 
 
 
 gpsrequest = dumps({'imei': '1024', 'timestamp': '1400030032000'})
 bindrequest = dumps({'username': 'zod', 'simnum': '1234567890', 'name': '拐杖'})
-imeirequest = dumps({'username': 'zod', 'simnum': '11111111111'})
-setsosrequest = dumps({'imei': '98789', 'adminpwd': '123456', 'contactentry': {'sosnumber': '12332112345', 'contact':'蝙蝠侠'}})
+imeirequest = dumps({'username': 'zod', 'simnum': '1234567890'})
+setsosrequest = dumps({'imei': '98789', 'adminpwd': '123456', 'contactentry': {'sosnumber': '42332112345', 'contact':'蝙蝠侠'}})
 delsosrequest = dumps({'imei': '98789', 'adminpwd': '123456', 'contactentry': {'sosnumber': '12332112345', 'contact':'蝙蝠侠'}})
 varifyadd = dumps({'imei': '98789', 'sosnumber': '12332112345'})
 varifydel = dumps({'imei': '98789', 'sosnumber': '12332112345'})
-getsos = dumps({'imei': '1024'})
+getsos = dumps({'imei': '98789'})
 updatepwd = dumps({'imei': '2048', 'adminpwd': '123456', 'newadminpwd': '223456'})
 register = dumps({'username': 'zod', 'password':'f'})
 login = dumps({'username': 'zod', 'password':'f'})
@@ -81,7 +81,7 @@ rurequest = dumps({'username': 'zoo', 'password':'f'})
 getcoderequest = dumps({'username': 'alice', 'imei': '98789'})
 unsubrequest = dumps({'username': 'zox', 'imei': '1024'})
 
-host = 'http://localhost:8082/api'
+host = 'http://huahai:8082/api'
 gpsaddress = host + '/gps?action=getuserlocation'
 bindaddress = host + '/stick?action=bind'
 imeiaddress = host + '/stick?action=getimei'
@@ -145,7 +145,7 @@ def asynchroTest(requests, addresses):
 def testTcp(message):
     import socket
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_address = ('localhost', 8081)
+    server_address = ('huahai', 8081)
     sock.connect(server_address)
 
     try:
@@ -158,7 +158,7 @@ def testTcp(message):
 
 def multiTest():
     try:
-        server_address = ('localhost', 8081)
+        server_address = ('huahai', 8081)
         sock1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock1.connect(server_address)
         sock2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
