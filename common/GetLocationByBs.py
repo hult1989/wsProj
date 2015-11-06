@@ -16,5 +16,6 @@ def getLocationByBsinfo(mcc, mnc, imei, imsi, lac, cid, signal, timestamp):
     params = urllib.urlencode(paramsDict)
     request.add_data(params)
     locations = urllib2.urlopen(request).read()
+    locations = eval(locations)['result']['location']
     return locations
 
