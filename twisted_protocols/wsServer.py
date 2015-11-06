@@ -4,47 +4,76 @@ from twisted.python import log
 from twisted.internet import protocol, reactor, defer, threads
 from twisted.protocols import basic
 from twisted.enterprise import adbapi
-from sqlhelper import handleSosSql, handleBindSql, insertLocationSql, handleImsiSql
+from sqlhelper import handleSosSql, handleBindSql, insertLocationSql, handleImsiSql, selectWsinfoSql
 from SosModuleSql import deleteSosNumberSql, syncSosSql
+from GetLocationByBs import getLocationByBsinfo
+
 
 SQLUSER = 'tanghao'
 PASSWORD = '123456'
 
-def convertToFloat(lati_or_longi):
-    #convert string to float, iiff.ffff->dd + (ffffff)/60
-    index = lati_or_longi.index('.')
-    lati_or_longi_intPart = int(lati_or_longi[0:index-2])
-    lati_or_longi_floatPart = float(lati_or_longi[index-2:]) / 60
-    return lati_or_longi_intPart + lati_or_longi_floatPart
-
 def insertLocation(wsdbpool, message):
-    message = message.split(',')
+    def _convertToFloat(lati_or_longi):
+        #convert string to float, iiff.ffff->dd + (ffffff)/60
+        index = lati_or_longi.index('.')
+        lati_or_longi_intPart = int(lati_or_longi[0:index-2])
+        lati_or_longi_floatPart = float(lati_or_longi[index-2:]) / 60
+        return lati_or_longi_intPart + lati_or_longi_floatPart
 
+    def _getGpsinfoFromMessage(message):
+        longitude = message[3][:-1].strip()
+        latitude = message[4][:-1].strip()
+        longitude = _convertToFloat(longitude)
+        latitude = _convertToFloat(latitude)
+        if (message[3][-1] == 'W') or (message[3][-1] == 'w'):
+            longitude = 0 - longitude
+        if (message[4][-1] == 's') or (message[4][-1] == 'S'):
+            latitude = 0 - latitude
+        return longitude, latitude
+
+    def _convertSignalToRssi(signal):
+        if signal < 4 or signal == 99:
+            return -107
+        elif signal < 10:
+            return -93
+        elif signal < 16:
+            return -71
+        elif signal < 22:
+            return -69
+        elif signal < 28:
+            return -57
+        elif signal >= 28:
+            return -56
+
+    def _getGpsinfoCallback(wsinfo, imei, lac, cid, signal, timestamp):
+        imsi = wsinfo[0][1]
+        mcc = imsi[0:3]
+        mnc = imsi[3:5]
+        return threads.deferToThread(getLocationByBsinfo, mcc, mnc, imei, imsi, lac, cid, signal, timestamp)
+
+    def _insertLocation(gpsinfo, wsdbpool, imei, timestamp):
+        return insertLocationSql(wsdbpool, imei, gpsinfo[0], gpsinfo[1], timestamp)
+
+    message = message.split(',')
     imei = str(message[1]).strip()
     timestamp = '20'+ message[2].strip()
+    longitude, latitude = _getGpsinfoFromMessage(message)
 
     #get longitude and latitude in string format form message
-    longitude = message[3][:-1].strip()
-    latitude = message[4][:-1].strip()
+    lac = int(message[5], 16)
+    cid = int(message[6], 16)
+    signal = _convertSignalToRssi(int(message[7]))
 
-
-    longitude = convertToFloat(longitude)
-    latitude = convertToFloat(latitude)
-
-
-    if (message[3][-1] == 'W') or (message[3][-1] == 'w'):
-        longitude = 0 - longitude
-    if (message[4][-1] == 's') or (message[4][-1] == 'S'):
-        latitude = 0 - latitude
-    
     if longitude == 0 and latitude == 0:
-        #not insert into database
-        d = defer.Deferred()
-        d.callback(None)
+        d = selectWsinfoSql(wsdbpool, imei).addCallback(_getGpsinfoCallback, imei, lac, cid, signal, timestamp).addCallback(_insertLocation, wsdbpool, imei, timestamp)
         return d
+        #not insert into database
     else:
         return insertLocationSql(wsdbpool, imei, longitude, latitude,  timestamp)
 
+def onError(failure, transport, message):
+        log.msg(failure)
+        transport.write(''.join(("Result:", message[0], ',0')))
 
 
 
@@ -53,10 +82,6 @@ class WsServer(protocol.Protocol):
         self.factory = factory
         #log.msg('in wsServer, wsdbpool id: ' + str(id(self.factory.wsdbpool)))
     
-    def onError(self, failure, transport, message):
-        log.msg(failure)
-        transport.write(''.join(("Result:", message[0], ',0')))
-
     def onSuccess(self, result, transport, message):
         if result == True or result == None or type(result) == tuple:
             transport.write(''.join(("Result:", message[0], ',1')))
@@ -73,22 +98,22 @@ class WsServer(protocol.Protocol):
 
         #this is ok becase protocol is instantiated for each connection, so it won't has confusion
         if message[0] == '1':
-            handleBindSql(self.factory.wsdbpool, message).addCallbacks(self.onSuccess, self.onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
+            handleBindSql(self.factory.wsdbpool, message).addCallbacks(self.onSuccess, onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
         elif message[0] == '2':
-            handleSosSql(self.factory.wsdbpool, message).addCallbacks(self.onSuccess, self.onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
+            handleSosSql(self.factory.wsdbpool, message).addCallbacks(self.onSuccess, onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
         elif message[0] == '3':
-            insertLocation(self.factory.wsdbpool, message).addCallbacks(self.onSuccess, self.onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
+            insertLocation(self.factory.wsdbpool, message).addCallbacks(self.onSuccess, onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
         elif message[0] == '4':
-            handleImsiSql(self.factory.wsdbpool, message).addCallbacks(self.onSuccess, self.onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
+            handleImsiSql(self.factory.wsdbpool, message).addCallbacks(self.onSuccess, onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
         elif message[0] == '5':
             message = message.split(',')
             imei = message[1]
-            numbersInStick = set(message[4:])
-            syncSosSql(self.factory.wsdbpool, imei, numbersInStick).addCallbacks(self.onSuccess, self.onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
+            numbersInStick = set(m for m in message[4:] if len(m) != 0)
+            syncSosSql(self.factory.wsdbpool, imei, numbersInStick).addCallbacks(self.onSuccess, onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
             
         elif message[0] == '6':
             if message[-2:] == 'ok' or message[-2:] == 'OK':
-                deleteSosNumberSql(self.factory.wsdbpool, message.split(',')[1]).addCallbacks(self.onSuccess, self.onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
+                deleteSosNumberSql(self.factory.wsdbpool, message.split(',')[1]).addCallbacks(self.onSuccess, onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
             else:
                 self.transport.write(''.join(("Result:", message[0], ',0')))
 
