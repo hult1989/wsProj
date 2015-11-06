@@ -24,23 +24,30 @@ def checkImeiSimnumSql(wsdbpool, imei):
 def _checkImeiSimnum(txn, imei):
     txn.execute('select simnum from wsinfo where imei = %s', (imei,))
     simnum = txn.fetchall()
-    assert simnum[0][0] == '10086', 'simnum shoule be 10086'
+    #assert simnum[0][0] == '10086', 'simnum shoule be 10086'
     if len(simnum) == 0:
         raise NoImeiException
     if simnum[0][0] in (0, '0'):
         raise SimnumChangedException
     return True
  
-def checkSosnumberSql(wsdbpool, imei, oper):
-    return wsdbpool.runInteraction(_checkSosnumber, imei, oper)
+def checkSosnumberSql(wsdbpool, imei, number, oper):
+    return wsdbpool.runInteraction(_checkSosnumber, imei, number, oper)
 
-def _checkSosnumber(txn, imei, oper):
+def _checkSosnumber(txn, imei, number, oper):
     MAXNUM = 3
-    MINNUM = 0
+    MINNUM = 1
+    if oper == 'ADD':
+        txn.execute('select * from sosnumber where imei = %s', (imei,))
+        num = len(txn.fetchall())
+        if num >= MAXNUM:
+            raise StorageLimitException
+        txn.execute('select * from sosnumber where imei = %s and sosnumber = %s', (imei, number))
+        num = len(txn.fetchall())
+        if num != 0:
+            raise DuplicateSosnumberException
     txn.execute('select * from sosnumber where imei = %s', (imei,))
     num = len(txn.fetchall())
-    if oper == 'ADD' and num >= MAXNUM:
-        raise StorageLimitException
     if oper == 'DEL' and num <= MINNUM:
         raise NoSosnumberException
     return True

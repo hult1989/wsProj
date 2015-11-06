@@ -13,9 +13,9 @@ from sqlPool import wsdbpool
 def nextMethod(result, method, *args):
     if method.func_name in ('checkImeiSimnumSql','selectSosNumberSql'):
         d = method(args[0], args[1])
-    if method.func_name in ('checkSosnumberSql', 'deleteTempSosSql', 'checkAdminPwdSql', 'updateAdminPwdSql'):
+    if method.func_name in ('deleteTempSosSql', 'checkAdminPwdSql', 'updateAdminPwdSql'):
         d = method(args[0], args[1], args[2])
-    if method.func_name in ('insertTempSosSql', 'verifyOperSql'):
+    if method.func_name in ('insertTempSosSql', 'verifyOperSql', 'checkSosnumberSql'):
         d = method(args[0], args[1], args[2], args[3])
     return d
 
@@ -43,11 +43,11 @@ class SosPage(Resource):
             return resultValue(300)
 
         if request.args['action'] == ['addnumber']:
-            d = checkAdminPwdSql(wsdbpool, payload['imei'], payload['adminpwd']).addCallback(nextMethod, checkImeiSimnumSql, wsdbpool, payload['imei']).addCallback(nextMethod, checkSosnumberSql, wsdbpool, payload['imei'], 'ADD').addCallback(nextMethod, insertTempSosSql, wsdbpool, payload['imei'], payload['contactentry']['sosnumber'], payload['contactentry']['contact'])
+            d = checkAdminPwdSql(wsdbpool, payload['imei'], payload['adminpwd']).addCallback(nextMethod, checkImeiSimnumSql, wsdbpool, payload['imei']).addCallback(nextMethod, checkSosnumberSql, wsdbpool, payload['imei'], payload['contactentry']['sosnumber'], 'ADD').addCallback(nextMethod, insertTempSosSql, wsdbpool, payload['imei'], payload['contactentry']['sosnumber'], payload['contactentry']['contact'])
             d.addCallbacks(onSuccess, onError, callbackArgs=(request,), errbackArgs=(request,))
         
         elif request.args['action'] == ['delnumber']:
-            d = checkAdminPwdSql(wsdbpool, payload['imei'], payload['adminpwd']).addCallback(nextMethod, checkImeiSimnumSql, wsdbpool, payload['imei']).addCallback(nextMethod, checkSosnumberSql, wsdbpool, payload['imei'], 'DEL').addCallback(nextMethod, insertTempSosSql, wsdbpool, payload['imei'], payload['contactentry']['sosnumber'], payload['contactentry']['contact'])
+            d = checkAdminPwdSql(wsdbpool, payload['imei'], payload['adminpwd']).addCallback(nextMethod, checkImeiSimnumSql, wsdbpool, payload['imei']).addCallback(nextMethod, checkSosnumberSql, wsdbpool, payload['imei'],payload['contactentry']['sosnumber'], 'DEL').addCallback(nextMethod, insertTempSosSql, wsdbpool, payload['imei'], payload['contactentry']['sosnumber'], payload['contactentry']['contact'])
             d.addCallbacks(onSuccess, onError, callbackArgs=(request,), errbackArgs=(request,))
 
         elif request.args['action'] == ['varifyadd']:
