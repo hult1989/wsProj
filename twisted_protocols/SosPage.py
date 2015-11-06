@@ -1,131 +1,71 @@
 from json import dumps, loads
-
 from twisted.python import log
-from twisted.internet import reactor
+from twisted.internet import reactor, defer
 from twisted.web.resource import Resource
 from twisted.web.server import Site, NOT_DONE_YET
 import cgi
 
-from appServerCommon import onError, resultValue
-from sqlhelper import *
+from SosModuleSql import *
+from appServerCommon import onError, onSuccess, resultValue, appRequest
 from sqlPool import wsdbpool
 
 
-class SosPage(Resource): 
+def nextMethod(result, method, *args):
+    if method.func_name in ('checkImeiSimnumSql','selectSosNumberSql'):
+        d = method(args[0], args[1])
+    if method.func_name in ('checkSosnumberSql', 'deleteTempSosSql', 'checkAdminPwdSql', 'updateAdminPwdSql'):
+        d = method(args[0], args[1], args[2])
+    if method.func_name in ('insertTempSosSql', 'verifyOperSql'):
+        d = method(args[0], args[1], args[2], args[3])
+    return d
 
+
+class SosPage(Resource): 
     isLeaf = True
 
-    def onSetResult(self, result, request):
-        if result in ['402', '403', '505', '507']:
-            request.write(resultValue(result))
-        else:
-            request.write(resultValue(1))
-        request.finish()
-
-    def varifyPwd(self, result, payload):
-        if len(result) == 0:
-            d = defer.Deferred()
-            d.callback('403')
-            return d
-        if result[0][2] == '0':
-            d = defer.Deferred()
-            d.callback('505')
-            return d
-        if result[0][3] != payload['adminpwd']:
-            d = defer.Deferred()
-            d.callback('402')
-            return d
-        return insertTempSosSql(wsdbpool, imei=payload['imei'], sosnumber=payload['contactentry']['sosnumber'], contact=payload['contactentry']['contact'])
-    
-    def updatePwd(self, result, payload):
-        if len(result) == 0:
-            d = defer.Deferred()
-            d.callback('403')
-            return d
-        if result[0][3] != payload['adminpwd']:
-            d = defer.Deferred()
-            d.callback('402')
-            return d
-        return updateWsinfoPwdSql(wsdbpool, imei=payload['imei'], adminpwd=payload['newadminpwd'])
-    
-    def varifySos(self, result, request, payload):
-        if len(result) == 0:
-            request.write(resultValue(501))
-        else:
-            request.write(dumps({'result':"1", 'sosnumber':payload['sosnumber']}))
-        request.finish()
-
-    def varifyDel(self, result, request, payload):
-        if len(result) == 0:
-            request.write(dumps({'result':"1", 'sosnumber':payload['sosnumber']}))
-        else:
-            request.write(resultValue(501))
-        request.finish()
-
-    def onGetsos(self, result, request):
-        if len(result) == 0:
-            request.write(resultValue(503))
-        else:
-            contactentries = list()
-            for r in result:
-                contact = dict()
-                contact['sosnumber'] = r[1]
-                contact['contact'] = r[2]
-                contactentries.append(contact)
-            request.write(dumps({'result': '1', 'contactentries': contactentries}))
-        request.finish()
-
-            
+    def onGetSos(self, result, request):
+            if len(result) == 0:
+                request.write(resultValue(503))
+            else:
+                contactentries = list()
+                for r in result:
+                    contact = dict()
+                    contact['sosnumber'] = r[1]
+                    contact['contact'] = r[2]
+                    contactentries.append(contact)
+                request.write(dumps({'result': '1', 'contactentries': contactentries}))
+            request.finish()
 
     def render_POST(self, request):
-
         payload = eval(request.content.read())
+        apprequest = appRequest(payload)
+        if apprequest.isValid == False:
+            return resultValue(300)
 
         if request.args['action'] == ['addnumber']:
-            if payload['imei'] == '0' or len(payload['imei']) == '0' or len(payload['contactentry']['sosnumber']) == 0 or payload['contactentry']['sosnumber'] == '0':
-                return resultValue(300)
-            d = selectWsinfoSql(wsdbpool, payload['imei']).addCallback(self.varifyPwd, payload)
-            d.addCallback(self.onSetResult, request)
-            d.addErrback(onError)
-            return NOT_DONE_YET
+            d = checkAdminPwdSql(wsdbpool, payload['imei'], payload['adminpwd']).addCallback(nextMethod, checkImeiSimnumSql, wsdbpool, payload['imei']).addCallback(nextMethod, checkSosnumberSql, wsdbpool, payload['imei'], 'ADD').addCallback(nextMethod, insertTempSosSql, wsdbpool, payload['imei'], payload['contactentry']['sosnumber'], payload['contactentry']['contact'])
+            d.addCallbacks(onSuccess, onError, callbackArgs=(request,), errbackArgs=(request,))
         
-        if request.args['action'] == ['delnumber']:
-            if payload['imei'] == '0' or len(payload['imei'])== '0' or len(payload['contactentry']['sosnumber']) == 0 or payload['contactentry']['sosnumber'] == '0':
-                return resultValue(300)
-            d = selectWsinfoSql(wsdbpool, payload['imei']).addCallback(self.varifyPwd, payload)
-            d.addCallback(self.onSetResult, request)
-            d.addErrback(onError)
-            return NOT_DONE_YET
+        elif request.args['action'] == ['delnumber']:
+            d = checkAdminPwdSql(wsdbpool, payload['imei'], payload['adminpwd']).addCallback(nextMethod, checkImeiSimnumSql, wsdbpool, payload['imei']).addCallback(nextMethod, checkSosnumberSql, wsdbpool, payload['imei'], 'DEL').addCallback(nextMethod, insertTempSosSql, wsdbpool, payload['imei'], payload['contactentry']['sosnumber'], payload['contactentry']['contact'])
+            d.addCallbacks(onSuccess, onError, callbackArgs=(request,), errbackArgs=(request,))
 
-        if request.args['action'] == ['varifyadd']:
-            if payload['imei'] == '0' or len(payload['imei']) == '0' or len(payload['sosnumber']) == 0 or payload['sosnumber'] == '0':
-                return resultValue(300)
-            d = checkSosnumberSql(wsdbpool, payload['imei'], payload['sosnumber'])
-            d.addCallback(self.varifySos, request, payload)
-            d.addErrback(onError)
-            return NOT_DONE_YET
+        elif request.args['action'] == ['varifyadd']:
+            d = verifyOperSql(wsdbpool, payload['imei'], payload['sosnumber'], 'ADD')
+            d.addCallbacks(onSuccess, onError, callbackArgs=(request,), errbackArgs=(request,))
 
-        if request.args['action'] == ['varifydel']:
-            if payload['imei'] == '0' or len(payload['imei'] )== '0' or len(payload['sosnumber']) == 0 or payload['sosnumber'] == '0':
-                return resultValue(300)
-            d = checkSosnumberSql(wsdbpool, payload['imei'], payload['sosnumber'])
-            d.addCallback(self.varifyDel, request, payload)
-            d.addErrback(onError)
-            return NOT_DONE_YET
+        elif request.args['action'] == ['varifydel']:
+            d = verifyOperSql(wsdbpool, payload['imei'], payload['sosnumber'], 'DEL')
+            d.addCallbacks(onSuccess, onError, callbackArgs=(request,), errbackArgs=(request,))
 
-        if request.args['action'] == ['getnumber']:
-            d = selectSosnumberSql(wsdbpool, payload['imei'])
-            d.addCallback(self.onGetsos, request)
-            d.addErrback(onError)
-            return NOT_DONE_YET
+        elif request.args['action'] == ['getnumber']:
+            d = selectSosNumberSql(wsdbpool, payload['imei'])
+            d.addCallbacks(self.onGetSos, onError, callbackArgs=(request,), errbackArgs=(request,))
 
-        if request.args['action'] == ['updatepassword']:
-            if payload['imei'] == '0' or len(payload['imei']) == '0' or len(payload['newadminpwd']) == 0:
-                return resultValue(300)
-            d = selectWsinfoSql(wsdbpool, payload['imei']).addCallback(self.updatePwd, payload)
-            d.addCallback(self.onSetResult, request)
-            d.addErrback(onError)
-            return NOT_DONE_YET
+        elif request.args['action'] == ['updatepassword']:
+            d = checkAdminPwdSql(wsdbpool, payload['imei'], payload['adminpwd']).addCallback(nextMethod, updateAdminPwdSql, wsdbpool, payload['imei'], payload['newadminpwd'])
+            d.addCallbacks(onSuccess, onError, callbackArgs=(request,), errbackArgs=(request,))
 
-            
+        return NOT_DONE_YET
+           
 sosPage = SosPage()

@@ -15,12 +15,16 @@ def _checkAdminPwd(txn, imei, adminpwd):
         raise PasswordErrorException
     return True
 
+def updateAdminPwdSql(wsdbpool, imei, newpwd):
+    return wsdbpool.runOperation('update wsinfo set adminpwd = %s where imei = %s', (newpwd, imei))
+
 def checkImeiSimnumSql(wsdbpool, imei):
     return wsdbpool.runInteraction(_checkImeiSimnum, imei)
 
 def _checkImeiSimnum(txn, imei):
     txn.execute('select simnum from wsinfo where imei = %s', (imei,))
     simnum = txn.fetchall()
+    assert simnum[0][0] == '10086', 'simnum shoule be 10086'
     if len(simnum) == 0:
         raise NoImeiException
     if simnum[0][0] in (0, '0'):
@@ -158,6 +162,6 @@ if __name__ == '__main__':
     stickset.add('12345678901')
     stickset.add('42345678901')
 
-    syncSosSql(wsdbpool, 1023, stickset).addCallbacks(onResult, onError)
+    checkImeiSimnumSql(wsdbpool, 98789).addCallbacks(onResult, onError)
     reactor.run()
 
