@@ -32,6 +32,7 @@ def finish():
     reactor.stop()
 
 if __name__ == '__main__':
+    os.system('touch ./babysiter.py')
     log.startLogging(open('./log_file/babysiter.log', 'w'))
     LoopingCall(testTcp).start(600)
     reactor.run()
