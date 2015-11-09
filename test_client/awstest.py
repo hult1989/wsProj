@@ -48,36 +48,40 @@ def printResource(response):
 def stop(result):
     reactor.stop()
 
-tcplocation = '3,1024,150930141223,2312.12321,8722.22234,2623,0e92'
-tcpaddsos = '2,98789,+12332112345'
-tcpdelsos = '2,98789,-12332112345'
-tcpimsi = '4,867715029555583,460002606774193'
-#tcpimsi = '4,867715029555583,46000260677419'
-tcpbind = '1,4545,1234567890,15882205392'
+tcplocation = '3,867715029610974,190930141223,0000.00000W,0000.000000N,2623,0e07,15'
+tcpaddsos = '2,98789,add42332112345'
+tcpdelsos = '2,8789,del12332112345'
+tcpimsi = '4,867715029610974,460002606774193'
+tcpbind = '1,1028,bon1234567890,15882205392'
+tcpdelete = '6,1023,ok'
+tcpsync = '5,1024,3,7,42332112345,92332112345,1234321'
+
 
 
 
 gpsrequest = dumps({'imei': '1024', 'timestamp': '1400030032000'})
-bindrequest = dumps({'username': 'zod', 'simnum': '1234567890', 'name': 'bookerr'})
+bindrequest = dumps({'username': 'zod', 'simnum': '1234567890', 'name': '拐杖'})
 imeirequest = dumps({'username': 'zod', 'simnum': '1234567890'})
 setsosrequest = dumps({'imei': '98789', 'adminpwd': '123456', 'contactentry': {'sosnumber': '12332112345', 'contact':'蝙蝠侠'}})
-delsosrequest = dumps({'imei': '867715029551939', 'adminpwd': '123456', 'contactentry': {'sosnumber': '12332112345', 'contact':'蝙蝠侠'}})
+delsosrequest = dumps({'imei': '1024', 'adminpwd': '123456', 'contactentry': {'sosnumber': '12332112345', 'contact':'蝙蝠侠'}})
 varifyadd = dumps({'imei': '98789', 'sosnumber': '12332112345'})
-varifydel = dumps({'imei': '867715029551939', 'sosnumber': '13243725267'})
-getsos = dumps({'imei': '1024'})
-updatepwd = dumps({'imei': '2048', 'adminpwd': '123456', 'newadminpwd': '223456'})
+varifydel = dumps({'imei': '98789', 'sosnumber': '12332112345'})
+getsos = dumps({'imei': '98789'})
+updatepwd = dumps({'imei': '1024', 'adminpwd': '123456', 'newadminpwd': '223456'})
 register = dumps({'username': 'zod', 'password':'f'})
 login = dumps({'username': 'zod', 'password':'f'})
 upwd = dumps({'username': 'wonderwoman', 'password':'f', 'newpassword': 'g'})
 newname = dumps({'username': 'zod', 'imei': '1024', 'name': '绿巨人'})
 getstick = dumps({'username': 'zod'})
 current = dumps({'username': 'zod', 'imei': '1024'})
-upload = dumps({'username': 'zod', 'sticks': [{'name': 'hull', 'imei': '1024'}, {'name': 'del', 'imei': '1023'}] })
-rurequest = dumps({'username': 'zox', 'password': 'f', 'sticks': [{'name': 'hull', 'imei': '1024'}, {'name': 'del', 'imei': '1023'}] })
+upload = dumps({'username': 'zod', 'sticks': [{'name': 'hull', 'imei': '9981'}, {'name': 'del', 'imei': '1028'}] })
+#rurequest = dumps({'username': 'zox', 'password': 'f', 'sticks': [{'name': 'hull', 'imei': '1024'}, {'name': 'del', 'imei': '1023'}] })
+rurequest = dumps({'username': 'zoo', 'password':'f'})
 #upload = dumps({'username': 'zod', 'sticks': [] })
-getcoderequest = dumps({'username': 'alice', 'imei': '1024'})
+getcoderequest = dumps({'username': 'alice', 'imei': '98789'})
+unsubrequest = dumps({'username': 'zox', 'imei': '1024'})
 
-host = 'http://ec2-54-191-111-179.us-west-2.compute.amazonaws.com:8082/api'
+host = 'http://smartcane.huahailife.com:8082/api'
 gpsaddress = host + '/gps?action=getuserlocation'
 bindaddress = host + '/stick?action=bind'
 imeiaddress = host + '/stick?action=getimei'
@@ -96,8 +100,10 @@ getsticksaddress = host + '/user?action=getsticks'
 getcodeaddress = host + '/stick?action=getverifycode'
 getbycodeaddress = host + '/stick?action=getimeibycode'
 uploadaddress = host + '/user?action=uploadsticks'
+unsubaddress = host + '/user?action=unsubscribe'
 ruaddress = host + '/user?action=registerandupload'
 subaddress = host + '/stick?action=subscribebycode'
+
 
 agent = Agent(reactor)
 
@@ -136,12 +142,12 @@ def asynchroTest(requests, addresses):
 
 
 
-import socket
-sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server_address = ('ec2-54-191-111-179.us-west-2.compute.amazonaws.com', 8081)
-sock.connect(server_address)
-
 def testTcp(message):
+    import socket
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_address = ('smartcane.huahailife.com', 8081)
+    sock.connect(server_address)
+
     try:
         sock.sendall(message)
         data = sock.recv(96)
@@ -152,14 +158,16 @@ def testTcp(message):
 
 def multiTest():
     try:
-        server_address = ('ec2-54-191-111-179.us-west-2.compute.amazonaws.com', 8081)
+        server_address = ('smartcane.huahailife.com', 8081)
         sock1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock1.connect(server_address)
         sock2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock2.connect(server_address)
 
-        location1 = '3,1024,150930141223,23.a12321,87.2b2234'
+        location1 = '3,1025,150930141223,23.12321,87.22234'
         location2 = '3,1024,150930141223,23.12321W,87.22234N'
+        sock1.sendall(location1)
+        sock2.sendall(location2)
         data1 = sock1.recv(96)
         data2 = sock1.recv(96)
         
@@ -181,6 +189,8 @@ if sys.argv[1] == 'sub':
 if sys.argv[1] == 'ru':
     makeTest(rurequest, ruaddress)
 
+if sys.argv[1] == 'unsub':
+    makeTest(unsubrequest, unsubaddress)
 
 if sys.argv[1] == 'gps':
     makeTest(gpsrequest, gpsaddress)
@@ -227,10 +237,15 @@ if sys.argv[1] == 'tcpsetsos':
     testTcp(tcpaddsos)
 if sys.argv[1] == 'tcpdelsos':
     testTcp(tcpdelsos)
+if sys.argv[1] == 'tcpdelall':
+    testTcp(tcpdelete)
+if sys.argv[1] == 'tcpsync':
+    testTcp(tcpsync)
 if sys.argv[1] == 'getcode':
     makeTest(getcoderequest, getcodeaddress)
 if sys.argv[1] == 'getbycode':
     makeTest(dumps({'code': str(sys.argv[2])}), getbycodeaddress)
+
 
 if sys.argv[1] == 'gpspage':
     requests = list()

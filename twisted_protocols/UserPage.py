@@ -38,7 +38,7 @@ class UserPage(Resource):
         if result in ['400', '401', '402', '403', '404']:
             request.write(resultValue(result))
         elif type(result) == tuple and len(result) != 0:
-            request.write(dumps({'result': '1', 'imei': result[0][1], 'name': result[0][2], 'simnum': result[0][3]}))
+            request.write(dumps({'result': '1', 'imei': result[0][1], 'name': result[0][2], 'type': result[0][3], 'simnum': result[0][4]}))
         elif type(result) == tuple and len(result) == 0:
             request.write(resultValue(404))
         else:
