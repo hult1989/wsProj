@@ -80,6 +80,7 @@ rurequest = dumps({'username': 'zoo', 'password':'f'})
 #upload = dumps({'username': 'zod', 'sticks': [] })
 getcoderequest = dumps({'username': 'alice', 'imei': '98789'})
 unsubrequest = dumps({'username': 'zox', 'imei': '1024'})
+forgotpassword = dumps({'username': 'zod'})
 
 host = 'http://localhost:8082/api'
 gpsaddress = host + '/gps?action=getuserlocation'
@@ -102,6 +103,8 @@ getbycodeaddress = host + '/stick?action=getimeibycode'
 uploadaddress = host + '/user?action=uploadsticks'
 unsubaddress = host + '/user?action=unsubscribe'
 ruaddress = host + '/user?action=registerandupload'
+updateaddress = host + '/user?action=updateapp'
+passwordaddress = host + '/user?action=forgotpassword'
 subaddress = host + '/stick?action=subscribebycode'
 
 
@@ -123,7 +126,10 @@ def stop(result):
     reactor.stop()
 
 def makeTest(request, address):
-    d = agent.request('POST', address, bodyProducer = StringProducer(request))
+    if sys.argv[1] == 'updateapp':
+        d = agent.request('GET', address, bodyProducer = StringProducer(request))
+    else:
+        d = agent.request('POST', address, bodyProducer = StringProducer(request))
     d.addCallbacks(printResource, printError)
     d.addBoth(stop)
     reactor.run()
@@ -189,8 +195,14 @@ if sys.argv[1] == 'sub':
 if sys.argv[1] == 'ru':
     makeTest(rurequest, ruaddress)
 
+if sys.argv[1] == 'forgotpassword':
+    makeTest(forgotpassword, passwordaddress)
+
 if sys.argv[1] == 'unsub':
     makeTest(unsubrequest, unsubaddress)
+
+if sys.argv[1] == 'updateapp':
+    makeTest('asdfadsf', updateaddress)
 
 if sys.argv[1] == 'gps':
     makeTest(gpsrequest, gpsaddress)

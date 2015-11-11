@@ -1,4 +1,7 @@
 from json import dumps, loads
+import smtplib
+from email.mime.text import MIMEText
+from email.header import Header
 
 from twisted.python import log
 from twisted.internet import reactor
@@ -188,5 +191,38 @@ class UserPage(Resource):
             d.addErrback(onError)
             return NOT_DONE_YET
 
+        if request.args['action'] == ['forgotpassword']:
+            if 'username' not in payload :
+                return resultValue(300)
+            if len(payload['username']) == 0:
+                return resultValue(300)
+            d = FoundPasswordSql(wsdbpool, payload['username'])
+            d.addCallbacks(self.onFoundPassword, onError,callbackArgs=(request,))
+            return NOT_DONE_YET
+
+    def render_GET(self, request):
+        if request.args['action'] == ['updateapp']:
+            self.UpdateVerson(request)
+            return NOT_DONE_YET
+	
+    def onFoundPassword(self, result, request):
+        address = result[0][0]
+        password = result[0][1]
+        log.msg('RESULT FROM SQL IS:\t', address, password)
+        from sendMail import sendPasswordByEmail
+        try:
+            sendPasswordByEmail(address, password)     
+        except Exception, e:
+            log.msg(str(e))
+        request.write(resultValue(1))
+        request.finish()
+    
+    def UpdateVerson(self,request):
+        f = open("./common/updateinfo.json", 'r')
+        result = f.read()
+        f.close()
+        request.write(result)
+        request.finish()
+    
 userPage = UserPage()
 

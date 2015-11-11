@@ -7,8 +7,9 @@ from twisted.python import failure
 import random
 from appException import *
 
-SQLUSER = 'tanghao'
-PASSWORD = '123456'
+
+def FoundPasswordSql(wsdbpool,username):#查找指定用户名的password和email
+    return wsdbpool.runQuery('select email, password from userinfo where username = %s', (username,))
 
 def handleUnsubscribeSql(wsdbpool, username, imei):
     return wsdbpool.runInteraction(_handleUnsubscribe, username, imei)
