@@ -48,31 +48,31 @@ def printResource(response):
 def stop(result):
     reactor.stop()
 
-tcplocation = '3,867715029610974,150924141223,0000.00000W,0000.000000N,2623,0e09,23'
-tcpaddsos = '2,1024,add82332112345'
-tcpdelsos = '2,1024,del42332112345'
-tcpimsi = '4,2,123150930141223'
+tcplocation = '3,867715029610974,190930141223,0000.00000W,0000.000000N,2623,0e07,15'
+tcpaddsos = '2,98789,add42332112345'
+tcpdelsos = '2,8789,del12332112345'
+tcpimsi = '4,867715029610974,460002606774193'
 tcpbind = '1,1028,bon1234567890,15882205392'
 tcpdelete = '6,1023,ok'
-tcpsync = '5,1024,3,7,,92332112345,1234321'
+tcpsync = '5,1024,3,7,42332112345,92332112345,1234321'
 
 
 
 
-gpsrequest = dumps({'imei': '867715029636284', 'timestamp': '1400030032000'})
+gpsrequest = dumps({'imei': '1024', 'timestamp': '1400030032000'})
 bindrequest = dumps({'username': 'zod', 'simnum': '1234567890', 'name': '拐杖'})
 imeirequest = dumps({'username': 'zod', 'simnum': '1234567890'})
-setsosrequest = dumps({'imei': '1024', 'adminpwd': '123456', 'contactentry': {'sosnumber': '1234321', 'contact':'蝙蝠侠'}})
-delsosrequest = dumps({'imei': '1024', 'adminpwd': '123456', 'contactentry': {'sosnumber': '42332112345', 'contact':'蝙蝠侠'}})
+setsosrequest = dumps({'imei': '98789', 'adminpwd': '123456', 'contactentry': {'sosnumber': '12332112345', 'contact':'蝙蝠侠'}})
+delsosrequest = dumps({'imei': '1024', 'adminpwd': '123456', 'contactentry': {'sosnumber': '12332112345', 'contact':'蝙蝠侠'}})
 varifyadd = dumps({'imei': '98789', 'sosnumber': '12332112345'})
 varifydel = dumps({'imei': '98789', 'sosnumber': '12332112345'})
 getsos = dumps({'imei': '98789'})
 updatepwd = dumps({'imei': '1024', 'adminpwd': '123456', 'newadminpwd': '223456'})
 register = dumps({'username': 'zod', 'password':'f'})
-login = dumps({'username': 'zod', 'password':'f'})
-upwd = dumps({'username': 'wonderwoman', 'password':'f', 'newpassword': 'g'})
+login = dumps({'username': 'Lynda', 'password':'1245678'})
+upwd = dumps({'username': 'Lynda', 'password':'123456', 'newpassword': '12345678'})
 newname = dumps({'username': 'zod', 'imei': '1024', 'name': '绿巨人'})
-getstick = dumps({'username': 'zod'})
+getstick = dumps({'username': 'Poi'})
 current = dumps({'username': 'zod', 'imei': '1024'})
 upload = dumps({'username': 'zod', 'sticks': [{'name': 'hull', 'imei': '9981'}, {'name': 'del', 'imei': '1028'}] })
 #rurequest = dumps({'username': 'zox', 'password': 'f', 'sticks': [{'name': 'hull', 'imei': '1024'}, {'name': 'del', 'imei': '1023'}] })
@@ -80,8 +80,9 @@ rurequest = dumps({'username': 'zoo', 'password':'f'})
 #upload = dumps({'username': 'zod', 'sticks': [] })
 getcoderequest = dumps({'username': 'alice', 'imei': '98789'})
 unsubrequest = dumps({'username': 'zox', 'imei': '1024'})
+forgotpassword = dumps({'username': 'zod'})
 
-host = 'http://huahai:8082/api'
+host = 'http://smartcane.huahailife.com:8082/api'
 gpsaddress = host + '/gps?action=getuserlocation'
 bindaddress = host + '/stick?action=bind'
 imeiaddress = host + '/stick?action=getimei'
@@ -102,6 +103,8 @@ getbycodeaddress = host + '/stick?action=getimeibycode'
 uploadaddress = host + '/user?action=uploadsticks'
 unsubaddress = host + '/user?action=unsubscribe'
 ruaddress = host + '/user?action=registerandupload'
+updateaddress = host + '/user?action=updateapp'
+passwordaddress = host + '/user?action=forgotpassword'
 subaddress = host + '/stick?action=subscribebycode'
 
 
@@ -123,7 +126,10 @@ def stop(result):
     reactor.stop()
 
 def makeTest(request, address):
-    d = agent.request('POST', address, bodyProducer = StringProducer(request))
+    if sys.argv[1] == 'updateapp':
+        d = agent.request('GET', address, bodyProducer = StringProducer(request))
+    else:
+        d = agent.request('POST', address, bodyProducer = StringProducer(request))
     d.addCallbacks(printResource, printError)
     d.addBoth(stop)
     reactor.run()
@@ -145,7 +151,7 @@ def asynchroTest(requests, addresses):
 def testTcp(message):
     import socket
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_address = ('huahai', 8081)
+    server_address = ('smartcane.huahailife.com', 8081)
     sock.connect(server_address)
 
     try:
@@ -158,7 +164,7 @@ def testTcp(message):
 
 def multiTest():
     try:
-        server_address = ('huahai', 8081)
+        server_address = ('smartcane.huahailife.com', 8081)
         sock1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock1.connect(server_address)
         sock2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -189,8 +195,14 @@ if sys.argv[1] == 'sub':
 if sys.argv[1] == 'ru':
     makeTest(rurequest, ruaddress)
 
+if sys.argv[1] == 'forgotpassword':
+    makeTest(forgotpassword, passwordaddress)
+
 if sys.argv[1] == 'unsub':
     makeTest(unsubrequest, unsubaddress)
+
+if sys.argv[1] == 'updateapp':
+    makeTest('asdfadsf', updateaddress)
 
 if sys.argv[1] == 'gps':
     makeTest(gpsrequest, gpsaddress)

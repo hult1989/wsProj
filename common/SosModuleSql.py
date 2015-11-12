@@ -84,7 +84,7 @@ def selectSosNumberSql(wsdbpool, imei):
     return wsdbpool.runInteraction(_selectSosNumber, imei)
 
 def _selectSosNumber(txn, imei):
-    txn.execute('select * from sosnumber where imei = %s', (imei,))
+    txn.execute('select * from sosnumber where imei = %s order by seq desc', (imei,))
     result = txn.fetchall()
     if len(result) == 0:
         raise NoSosnumberException
@@ -116,32 +116,39 @@ def _verifyOper(txn, imei, number, oper):
 kepp sosnumbers in database sync with stick
 '''''''''''''''''''''''''''''''''''''''''''''
 
-def syncSosSql(wsdbpool, imei, numbersInStick):
-    return wsdbpool.runInteraction(_syncSos, imei, numbersInStick)
+def syncSosSql(wsdbpool, message):
+    return wsdbpool.runInteraction(_syncSos, message)
 
-def _syncSos(txn, imei, numbersInStick):
+def _syncSos(txn, message):
+    message = message.split(',')
+    imei = message[0]
+    tag = message[3]
+    numbersInStick = dict([ (message[4+i], 2**(2-i)) for i in range(3) if len(message[4+i] ) != 0 ]) 
+
     numbersInDb = set()
     txn.execute('select sosnumber from sosnumber where imei = %s', (imei,))
     for r in txn.fetchall():
         numbersInDb.add(r[0])
 
     #number in database but not in stick, to be deleted
-    for number in numbersInDb.difference(numbersInStick):
+    for number in numbersInDb.difference(set(numbersInStick.keys())):
         txn.execute('delete from sosnumber where sosnumber = %s', (number,))
         txn.execute('delete from temp_sos where imei = %s and sosnumber = %s', (imei, number))
 
     #number in stick but not in database, to be added to table sosnumber
-    for number in numbersInStick.difference(numbersInDb):
+    for number in set(numbersInStick.keys()).difference(numbersInDb):
         txn.execute('select contact from temp_sos where imei = %s and sosnumber = %s', (imei, number))
         contact = txn.fetchall()
         if len(contact) == 0:
             contact = 'unnamed'
         else:
             contact = contact[0][0]
-        txn.execute('replace into sosnumber (imei, sosnumber, contact) values(%s, %s, %s)', (imei, number, contact))
+        txn.execute('replace into sosnumber (imei, sosnumber, contact, seq) values(%s, %s, %s, %s)', (imei, number, contact, numbersInStick[number]))
         txn.execute('delete from temp_sos where imei = %s and sosnumber = %s', (imei, number))
 
-
+    #update seq number
+    for number in numbersInStick.keys():
+        txn.execute('update sosnumber set seq = %s where imei =  %s and sosnumber = %s', (numbersInStick[number], imei, number))
     return True
         
 
@@ -165,10 +172,7 @@ if __name__ == '__main__':
     from sqlPool import wsdbpool
     from twisted.internet import reactor, defer
     #insertTempSosSql(wsdbpool, 1027, '12345678901', 'name').addCallbacks(onResult, onError)
-    stickset = set()
-    stickset.add('12345678901')
-    stickset.add('42345678901')
-
-    checkImeiSimnumSql(wsdbpool, 98789).addCallbacks(onResult, onError)
+    message = '5,123456789abcdef,3,7,+8613800000001,+8613800000000,+8613800000101'
+    syncSosSql(wsdbpool, message).addCallbacks(onResult, onError)
     reactor.run()
 

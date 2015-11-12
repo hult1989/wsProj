@@ -54,7 +54,7 @@ tcpdelsos = '2,8789,del12332112345'
 tcpimsi = '4,867715029610974,460002606774193'
 tcpbind = '1,1028,bon1234567890,15882205392'
 tcpdelete = '6,1023,ok'
-tcpsync = '5,1024,3,7,42332112345,92332112345,1234321'
+tcpsync = '5,1024,3,7,,92332112345,1234321'
 
 
 
@@ -66,7 +66,7 @@ setsosrequest = dumps({'imei': '98789', 'adminpwd': '123456', 'contactentry': {'
 delsosrequest = dumps({'imei': '1024', 'adminpwd': '123456', 'contactentry': {'sosnumber': '12332112345', 'contact':'蝙蝠侠'}})
 varifyadd = dumps({'imei': '98789', 'sosnumber': '12332112345'})
 varifydel = dumps({'imei': '98789', 'sosnumber': '12332112345'})
-getsos = dumps({'imei': '98789'})
+getsos = dumps({'imei': '5'})
 updatepwd = dumps({'imei': '1024', 'adminpwd': '123456', 'newadminpwd': '223456'})
 register = dumps({'username': 'zod', 'password':'f'})
 login = dumps({'username': 'zod', 'password':'f'})

@@ -107,10 +107,7 @@ class WsServer(protocol.Protocol):
         elif message[0] == '4':
             handleImsiSql(self.factory.wsdbpool, message).addCallbacks(self.onSuccess, onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
         elif message[0] == '5':
-            message = message.split(',')
-            imei = message[1]
-            numbersInStick = set(m for m in message[4:] if len(m) != 0)
-            syncSosSql(self.factory.wsdbpool, imei, numbersInStick).addCallbacks(self.onSuccess, onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
+            syncSosSql(self.factory.wsdbpool, message).addCallbacks(self.onSuccess, onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
             
         elif message[0] == '6':
             if message[-2:] == 'ok' or message[-2:] == 'OK':
