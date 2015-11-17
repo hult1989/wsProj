@@ -57,8 +57,8 @@ def insertLocation(wsdbpool, message):
 
     message = message.split(',')
     imei = str(message[1]).strip()
-    if int(timestamp) == 0:
-        timestamp = time.trftime('%Y%m%d%H%M%S', time.gmtime(time.time()))
+    if int(message[2].strip()) == 0:
+        timestamp = time.strftime('%Y%m%d%H%M%S', time.gmtime(time.time()))
     else:
         timestamp = '20'+ message[2].strip()
 
