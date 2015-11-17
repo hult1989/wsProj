@@ -48,13 +48,13 @@ def printResource(response):
 def stop(result):
     reactor.stop()
 
-tcplocation = '3,867715029610974,190930141223,0000.00000W,0000.000000N,2623,0e07,15'
-tcpaddsos = '2,98789,add42332112345'
-tcpdelsos = '2,8789,del12332112345'
+tcplocation = '3,86771502961099,110930141223,0000.00000W,0000.000000N,2623,0e13,15'
+tcpaddsos = '2,98789,add92332112345'
+tcpdelsos = '2,98789,del92332112345'
 tcpimsi = '4,867715029610974,460002606774193'
 tcpbind = '1,1028,bon1234567890,15882205392'
 tcpdelete = '6,1023,ok'
-tcpsync = '5,1024,3,7,42332112345,92332112345,1234321'
+tcpsync = '5,98789,3,7,,,92332112345'
 
 
 
@@ -62,14 +62,14 @@ tcpsync = '5,1024,3,7,42332112345,92332112345,1234321'
 gpsrequest = dumps({'imei': '1024', 'timestamp': '1400030032000'})
 bindrequest = dumps({'username': 'zod', 'simnum': '1234567890', 'name': '拐杖'})
 imeirequest = dumps({'username': 'zod', 'simnum': '1234567890'})
-setsosrequest = dumps({'imei': '98789', 'adminpwd': '123456', 'contactentry': {'sosnumber': '12332112345', 'contact':'蝙蝠侠'}})
-delsosrequest = dumps({'imei': '1024', 'adminpwd': '123456', 'contactentry': {'sosnumber': '12332112345', 'contact':'蝙蝠侠'}})
-varifyadd = dumps({'imei': '98789', 'sosnumber': '12332112345'})
+setsosrequest = dumps({'imei': '98789', 'adminpwd': '123456', 'contactentry': {'sosnumber': '92332112345', 'contact':'蝙蝠侠'}})
+delsosrequest = dumps({'imei': '98789', 'adminpwd': '123456', 'contactentry': {'sosnumber': '92332112345', 'contact':'蝙蝠侠'}})
+varifyadd = dumps({'imei': '98789', 'sosnumber': '92332112345'})
 varifydel = dumps({'imei': '98789', 'sosnumber': '12332112345'})
 getsos = dumps({'imei': '98789'})
 updatepwd = dumps({'imei': '1024', 'adminpwd': '123456', 'newadminpwd': '223456'})
-register = dumps({'username': 'zod', 'password':'f'})
-login = dumps({'username': 'Lynda', 'password':'1245678'})
+register = dumps({'username': 'zoo', 'password':'f'})
+login = dumps({'username': 'zoo', 'password':'f'})
 upwd = dumps({'username': 'Lynda', 'password':'123456', 'newpassword': '12345678'})
 newname = dumps({'username': 'zod', 'imei': '1024', 'name': '绿巨人'})
 getstick = dumps({'username': 'Poi'})

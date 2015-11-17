@@ -49,6 +49,8 @@ def _checkSosnumber(txn, imei, number, oper):
     txn.execute('select * from sosnumber where imei = %s', (imei,))
     num = len(txn.fetchall())
     if oper == 'DEL' and num <= MINNUM:
+        raise SosMinimumException
+    if oper == 'DEL' and num == 0:
         raise NoSosnumberException
     return True
 
@@ -101,7 +103,7 @@ def verifyOperSql(wsdbpool, imei, number, oper):
     return wsdbpool.runInteraction(_verifyOper, imei, number, oper)
 
 def _verifyOper(txn, imei, number, oper):
-    txn.execute('select * from sosnumber where sosnumber = %s', (number,))
+    txn.execute('select * from sosnumber where sosnumber = %s and imei = %s', (number,imei))
     result = txn.fetchall()
     if oper == 'ADD' and len(result) == 1:
         return True
@@ -121,7 +123,7 @@ def syncSosSql(wsdbpool, message):
 
 def _syncSos(txn, message):
     message = message.split(',')
-    imei = message[0]
+    imei = message[1]
     tag = message[3]
     numbersInStick = dict([ (message[4+i], 2**(2-i)) for i in range(3) if len(message[4+i] ) != 0 ]) 
 

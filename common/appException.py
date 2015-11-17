@@ -66,4 +66,8 @@ class StorageLimitException(AppException):
         super(Exception, self).__init__(args)
         self.errCode = 507
 
+class SosMinimumException(AppException):
+    def __init__(self, args=None):
+        super(Exception, self).__init__(args)
+        self.errCode = 508
 
