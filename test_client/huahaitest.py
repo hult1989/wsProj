@@ -48,7 +48,7 @@ def printResource(response):
 def stop(result):
     reactor.stop()
 
-tcplocation = '3,86771502961099,110930141223,0000.00000W,0000.000000N,2623,0e13,15'
+tcplocation = '3,867715029636285,000000000000,00000.00000E,0000.00000N,2623,0E09,25'
 tcpaddsos = '2,98789,add92332112345'
 tcpdelsos = '2,98789,del92332112345'
 tcpimsi = '4,867715029610974,460002606774193'
@@ -66,7 +66,7 @@ setsosrequest = dumps({'imei': '98789', 'adminpwd': '123456', 'contactentry': {'
 delsosrequest = dumps({'imei': '98789', 'adminpwd': '123456', 'contactentry': {'sosnumber': '92332112345', 'contact':'蝙蝠侠'}})
 varifyadd = dumps({'imei': '98789', 'sosnumber': '92332112345'})
 varifydel = dumps({'imei': '98789', 'sosnumber': '12332112345'})
-getsos = dumps({'imei': '98789'})
+getsos = dumps({'imei': '868986022058359'})
 updatepwd = dumps({'imei': '1024', 'adminpwd': '123456', 'newadminpwd': '223456'})
 register = dumps({'username': 'zoo', 'password':'f'})
 login = dumps({'username': 'zoo', 'password':'f'})

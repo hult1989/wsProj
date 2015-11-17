@@ -57,7 +57,11 @@ def insertLocation(wsdbpool, message):
 
     message = message.split(',')
     imei = str(message[1]).strip()
-    timestamp = '20'+ message[2].strip()
+    if int(timestamp) == 0:
+        timestamp = time.trftime('%Y%m%d%H%M%S', time.gmtime(time.time()))
+    else:
+        timestamp = '20'+ message[2].strip()
+
     longitude, latitude = _getGpsinfoFromMessage(message)
 
     #get longitude and latitude in string format form message
