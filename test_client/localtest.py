@@ -62,7 +62,7 @@ tcpsync = '5,98789,3,7,12332112345,92332112345,22332112345'
 gpsrequest = dumps({'imei': '1024', 'timestamp': '1400030032000'})
 bindrequest = dumps({'username': 'zod', 'simnum': '1234567890', 'name': '拐杖'})
 imeirequest = dumps({'username': 'zod', 'simnum': '1234567890'})
-setsosrequest = dumps({'imei': '98789', 'adminpwd': '123456', 'contactentry': {'sosnumber': '22332112345', 'contact':'蝙蝠侠'}})
+setsosrequest = dumps({'imei': '98787', 'adminpwd': '123456', 'contactentry': {'sosnumber': '72332112345', 'contact':'蝙蝠侠'}})
 delsosrequest = dumps({'imei': '1024', 'adminpwd': '123456', 'contactentry': {'sosnumber': '12332112345', 'contact':'蝙蝠侠'}})
 varifyadd = dumps({'imei': '98789', 'sosnumber': '12332112345'})
 varifydel = dumps({'imei': '98789', 'sosnumber': '12332112345'})
@@ -75,6 +75,7 @@ newname = dumps({'username': 'zod', 'imei': '1024', 'name': '绿巨人'})
 getstick = dumps({'username': 'zod'})
 current = dumps({'username': 'zod', 'imei': '1024'})
 upload = dumps({'username': 'zod', 'sticks': [{'name': 'hull', 'imei': '9981'}, {'name': 'del', 'imei': '1028'}] })
+review = dumps({'username': 'zod', 'review': '很好的app'})
 #rurequest = dumps({'username': 'zox', 'password': 'f', 'sticks': [{'name': 'hull', 'imei': '1024'}, {'name': 'del', 'imei': '1023'}] })
 rurequest = dumps({'username': 'zoo', 'password':'f'})
 #upload = dumps({'username': 'zod', 'sticks': [] })
@@ -102,6 +103,7 @@ getcodeaddress = host + '/stick?action=getverifycode'
 getbycodeaddress = host + '/stick?action=getimeibycode'
 uploadaddress = host + '/user?action=uploadsticks'
 unsubaddress = host + '/user?action=unsubscribe'
+reviewaddress = host + '/user?action=review'
 ruaddress = host + '/user?action=registerandupload'
 updateaddress = host + '/user?action=updateapp'
 passwordaddress = host + '/user?action=forgotpassword'
@@ -203,6 +205,8 @@ if sys.argv[1] == 'unsub':
 
 if sys.argv[1] == 'updateapp':
     makeTest('asdfadsf', updateaddress)
+if sys.argv[1] == 'review':
+    makeTest(review, reviewaddress)
 
 if sys.argv[1] == 'gps':
     makeTest(gpsrequest, gpsaddress)

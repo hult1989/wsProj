@@ -200,6 +200,11 @@ class UserPage(Resource):
             d.addCallbacks(self.onFoundPassword, onError,callbackArgs=(request,))
             return NOT_DONE_YET
 
+        if request.args['action'] == ['review']:
+            d = insertUserReview(wsdbpool, username=payload['username'], review=payload['review'])
+            d.addCallback(self.onResult, request)
+            return NOT_DONE_YET
+
     def render_GET(self, request):
         if request.args['action'] == ['updateapp']:
             self.UpdateVerson(request)

@@ -356,6 +356,8 @@ def selectTempSosSql(wsdbpool, imei, sosnumber):
 def deleteTempSosSql(wsdbpool, imei, sosnumber):
     return wsdbpool.runOperation('delete from temp_sos where imei = %s and sosnumber = %s', (imei, sosnumber))
 
+def insertUserReview(wsdbpool,username, review, rating=3):
+    return wsdbpool.runOperation('insert into feedback (username, rating, review) values (%s, %s, %s)', (username, rating, review))
 
   
 
@@ -385,6 +387,6 @@ if __name__ == '__main__':
     from sqlPool import wsdbpool, bsdbpool
     #wsdbpool = adbapi.ConnectionPool("MySQLdb", db="wsdb", user='tanghao', passwd='123456', unix_socket='/tmp/mysql.sock')
     #wsdbpool = adbapi.ConnectionPool("MySQLdb", db="wsdb", user='tanghao', passwd='123456')
-    selectRelationSql(wsdbpool, 'zox').addCallbacks(onSuccess, onError)
+    insertUserReview(wsdbpool, 'zod', '2', '很好的软件').addCallbacks(onSuccess, onError)
 
     reactor.run()

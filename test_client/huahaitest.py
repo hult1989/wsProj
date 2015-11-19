@@ -49,12 +49,12 @@ def stop(result):
     reactor.stop()
 
 tcplocation = '3,867715029636284,000000000000,00000.00000E,0000.00000N,2623,0E09,25'
-tcpaddsos = '2,98789,add92332112345'
-tcpdelsos = '2,98789,del92332112345'
+tcpaddsos = '2,98788,add12332112345'
+tcpdelsos = '2,98789,del12332112345'
 tcpimsi = '4,867715029610974,460002606774193'
 tcpbind = '1,1028,bon1234567890,15882205392'
 tcpdelete = '6,1023,ok'
-tcpsync = '5,98789,3,7,,,92332112345'
+tcpsync = '5,98788,3,7,,92332112345,12332112345'
 
 
 
@@ -62,11 +62,11 @@ tcpsync = '5,98789,3,7,,,92332112345'
 gpsrequest = dumps({'imei': '1024', 'timestamp': '1400030032000'})
 bindrequest = dumps({'username': 'zod', 'simnum': '1234567890', 'name': '拐杖'})
 imeirequest = dumps({'username': 'zod', 'simnum': '1234567890'})
-setsosrequest = dumps({'imei': '98789', 'adminpwd': '123456', 'contactentry': {'sosnumber': '92332112345', 'contact':'蝙蝠侠'}})
-delsosrequest = dumps({'imei': '98789', 'adminpwd': '123456', 'contactentry': {'sosnumber': '92332112345', 'contact':'蝙蝠侠'}})
-varifyadd = dumps({'imei': '98789', 'sosnumber': '92332112345'})
+setsosrequest = dumps({'imei': '98788', 'adminpwd': '123456', 'contactentry': {'sosnumber': '12332112345', 'contact':'蝙蝠侠'}})
+delsosrequest = dumps({'imei': '98789', 'adminpwd': '123456', 'contactentry': {'sosnumber': '12332112345', 'contact':'蝙蝠侠'}})
+varifyadd = dumps({'imei': '98788', 'sosnumber': '12332112345'})
 varifydel = dumps({'imei': '98789', 'sosnumber': '12332112345'})
-getsos = dumps({'imei': '868986022058359'})
+getsos = dumps({'imei': '98788'})
 updatepwd = dumps({'imei': '1024', 'adminpwd': '123456', 'newadminpwd': '223456'})
 register = dumps({'username': 'zoo', 'password':'f'})
 login = dumps({'username': 'zoo', 'password':'f'})
