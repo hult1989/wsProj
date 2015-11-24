@@ -306,8 +306,8 @@ def _checkSosnumber(txn, imei, sosnumber):
     return txn.fetchall()
     
 
-def insertLocationSql(wsdbpool, imei, longitude, latitude, timestamp):
-    return wsdbpool.runOperation('replace into location (imei, longitude, latitude, timestamp) values (%s, %s, %s, %s)', (imei, float(longitude), float(latitude), timestamp))
+def insertLocationSql(wsdbpool, imei, longitude, latitude, timestamp, gpstype='g'):
+    return wsdbpool.runOperation('replace into location (imei, longitude, latitude, timestamp, type) values (%s, %s, %s, %s, %s)', (imei, float(longitude), float(latitude), timestamp, gpstype))
 
 def selectWsinfoSql(wsdbpool, imei):
     return wsdbpool.runQuery('select * from wsinfo where imei = %s', (imei,))
@@ -323,7 +323,7 @@ def insertWsinfoSql(wsdbpool, imei, imsi = None, simnum = None, adminpwd='123456
     return wsdbpool.runOperation('replace into wsinfo (imei, imsi, simnum, adminpwd) values (%s, %s, %s, %s)', (imei, imsi, simnum, adminpwd))
 
 def selectLocationSql(wsdbpool, imei, timestamp):
-    return wsdbpool.runQuery('select imei, longitude, latitude, unix_timestamp(timestamp) from location where imei = %s and unix_timestamp(timestamp) > %s', (imei, timestamp[0:-3]))
+    return wsdbpool.runQuery('select imei, longitude, latitude, unix_timestamp(timestamp), type from location where imei = %s and unix_timestamp(timestamp) > %s', (imei, timestamp[0:-3]))
 
 
 
@@ -359,7 +359,12 @@ def deleteTempSosSql(wsdbpool, imei, sosnumber):
 def insertUserReview(wsdbpool,username, review, rating=3):
     return wsdbpool.runOperation('insert into feedback (username, rating, review) values (%s, %s, %s)', (username, rating, review))
 
+def insertBatteryLevel(callBackResult, wsdbpool, imei, level, charging, timestamp):
+    return wsdbpool.runOperation('replace into battery_level (imei, level, charging, timestamp) values (%s, %s, %s, %s)', (imei, level, charging, timestamp))
   
+def selectBatteryLevel(wsdbpool, imei):
+    return wsdbpool.runQuery('select imei, level, charging, unix_timestamp(timestamp) from battery_level where imei = %s', (imei,))
+
 
 if __name__ == '__main__':
 
@@ -380,13 +385,11 @@ if __name__ == '__main__':
         reactor.stop()
 
     def onError(failure):
-        print failure.value.errCode
+        print str(failure)
         reactor.stop()
 
     import sys
     from sqlPool import wsdbpool, bsdbpool
-    #wsdbpool = adbapi.ConnectionPool("MySQLdb", db="wsdb", user='tanghao', passwd='123456', unix_socket='/tmp/mysql.sock')
-    #wsdbpool = adbapi.ConnectionPool("MySQLdb", db="wsdb", user='tanghao', passwd='123456')
-    insertUserReview(wsdbpool, 'zod', '2', '很好的软件').addCallbacks(onSuccess, onError)
+    selectBatteryLevel(wsdbpool, 1024).addCallbacks(onSuccess, onError)
 
     reactor.run()

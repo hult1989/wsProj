@@ -48,7 +48,7 @@ def printResource(response):
 def stop(result):
     reactor.stop()
 
-tcplocation = '3,867715029610974,190930141223,0000.00000W,0000.000000N,2623,0e07,15'
+tcplocation = '3,1024,190930141223,0000.00000W,0000.000000N,2623,0e07,15,77,1'
 tcpaddsos = '2,98789,add22332112345'
 tcpdelsos = '2,8789,del12332112345'
 tcpimsi = '4,867715029610974,460002606774193'
@@ -66,7 +66,7 @@ setsosrequest = dumps({'imei': '98787', 'adminpwd': '123456', 'contactentry': {'
 delsosrequest = dumps({'imei': '1024', 'adminpwd': '123456', 'contactentry': {'sosnumber': '12332112345', 'contact':'蝙蝠侠'}})
 varifyadd = dumps({'imei': '98789', 'sosnumber': '12332112345'})
 varifydel = dumps({'imei': '98789', 'sosnumber': '12332112345'})
-getsos = dumps({'imei': '5'})
+getsos = dumps({'imei': '1024'})
 updatepwd = dumps({'imei': '1024', 'adminpwd': '123456', 'newadminpwd': '223456'})
 register = dumps({'username': 'zod', 'password':'f'})
 login = dumps({'username': 'zod', 'password':'f'})
@@ -88,6 +88,7 @@ gpsaddress = host + '/gps?action=getuserlocation'
 bindaddress = host + '/stick?action=bind'
 imeiaddress = host + '/stick?action=getimei'
 currentaddress = host + '/stick?action=setcurrentimei'
+batteryaddress = host + '/stick?action=getbatterylevel'
 setsosaddress = host + '/sos?action=addnumber'
 delsosaddress = host + '/sos?action=delnumber'
 varifyaddaddress = host + '/sos?action=varifyadd'
@@ -228,6 +229,8 @@ if sys.argv[1] == 'varifydel':
     makeTest(varifydel, varifydeladdress)
 if sys.argv[1] == 'getsos':
     makeTest(getsos, getsosaddress)
+if sys.argv[1] == 'getbattery':
+    makeTest(getsos, batteryaddress)
 if sys.argv[1] == 'updatepwd':
     makeTest(updatepwd, updatepwdaddress)
 if sys.argv[1] == 'register':

@@ -4,7 +4,7 @@ from twisted.python import log
 from twisted.internet import protocol, reactor, defer, threads
 from twisted.protocols import basic
 from twisted.enterprise import adbapi
-from sqlhelper import handleSosSql, handleBindSql, insertLocationSql, handleImsiSql, selectWsinfoSql
+from sqlhelper import handleSosSql, handleBindSql, insertLocationSql, handleImsiSql, selectWsinfoSql, insertBatteryLevel
 from SosModuleSql import deleteSosNumberSql, syncSosSql
 from GetLocationByBs import getLocationByBsinfo
 
@@ -53,7 +53,7 @@ def insertLocation(wsdbpool, message):
 
     def _insertLocation(gpsinfo, wsdbpool, imei, timestamp):
         gpsinfo = str(gpsinfo).split(',')
-        return insertLocationSql(wsdbpool, imei, gpsinfo[0], gpsinfo[1], timestamp)
+        return insertLocationSql(wsdbpool, imei, gpsinfo[0], gpsinfo[1], timestamp, 'b')
 
     message = message.split(',')
     imei = str(message[1]).strip()
@@ -68,13 +68,15 @@ def insertLocation(wsdbpool, message):
     lac = int(message[5], 16)
     cid = int(message[6], 16)
     signal = _convertSignalToRssi(int(message[7]))
+    batteryLevel = int(message[8])
+    charging = int(message[9])
 
     if longitude == 0 and latitude == 0:
         d = selectWsinfoSql(wsdbpool, imei).addCallback(_getGpsinfoCallback, imei, lac, cid, signal, timestamp).addCallback(_insertLocation, wsdbpool, imei, timestamp)
-        return d
-        #not insert into database
     else:
-        return insertLocationSql(wsdbpool, imei, longitude, latitude,  timestamp)
+        d = insertLocationSql(wsdbpool, imei, longitude, latitude,  timestamp)
+    d.addCallback(insertBatteryLevel, wsdbpool, imei, batteryLevel, charging, timestamp)
+    return d
 
 def onError(failure, transport, message):
         log.msg(failure)

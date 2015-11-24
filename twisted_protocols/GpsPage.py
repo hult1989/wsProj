@@ -44,6 +44,7 @@ class GpsPage(Resource):
                 location['longitude'] = str(r[1])
                 location['latitude'] = str(r[2])
                 location['timestamp'] = str(r[3]) + '000'
+                location['type'] = str(r[4])
                 locations.append(location)
             request.write(dumps({'result': '1', 'locations': locations}))
             request.finish()

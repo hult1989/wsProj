@@ -55,6 +55,13 @@ class StickPage(Resource):
             request.write(dumps({'result': '1', 'imei': result[0], 'simnum': result[1], 'type': 's'}))
         request.finish()
 
+    def onBatteryLevel(self, result, request):
+        if len(result) == 0:
+            request.write(resultValue(505))
+        else:
+            result = result[0]
+            request.write(dumps({'imei': str(result[0]), 'level': str(int(result[1])), 'charging': str(result[2]), 'timestamp': str(result[3])}))
+        request.finish()
 
     def render_POST(self, request):
 
@@ -113,6 +120,10 @@ class StickPage(Resource):
             if len(payload['code']) == 0:
                 return resultValue(300)
             handleSubscribeByCodeSql(wsdbpool, payload).addCallbacks(self.onSubscribe, onError, callbackArgs=(request,))
+            return NOT_DONE_YET
+
+        if request.args['action'] == ['getbatterylevel']:
+            selectBatteryLevel(wsdbpool, payload['imei']).addCallbacks(self.onBatteryLevel, onError, callbackArgs=(request,))
             return NOT_DONE_YET
 
             

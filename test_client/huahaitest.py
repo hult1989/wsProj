@@ -48,13 +48,13 @@ def printResource(response):
 def stop(result):
     reactor.stop()
 
-tcplocation = '3,867715029636284,000000000000,00000.00000E,0000.00000N,2623,0E09,25'
-tcpaddsos = '2,98788,add12332112345'
-tcpdelsos = '2,98789,del12332112345'
+tcplocation = '3,867715029610974,190930141223,0000.00000W,0000.000000N,2623,0e07,15'
+tcpaddsos = '2,98789,add22332112345'
+tcpdelsos = '2,8789,del12332112345'
 tcpimsi = '4,867715029610974,460002606774193'
 tcpbind = '1,1028,bon1234567890,15882205392'
 tcpdelete = '6,1023,ok'
-tcpsync = '5,98788,3,7,,92332112345,12332112345'
+tcpsync = '5,98789,3,7,12332112345,92332112345,22332112345'
 
 
 
@@ -62,19 +62,20 @@ tcpsync = '5,98788,3,7,,92332112345,12332112345'
 gpsrequest = dumps({'imei': '1024', 'timestamp': '1400030032000'})
 bindrequest = dumps({'username': 'zod', 'simnum': '1234567890', 'name': '拐杖'})
 imeirequest = dumps({'username': 'zod', 'simnum': '1234567890'})
-setsosrequest = dumps({'imei': '98788', 'adminpwd': '123456', 'contactentry': {'sosnumber': '12332112345', 'contact':'蝙蝠侠'}})
-delsosrequest = dumps({'imei': '98789', 'adminpwd': '123456', 'contactentry': {'sosnumber': '12332112345', 'contact':'蝙蝠侠'}})
-varifyadd = dumps({'imei': '98788', 'sosnumber': '12332112345'})
+setsosrequest = dumps({'imei': '98787', 'adminpwd': '123456', 'contactentry': {'sosnumber': '72332112345', 'contact':'蝙蝠侠'}})
+delsosrequest = dumps({'imei': '1024', 'adminpwd': '123456', 'contactentry': {'sosnumber': '12332112345', 'contact':'蝙蝠侠'}})
+varifyadd = dumps({'imei': '98789', 'sosnumber': '12332112345'})
 varifydel = dumps({'imei': '98789', 'sosnumber': '12332112345'})
-getsos = dumps({'imei': '98788'})
+getsos = dumps({'imei': '5'})
 updatepwd = dumps({'imei': '1024', 'adminpwd': '123456', 'newadminpwd': '223456'})
-register = dumps({'username': 'zoo', 'password':'f'})
-login = dumps({'username': 'zoo', 'password':'f'})
-upwd = dumps({'username': 'Lynda', 'password':'123456', 'newpassword': '12345678'})
+register = dumps({'username': 'zod', 'password':'f'})
+login = dumps({'username': 'zod', 'password':'f'})
+upwd = dumps({'username': 'wonderwoman', 'password':'f', 'newpassword': 'g'})
 newname = dumps({'username': 'zod', 'imei': '1024', 'name': '绿巨人'})
-getstick = dumps({'username': 'Poi'})
+getstick = dumps({'username': 'zod'})
 current = dumps({'username': 'zod', 'imei': '1024'})
 upload = dumps({'username': 'zod', 'sticks': [{'name': 'hull', 'imei': '9981'}, {'name': 'del', 'imei': '1028'}] })
+review = dumps({'username': 'zod', 'review': '很好的app'})
 #rurequest = dumps({'username': 'zox', 'password': 'f', 'sticks': [{'name': 'hull', 'imei': '1024'}, {'name': 'del', 'imei': '1023'}] })
 rurequest = dumps({'username': 'zoo', 'password':'f'})
 #upload = dumps({'username': 'zod', 'sticks': [] })
@@ -102,6 +103,7 @@ getcodeaddress = host + '/stick?action=getverifycode'
 getbycodeaddress = host + '/stick?action=getimeibycode'
 uploadaddress = host + '/user?action=uploadsticks'
 unsubaddress = host + '/user?action=unsubscribe'
+reviewaddress = host + '/user?action=review'
 ruaddress = host + '/user?action=registerandupload'
 updateaddress = host + '/user?action=updateapp'
 passwordaddress = host + '/user?action=forgotpassword'
@@ -203,6 +205,8 @@ if sys.argv[1] == 'unsub':
 
 if sys.argv[1] == 'updateapp':
     makeTest('asdfadsf', updateaddress)
+if sys.argv[1] == 'review':
+    makeTest(review, reviewaddress)
 
 if sys.argv[1] == 'gps':
     makeTest(gpsrequest, gpsaddress)
