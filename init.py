@@ -10,7 +10,7 @@ from appServer import mainPage
 from sqlPool import wsdbpool
 
 if __name__ == '__main__':
-    log.startLogging(open('./log_file/server.log', 'w'))
+    log.startLogging(open('./log_file/server.log', 'a'))
     reactor.listenTCP(8081, WsServerFactory(wsdbpool))
     reactor.listenTCP(8082, Site(mainPage))
     reactor.run()
