@@ -68,8 +68,12 @@ def insertLocation(wsdbpool, message):
     lac = int(message[5], 16)
     cid = int(message[6], 16)
     signal = _convertSignalToRssi(int(message[7]))
-    batteryLevel = int(message[8])
-    charging = int(message[9])
+    try:
+        batteryLevel = int(message[8])
+        charging = int(message[9])
+    except Exception as e:
+        batteryLevel = 50
+        charging = 0
 
     if longitude == 0 and latitude == 0:
         d = selectWsinfoSql(wsdbpool, imei).addCallback(_getGpsinfoCallback, imei, lac, cid, signal, timestamp).addCallback(_insertLocation, wsdbpool, imei, timestamp)

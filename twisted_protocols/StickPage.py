@@ -66,6 +66,7 @@ class StickPage(Resource):
     def render_POST(self, request):
 
         payload = eval(request.content.read())
+        log.msg(str(payload))
 
         if request.args['action'] == ['bind']:
             if 'username' not in payload or 'simnum' not in payload or 'name' not in payload:
