@@ -142,12 +142,10 @@ def _syncSos(txn, message):
     for number in set(numbersInStick.keys()).difference(numbersInDb):
         txn.execute('select contact from temp_sos where imei = %s and sosnumber = %s', (imei, number))
         contact = txn.fetchall()
-        if len(contact) == 0:
-            contact = 'unnamed'
-        else:
+        if len(contact) != 0:
             contact = contact[0][0]
-        txn.execute('replace into sosnumber (imei, sosnumber, contact, seq) values(%s, %s, %s, %s)', (imei, number, contact, numbersInStick[number]))
-        txn.execute('delete from temp_sos where imei = %s and sosnumber = %s', (imei, number))
+            txn.execute('replace into sosnumber (imei, sosnumber, contact, seq) values(%s, %s, %s, %s)', (imei, number, contact, numbersInStick[number]))
+            txn.execute('delete from temp_sos where imei = %s and sosnumber = %s', (imei, number))
 
     #update seq number
     for number in numbersInStick.keys():

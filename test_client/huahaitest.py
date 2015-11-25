@@ -82,7 +82,7 @@ rurequest = dumps({'username': 'zoo', 'password':'f'})
 getcoderequest = dumps({'username': 'alice', 'imei': '98789'})
 unsubrequest = dumps({'username': 'zox', 'imei': '1024'})
 forgotpassword = dumps({'username': 'zod'})
-emailrequest = dumps({'username': 'alice', 'email': 'kindth@qq.com'})
+emailrequest = dumps({'username': 'alice', 'email': 'htang@pku.edu.cn'})
 
 host = 'http://smartcane.huahailife.com:8082/api'
 gpsaddress = host + '/gps?action=getuserlocation'
