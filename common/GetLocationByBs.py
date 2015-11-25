@@ -1,3 +1,4 @@
+# -*- coding:utf-8 -*-
 import urllib2, urllib
 from gcj2wgs import transform
 

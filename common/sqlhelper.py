@@ -365,6 +365,28 @@ def insertBatteryLevel(callBackResult, wsdbpool, imei, level, charging, timestam
 def selectBatteryLevel(wsdbpool, imei):
     return wsdbpool.runQuery('select imei, level, charging, unix_timestamp(timestamp) from battery_level where imei = %s', (imei,))
 
+def insertTempEmailSql(result, wsdbpool, username, email):
+    return wsdbpool.runOperation('replace into temp_email (username, email) values(%s, %s)', (username, email))
+
+def checkEmailSql(wsdbpool, username, hashcode):
+    return wsdbpool.runInteraction(_checkUserEmail, username, hashcode)
+
+def _checkUserEmail(txn, username, hashcode):
+    txn.execute('select username, email, unix_timestamp(timestamp) from temp_email where username = %s', (username,))
+    result = txn.fetchall()
+    if len(result) == 0:
+        return 401
+    username = result[0][0]
+    email = result[0][1]
+    sentTime = float(result[0][2])
+    if abs(sentTime - float(time.time()) ) >= 86400:
+        #auth link timeout
+        return 602
+    if int(hashcode) != hash(username+email):
+        return 604
+    txn.execute('update userinfo set email = %s where username = %s', (email, username))
+    txn.execute('delete from temp_email where username = %s', (username,))
+    return username, email
 
 if __name__ == '__main__':
 
@@ -390,6 +412,6 @@ if __name__ == '__main__':
 
     import sys
     from sqlPool import wsdbpool, bsdbpool
-    selectBatteryLevel(wsdbpool, 1024).addCallbacks(onSuccess, onError)
+    insertTempEmailSql(wsdbpool, '1025', 'htang@pku.edu.cn').addCallbacks(onSuccess, onError)
 
     reactor.run()

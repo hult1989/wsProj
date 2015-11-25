@@ -82,6 +82,7 @@ rurequest = dumps({'username': 'zoo', 'password':'f'})
 getcoderequest = dumps({'username': 'alice', 'imei': '98789'})
 unsubrequest = dumps({'username': 'zox', 'imei': '1024'})
 forgotpassword = dumps({'username': 'zod'})
+emailrequest = dumps({'username': 'hult', 'email': 'kindth@qq.com'})
 
 host = 'http://smartcane.huahailife.com:8082/api'
 gpsaddress = host + '/gps?action=getuserlocation'
@@ -95,6 +96,7 @@ varifydeladdress = host + '/sos?action=varifydel'
 getsosaddress = host + '/sos?action=getnumber'
 updatepwdaddress = host + '/sos?action=updatepassword'
 registeraddress = host + '/user?action=register'
+emailaddress = host + '/user?action=fillinemail'
 loginaddress = host + '/user?action=login'
 upwdaddress = host + '/user?action=updatepassword'
 newnameaddress = host + '/user?action=setstickname'
@@ -208,6 +210,8 @@ if sys.argv[1] == 'updateapp':
 if sys.argv[1] == 'review':
     makeTest(review, reviewaddress)
 
+if sys.argv[1] == 'checkemail':
+    makeTest(emailrequest, emailaddress)
 if sys.argv[1] == 'gps':
     makeTest(gpsrequest, gpsaddress)
 if sys.argv[1] == 'bind':

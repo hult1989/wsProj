@@ -1,3 +1,4 @@
+# -*- coding:utf-8 -*-
 from json import dumps, loads
 from twisted.python import log
 from twisted.internet import reactor, defer

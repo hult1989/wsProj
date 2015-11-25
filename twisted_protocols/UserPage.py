@@ -1,10 +1,12 @@
+# -*- coding:utf-8 -*-
 from json import dumps, loads
 import smtplib
 from email.mime.text import MIMEText
 from email.header import Header
+import time
 
 from twisted.python import log
-from twisted.internet import reactor
+from twisted.internet import reactor, defer, threads
 from twisted.web.resource import Resource
 from twisted.web.server import Site, NOT_DONE_YET
 
@@ -197,7 +199,7 @@ class UserPage(Resource):
             if len(payload['username']) == 0:
                 return resultValue(300)
             d = FoundPasswordSql(wsdbpool, payload['username'])
-            d.addCallbacks(self.onFoundPassword, onError,callbackArgs=(request,))
+            d.addCallbacks(self.onFoundPassword, onError,callbackArgs=(request, str(payload['username'])))
             return NOT_DONE_YET
 
         if request.args['action'] == ['review']:
@@ -205,18 +207,47 @@ class UserPage(Resource):
             d.addCallback(self.onResult, request)
             return NOT_DONE_YET
 
+        if request.args['action'] == ['fillinemail']:
+            hashcode = hash(payload['username'] + payload['email'])
+            authlink = 'http://localhost:8082/api/user?action=checkemail&&username=%s&&hc=%s' %(payload['username'], hashcode)
+            from sendMail import sendAuthLinkByEmail
+            d = threads.deferToThread(sendAuthLinkByEmail, payload['email'], payload['username'], authlink).addCallback(insertTempEmailSql, wsdbpool, payload['username'], payload['email'])
+            return resultValue(1)
+
+
     def render_GET(self, request):
         if request.args['action'] == ['updateapp']:
             self.UpdateVerson(request)
             return NOT_DONE_YET
-	
-    def onFoundPassword(self, result, request):
+        
+        elif request.args['action'] == ['checkemail']:
+            d = checkEmailSql(wsdbpool, request.args['username'][0], request.args['hc'][0]).addCallback(self.onCheckEmail, request)
+            return NOT_DONE_YET
+
+    def onCheckEmail(self, result, request):
+        if result == 602:
+            request.write('验证链接已失效')
+        elif result == 604:
+            request.write('验证链接无效')
+        elif result == 401:
+            request.write('邮箱地址或用户信息不存在')
+        else:
+            request.write('%s，您的地址为 %s 的邮箱已通过验证' %(result[0], result[1]) )
+        request.finish()
+
+
+        
+
+        
+
+
+    def onFoundPassword(self, result, request, username):
         address = result[0][0]
         password = result[0][1]
         log.msg('RESULT FROM SQL IS:\t', address, password)
         from sendMail import sendPasswordByEmail
         try:
-            sendPasswordByEmail(address, password)     
+            sendPasswordByEmail(address, password, username)     
         except Exception, e:
             log.msg(str(e))
         request.write(resultValue(1))

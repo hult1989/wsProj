@@ -1,3 +1,4 @@
+# -*- coding:utf-8 -*-
 from twisted.python import log
 from json import dumps
 from appException import AppException

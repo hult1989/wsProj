@@ -82,6 +82,7 @@ rurequest = dumps({'username': 'zoo', 'password':'f'})
 getcoderequest = dumps({'username': 'alice', 'imei': '98789'})
 unsubrequest = dumps({'username': 'zox', 'imei': '1024'})
 forgotpassword = dumps({'username': 'zod'})
+emailrequest = dumps({'username': '1025', 'email': 'kindth@qq.com'})
 
 host = 'http://localhost:8082/api'
 gpsaddress = host + '/gps?action=getuserlocation'
@@ -107,6 +108,8 @@ unsubaddress = host + '/user?action=unsubscribe'
 reviewaddress = host + '/user?action=review'
 ruaddress = host + '/user?action=registerandupload'
 updateaddress = host + '/user?action=updateapp'
+checkaddress = host + '/user?action=checkemail'
+emailaddress = host + '/user?action=fillinemail'
 passwordaddress = host + '/user?action=forgotpassword'
 subaddress = host + '/stick?action=subscribebycode'
 
@@ -129,7 +132,7 @@ def stop(result):
     reactor.stop()
 
 def makeTest(request, address):
-    if sys.argv[1] == 'updateapp':
+    if sys.argv[1] == 'updateapp' or sys.argv[1] == 'checkemail':
         d = agent.request('GET', address, bodyProducer = StringProducer(request))
     else:
         d = agent.request('POST', address, bodyProducer = StringProducer(request))
@@ -206,8 +209,12 @@ if sys.argv[1] == 'unsub':
 
 if sys.argv[1] == 'updateapp':
     makeTest('asdfadsf', updateaddress)
+if sys.argv[1] == 'checkemail':
+    makeTest('asdfadsf', checkaddress)
 if sys.argv[1] == 'review':
     makeTest(review, reviewaddress)
+if sys.argv[1] == 'fillinemail':
+    makeTest(emailrequest, emailaddress)
 
 if sys.argv[1] == 'gps':
     makeTest(gpsrequest, gpsaddress)
