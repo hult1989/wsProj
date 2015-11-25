@@ -372,7 +372,7 @@ def checkEmailSql(wsdbpool, username, hashcode):
     return wsdbpool.runInteraction(_checkUserEmail, username, hashcode)
 
 def _checkUserEmail(txn, username, hashcode):
-    txn.execute('select username, email, unix_timestamp(timestamp) from temp_email where username = %s', (username,))
+    txn.execute('select username, email, unix_timestamp(timestamp) from temp_email where username = %s order by timestamp desc', (username,))
     result = txn.fetchall()
     if len(result) == 0:
         return 401
