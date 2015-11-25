@@ -385,7 +385,7 @@ def _checkUserEmail(txn, username, hashcode):
     if int(hashcode) != hash(username+email):
         return 604
     txn.execute('update userinfo set email = %s where username = %s', (email, username))
-    txn.execute('delete from temp_email where username = %s', (username,))
+    #txn.execute('delete from temp_email where username = %s', (username,))
     return username, email
 
 if __name__ == '__main__':

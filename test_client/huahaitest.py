@@ -48,13 +48,13 @@ def printResource(response):
 def stop(result):
     reactor.stop()
 
-tcplocation = '3,867715029610974,190930141223,0000.00000W,0000.000000N,2623,0e07,15'
-tcpaddsos = '2,868986022095989,add13609619731'
+tcplocation = '3,1024,190930141223,0000.00000W,0000.000000N,2623,0e07,15'
+tcpaddsos = '2,98789,add22332112345'
 tcpdelsos = '2,8789,del12332112345'
 tcpimsi = '4,867715029610974,460002606774193'
 tcpbind = '1,1028,bon1234567890,15882205392'
 tcpdelete = '6,1023,ok'
-tcpsync = '5,868986022095989,2,0,,,13609619731'
+tcpsync = '5,98789,3,7,12332112345,92332112345,22332112345'
 
 
 
@@ -62,11 +62,11 @@ tcpsync = '5,868986022095989,2,0,,,13609619731'
 gpsrequest = dumps({'imei': '1024', 'timestamp': '1400030032000'})
 bindrequest = dumps({'username': 'zod', 'simnum': '1234567890', 'name': '拐杖'})
 imeirequest = dumps({'username': 'zod', 'simnum': '1234567890'})
-setsosrequest = dumps({'imei': '868986022095989', 'adminpwd': '123456', 'contactentry': {'sosnumber': '13609619731', 'contact':'batman'}})
+setsosrequest = dumps({'imei': '98787', 'adminpwd': '123456', 'contactentry': {'sosnumber': '72332112345', 'contact':'蝙蝠侠'}})
 delsosrequest = dumps({'imei': '1024', 'adminpwd': '123456', 'contactentry': {'sosnumber': '12332112345', 'contact':'蝙蝠侠'}})
-varifyadd = dumps({'imei': '867715029551939', 'sosnumber': '32332112345'})
+varifyadd = dumps({'imei': '98789', 'sosnumber': '12332112345'})
 varifydel = dumps({'imei': '98789', 'sosnumber': '12332112345'})
-getsos = dumps({'imei': '868986022095989'})
+getsos = dumps({'imei': '1024'})
 updatepwd = dumps({'imei': '1024', 'adminpwd': '123456', 'newadminpwd': '223456'})
 register = dumps({'username': 'zod', 'password':'f'})
 login = dumps({'username': 'zod', 'password':'f'})
@@ -82,13 +82,14 @@ rurequest = dumps({'username': 'zoo', 'password':'f'})
 getcoderequest = dumps({'username': 'alice', 'imei': '98789'})
 unsubrequest = dumps({'username': 'zox', 'imei': '1024'})
 forgotpassword = dumps({'username': 'zod'})
-emailrequest = dumps({'username': 'hult', 'email': 'kindth@qq.com'})
+emailrequest = dumps({'username': 'alice', 'email': 'kindth@qq.com'})
 
 host = 'http://smartcane.huahailife.com:8082/api'
 gpsaddress = host + '/gps?action=getuserlocation'
 bindaddress = host + '/stick?action=bind'
 imeiaddress = host + '/stick?action=getimei'
 currentaddress = host + '/stick?action=setcurrentimei'
+batteryaddress = host + '/stick?action=getbatterylevel'
 setsosaddress = host + '/sos?action=addnumber'
 delsosaddress = host + '/sos?action=delnumber'
 varifyaddaddress = host + '/sos?action=varifyadd'
@@ -96,7 +97,6 @@ varifydeladdress = host + '/sos?action=varifydel'
 getsosaddress = host + '/sos?action=getnumber'
 updatepwdaddress = host + '/sos?action=updatepassword'
 registeraddress = host + '/user?action=register'
-emailaddress = host + '/user?action=fillinemail'
 loginaddress = host + '/user?action=login'
 upwdaddress = host + '/user?action=updatepassword'
 newnameaddress = host + '/user?action=setstickname'
@@ -108,6 +108,8 @@ unsubaddress = host + '/user?action=unsubscribe'
 reviewaddress = host + '/user?action=review'
 ruaddress = host + '/user?action=registerandupload'
 updateaddress = host + '/user?action=updateapp'
+checkaddress = host + '/user?action=checkemail'
+emailaddress = host + '/user?action=fillinemail'
 passwordaddress = host + '/user?action=forgotpassword'
 subaddress = host + '/stick?action=subscribebycode'
 
@@ -130,7 +132,7 @@ def stop(result):
     reactor.stop()
 
 def makeTest(request, address):
-    if sys.argv[1] == 'updateapp':
+    if sys.argv[1] == 'updateapp' or sys.argv[1] == 'checkemail':
         d = agent.request('GET', address, bodyProducer = StringProducer(request))
     else:
         d = agent.request('POST', address, bodyProducer = StringProducer(request))
@@ -207,11 +209,13 @@ if sys.argv[1] == 'unsub':
 
 if sys.argv[1] == 'updateapp':
     makeTest('asdfadsf', updateaddress)
+if sys.argv[1] == 'checkemail':
+    makeTest('asdfadsf', checkaddress)
 if sys.argv[1] == 'review':
     makeTest(review, reviewaddress)
-
-if sys.argv[1] == 'checkemail':
+if sys.argv[1] == 'fillinemail':
     makeTest(emailrequest, emailaddress)
+
 if sys.argv[1] == 'gps':
     makeTest(gpsrequest, gpsaddress)
 if sys.argv[1] == 'bind':
@@ -232,6 +236,8 @@ if sys.argv[1] == 'varifydel':
     makeTest(varifydel, varifydeladdress)
 if sys.argv[1] == 'getsos':
     makeTest(getsos, getsosaddress)
+if sys.argv[1] == 'getbattery':
+    makeTest(getsos, batteryaddress)
 if sys.argv[1] == 'updatepwd':
     makeTest(updatepwd, updatepwdaddress)
 if sys.argv[1] == 'register':
