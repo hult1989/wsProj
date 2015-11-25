@@ -82,6 +82,7 @@ rurequest = dumps({'username': 'zoo', 'password':'f'})
 getcoderequest = dumps({'username': 'alice', 'imei': '98789'})
 unsubrequest = dumps({'username': 'zox', 'imei': '1024'})
 forgotpassword = dumps({'username': 'zod'})
+getemail = dumps({'username': 'alice'})
 emailrequest = dumps({'username': '1025', 'email': 'kindth@qq.com'})
 
 host = 'http://localhost:8082/api'
@@ -111,6 +112,7 @@ updateaddress = host + '/user?action=updateapp'
 checkaddress = host + '/user?action=checkemail'
 emailaddress = host + '/user?action=fillinemail'
 passwordaddress = host + '/user?action=forgotpassword'
+getemailaddress = host + '/user?action=getemail'
 subaddress = host + '/stick?action=subscribebycode'
 
 
@@ -216,6 +218,8 @@ if sys.argv[1] == 'review':
 if sys.argv[1] == 'fillinemail':
     makeTest(emailrequest, emailaddress)
 
+if sys.argv[1] == 'getemail':
+    makeTest(getemail, getemailaddress)
 if sys.argv[1] == 'gps':
     makeTest(gpsrequest, gpsaddress)
 if sys.argv[1] == 'bind':

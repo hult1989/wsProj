@@ -214,6 +214,15 @@ class UserPage(Resource):
             d = threads.deferToThread(sendAuthLinkByEmail, payload['email'], payload['username'], authlink).addCallback(insertTempEmailSql, wsdbpool, payload['username'], payload['email'])
             return resultValue(1)
 
+        if request.args['action'] == ['getemail']:
+            selectUserSql(wsdbpool, payload['username']).addCallback(self.onGetEmail, request)
+            return NOT_DONE_YET
+
+    def onGetEmail(self, result, request):
+        request.write(dumps({'email': result[0][3]}))
+        request.finish()
+
+
 
     def render_GET(self, request):
         if request.args['action'] == ['updateapp']:
