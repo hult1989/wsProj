@@ -48,7 +48,7 @@ def printResource(response):
 def stop(result):
     reactor.stop()
 
-tcplocation = '3,1024,190930141223,0000.00000W,0000.000000N,2623,0e07,15'
+tcplocation = '3,867715029610974,131127015945,00000.00000E,0000.00000N,2623,10A6,25,100,0'
 tcpaddsos = '2,98789,add22332112345'
 tcpdelsos = '2,8789,del12332112345'
 tcpimsi = '4,867715029610974,460002606774193'
@@ -61,7 +61,7 @@ tcpsync = '5,98789,3,7,12332112345,92332112345,22332112345'
 
 gpsrequest = dumps({'imei': '1024', 'timestamp': '1400030032000'})
 bindrequest = dumps({'username': 'zod', 'simnum': '1234567890', 'name': '拐杖'})
-imeirequest = dumps({'username': 'zod', 'simnum': '1234567890'})
+imeirequest = dumps({'username': 'zod', 'simnum': '13836435683'})
 setsosrequest = dumps({'imei': '98787', 'adminpwd': '123456', 'contactentry': {'sosnumber': '72332112345', 'contact':'蝙蝠侠'}})
 delsosrequest = dumps({'imei': '1024', 'adminpwd': '123456', 'contactentry': {'sosnumber': '12332112345', 'contact':'蝙蝠侠'}})
 varifyadd = dumps({'imei': '98789', 'sosnumber': '12332112345'})
