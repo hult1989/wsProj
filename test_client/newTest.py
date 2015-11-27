@@ -96,5 +96,5 @@ def bindtest(username, imei, simnum, name):
     
 
 if __name__ == '__main__':
-    print bindtest('zxd', '98789', '13836435683', 'bid')
+    print bindtest('zod', '98789', '13836435683', 'bid')
 
