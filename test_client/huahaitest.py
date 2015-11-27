@@ -81,7 +81,7 @@ rurequest = dumps({'username': 'zoo', 'password':'f'})
 #upload = dumps({'username': 'zod', 'sticks': [] })
 getcoderequest = dumps({'username': 'alice', 'imei': '98789'})
 unsubrequest = dumps({'username': 'zox', 'imei': '1024'})
-forgotpassword = dumps({'username': 'zod'})
+forgotpassword = dumps({'username': 'xmen'})
 emailrequest = dumps({'username': 'alice', 'email': 'htang@pku.edu.cn'})
 
 host = 'http://smartcane.huahailife.com:8082/api'
@@ -109,6 +109,7 @@ reviewaddress = host + '/user?action=review'
 ruaddress = host + '/user?action=registerandupload'
 updateaddress = host + '/user?action=updateapp'
 checkaddress = host + '/user?action=checkemail'
+getemailaddress = host + '/user?action=getemail'
 emailaddress = host + '/user?action=fillinemail'
 passwordaddress = host + '/user?action=forgotpassword'
 subaddress = host + '/stick?action=subscribebycode'
@@ -206,6 +207,8 @@ if sys.argv[1] == 'forgotpassword':
 
 if sys.argv[1] == 'unsub':
     makeTest(unsubrequest, unsubaddress)
+if sys.argv[1] == 'getemail':
+    makeTest(forgotpassword, getemailaddress)
 
 if sys.argv[1] == 'updateapp':
     makeTest('asdfadsf', updateaddress)

@@ -44,4 +44,3 @@ if __name__ == '__main__':
     import sys
     print 'wsg84 ', (transform(float(sys.argv[2]), float(sys.argv[1])))
     print 'gcg02 ', (float(sys.argv[1]), float(sys.argv[2]))
-    print 'simpl ', (float(sys.argv[1])-0.0065, float(sys.argv[2])-0.0060)

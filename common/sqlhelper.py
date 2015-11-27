@@ -226,13 +226,41 @@ def _handleImsi(txn, message):
     message = message.split(',')
     imei = message[1]
     imsi = message[2]
+    txn.execute('select * from wsinfo where imei = %s and imsi = %s', (imei,imsi))
+    sameImeiSameImsi = txn.fetchall()
+
+    #imei-imsi pair stays the same, an existed simcard in a existed stick, nothing need to be done
+    if len(sameImeiSameImsi) != 0:
+        return sameImeiSameImsi
+    
     txn.execute('select * from wsinfo where imei = %s', (imei,))
-    result = txn.fetchall()
-    txn.execute('update wsinfo set imsi = 0 where imsi = %s', (imsi,))
-    if len(result) == 0:
+    sameImeiDiffImsi = txn.fetchall()
+    #print 'sameImeiDiffImsi', sameImeiDiffImsi
+    txn.execute('select * from wsinfo where imsi = %s', (imsi,))
+    diffImeiSameImsi = txn.fetchall()
+    #print 'diffImeiSameImsi', diffImeiSameImsi
+
+    #new imei and new imsi, totally a new record, insert into stick
+    if len(sameImeiDiffImsi) == 0 and len(diffImeiSameImsi) == 0:
         txn.execute('insert into wsinfo (imei, imsi, adminpwd) values(%s, %s, "123456")', (imei, imsi))
-    elif result[0][1] != imsi:
+    
+    #new imei, diff imsi, an existed stick inserted into a new simcard 1. set the imsi of the existed stick to new imsi and simnum to 0 2. beacuse stick cannot read simnum directly from simcard, need to set it to 0 to remind user that simcard in this stick has changed
+    elif len(sameImeiDiffImsi) != 0 and len(diffImeiSameImsi) == 0:
         txn.execute('update wsinfo set imsi = %s, simnum = 0 where imei = %s', (imsi, imei))
+
+
+    #existed simcard into a new stick, set the simnum and imsi of the old stick to 0, since its simcard had been removed from it and inserted into a new stick. insert the record of the new stick
+    elif len(diffImeiSameImsi) != 0 and len(sameImeiDiffImsi) == 0:
+        txn.execute('update wsinfo set imsi = 0, simnum = 0 where imsi = %s', (imsi,))
+        txn.execute('insert into wsinfo (imei, imsi, adminpwd) values(%s, %s, "123456")', (imei, imsi))
+
+    #existed simcard into a existed yet different stick, for exmaple, db record[(1,a, 123), (2,b, 456)], received message(2,a). need set the imsi and simnum of stick1 to 0, and set the imsi of stick2 to new imsi, the simnum of stick2 to 0
+    elif len(diffImeiSameImsi) != 0 and len(sameImeiDiffImsi) != 0:
+        #set(1,a,123) -> (1,0,0)
+        txn.execute('update wsinfo set imsi = 0, simnum = 0 where imsi = %s', (imsi,))
+        #set(2,b,456) -> (2,a,0)
+        txn.execute('update wsinfo set imsi = %s, simnum = 0 where imei = %s', (imsi, imei))
+
     txn.execute('select * from wsinfo where imei = %s', (imei,))
     return txn.fetchall()
 
@@ -413,6 +441,6 @@ if __name__ == '__main__':
 
     import sys
     from sqlPool import wsdbpool, bsdbpool
-    insertTempEmailSql(wsdbpool, '1025', 'htang@pku.edu.cn').addCallbacks(onSuccess, onError)
+    handleImsiSql(wsdbpool, '4,2,a').addCallbacks(onSuccess, onError)
 
     reactor.run()

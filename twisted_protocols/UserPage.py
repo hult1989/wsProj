@@ -219,7 +219,10 @@ class UserPage(Resource):
             return NOT_DONE_YET
 
     def onGetEmail(self, result, request):
-        request.write(dumps({'result': '1', 'email': result[0][3]}))
+        if result[0][3] is None:
+            request.write(dumps({'result': '1', 'email': ''}))
+        else:
+            request.write(dumps({'result': '1', 'email': result[0][3]}))
         request.finish()
 
 

@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 import urllib2, urllib
-from gcj2wgs import transform
+from eviltransform import gcj2wgs_exact
 
 request = urllib2.Request('http://apilocate.amap.com/position')
 #secret key of gaode map service
@@ -19,6 +19,6 @@ def getLocationByBsinfo(mcc, mnc, imei, imsi, lac, cid, signal, timestamp):
     request.add_data(params)
     locations = urllib2.urlopen(request).read()
     locations = eval(locations)['result']['location'].split(',')
-    result = transform(float(locations[1]), float(locations[0]))
+    result = gcj2wgs_exact(float(locations[1]), float(locations[0]))
     return str(result[0])+','+str(result[1])
 
