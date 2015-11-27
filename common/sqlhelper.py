@@ -228,6 +228,7 @@ def _handleImsi(txn, message):
     imsi = message[2]
     txn.execute('select * from wsinfo where imei = %s', (imei,))
     result = txn.fetchall()
+    txn.execute('update wsinfo set imsi = 0 where imsi = %s', (imsi,))
     if len(result) == 0:
         txn.execute('insert into wsinfo (imei, imsi, adminpwd) values(%s, %s, "123456")', (imei, imsi))
     elif result[0][1] != imsi:
@@ -385,7 +386,7 @@ def _checkUserEmail(txn, username, hashcode):
     if int(hashcode) != hash(username+email):
         return 604
     txn.execute('update userinfo set email = %s where username = %s', (email, username))
-    #txn.execute('delete from temp_email where username = %s', (username,))
+    txn.execute('delete from temp_email where username = %s', (username,))
     return username, email
 
 if __name__ == '__main__':
