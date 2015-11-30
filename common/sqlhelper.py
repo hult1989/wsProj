@@ -119,7 +119,7 @@ def UpdateUserPasswordSql(wsdbpool, username, newpassword):
     return wsdbpool.runOperation('update userinfo set password = %s where username = %s', (newpassword, username))
 
 def selectLoginInfoSql(wsdbpool, username):
-    return wsdbpool.runQuery('select user_ws.username, user_ws.imei, user_ws.name,user_ws.state, wsinfo.simnum from user_ws, wsinfo where user_ws.imei = wsinfo.imei and user_ws.username = %s and user_ws.isdefault = 1', (username,))
+    return wsdbpool.runQuery('select user_ws.username, user_ws.imei, user_ws.name,user_ws.state, wsinfo.simnum from user_ws, wsinfo where user_ws.imei = wsinfo.imei and user_ws.username = %s', (username,))
 
 
 def handleBindSql(wsdbpool, message):
@@ -445,6 +445,6 @@ if __name__ == '__main__':
 
     import sys
     from sqlPool import wsdbpool, bsdbpool
-    handleImsiSql(wsdbpool, '4,2,a').addCallbacks(onSuccess, onError)
+    selectLoginInfoSql(wsdbpool, 'zod').addCallbacks(onSuccess, onError)
 
     reactor.run()
