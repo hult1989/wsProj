@@ -7,53 +7,35 @@ from twisted.web.resource import Resource
 from twisted.web.server import Site, NOT_DONE_YET
 import cgi
 
-from appServerCommon import onError, resultValue
+from appServerCommon import onError, resultValue, onSuccess, appRequest
 from sqlhelper import *
 from sqlPool import wsdbpool
+import StickModuleSql
 
 
 
 class StickPage(Resource):
     isLeaf = True
         
-    def onBindResult(self, result, request):
-        request.write(resultValue(1))
-        request.finish()
 
     def onImeiResult(self, result, request):
         if len(result) == 0:
             request.write(resultValue(501))
         else:
-            request.write(dumps({'result':'1', 'imei': result[0][0], 'type': result[0][1]}))
+            request.write(dumps({'result':'1', 'imei': result[0][1], 'type': result[0][2]}))
         request.finish()
 
-    def onCurrentImei(self, result, request):
-        if result == True:
-            request.write(resultValue(1))
-        else:
-            request.write(resultValue(result))
+
+    def onGetCode(self, code, request, payload):
+        request.write(dumps({'result': '1', 'code': str(code), 'imei': payload['imei']}))
         request.finish()
 
-    def onGetCode(self, result, request, payload):
-        if result == 0:
-            request.write(resultValue(403))
-        else:
-            request.write(dumps({'result': '1', 'code': str(result), 'imei': payload['imei']}))
+    def onGetImei(self, code, request):
+        request.write(dumps({'result': '1', 'imei': str(code)}))
         request.finish()
 
-    def onGetImei(self, result, request):
-        if result == 0:
-            request.write(resultValue(601))
-        else:
-            request.write(dumps({'result': '1', 'imei': str(result)}))
-        request.finish()
-
-    def onSubscribe(self, result, request):
-        log.msg(str(result) + str(request))
-        if result == 0:
-            request.write(resultValue(601))
-        else:
-            request.write(dumps({'result': '1', 'imei': result[0], 'simnum': result[1], 'type': 's'}))
+    def onSubscribe(self, wsinfo, request):
+        request.write(dumps({'result': '1', 'imei': wsinfo[0], 'simnum': wsinfo[2], 'type': 's'}))
         request.finish()
 
     def onBatteryLevel(self, result, request):
@@ -69,59 +51,44 @@ class StickPage(Resource):
         payload = eval(request.content.read())
         log.msg(str(payload))
 
+        apprequest = appRequest(payload)
+        if apprequest.isValid == False:
+            return resultValue(300)
+
         if request.args['action'] == ['bind']:
-            if 'username' not in payload or 'simnum' not in payload or 'name' not in payload:
-                return resultValue(300)
-            if len(payload['username'])==0 or len(payload['simnum'])==0 or len(payload['name'])==0:
-                return resultValue(300)
-            d = insertTempRelationSql(wsdbpool, simnum=payload['simnum'], username=payload['username'], name=payload['name'])
-            d.addCallback(self.onBindResult, request)
-            d.addErrback(onError)
+            d = StickModuleSql.handleAppBindRequest(wsdbpool, payload['username'], payload['simnum'], payload['name'])
+            d.addCallback(onSuccess, request)
+            d.addErrback(onError, request)
             return NOT_DONE_YET
-        if request.args['action'] == ['getimei']:
-            if 'username' not in payload or 'simnum' not in payload:
-                return resultValue(300)
-            if len(payload['username'])==0 or len(payload['simnum'])==0:
-                return resultValue(300)
-            d = selectRelationByUsernameSimnumSql(wsdbpool, payload['username'], payload['simnum'])
+
+        elif request.args['action'] == ['getimei']:
+            d = StickModuleSql.getRelationByUsernameSimnum(wsdbpool, payload['username'], payload['simnum'])
             d.addCallback(self.onImeiResult, request)
-            d.addErrback(onError)
+            d.addErrback(onError, request)
             return NOT_DONE_YET
 
         if request.args['action'] == ['setcurrentimei']:
-            if 'imei' not in payload or 'username' not in payload:
-                return resultValue(300)
-            if len(payload['imei']) == 0 or len(payload['username']) == 0:
-                return resultValue(300)
-            d = handleCurrentWsSql(wsdbpool, payload['username'], payload['imei'])
-            d.addCallback(self.onCurrentImei, request)
-            d.addErrback(onError)
+            d = StickModuleSql.setImeiDefault(wsdbpool, payload['username'], payload['imei'])
+            d.addCallback(onSuccess, request)
+            d.addErrback(onError, request)
             return NOT_DONE_YET
 
         if request.args['action'] == ['getverifycode']:
-            if 'imei' not in payload or 'username' not in payload:
-                return resultValue(300)
-            if len(payload['imei']) == 0 or len(payload['username']) == 0:
-                return resultValue(300)
-            d = createVefiryCodeSql(wsdbpool, payload['imei'])
+            d = StickModuleSql.createAuthCode(wsdbpool, payload['imei'])
             d.addCallback(self.onGetCode, request, payload)
-            d.addErrback(onError)
+            d.addErrback(onError, request)
             return NOT_DONE_YET
 
         if request.args['action'] == ['getimeibycode']:
-            if 'code' not in payload or len(payload['code']) == 0:
-                return resultValue(300)
-            d = getImeiByCodeSql(wsdbpool, payload['code'])
+            d = StickModuleSql.getImeiByCode(wsdbpool, payload['code'])
             d.addCallback(self.onGetImei, request)
-            d.addErrback(onError)
+            d.addErrback(onError, request)
             return NOT_DONE_YET
 
         if request.args['action'] == ['subscribebycode']:
-            if 'code' not in payload or len(payload['code']) == 0:
-                return resultValue(300)
-            if len(payload['code']) == 0:
-                return resultValue(300)
-            handleSubscribeByCodeSql(wsdbpool, payload).addCallbacks(self.onSubscribe, onError, callbackArgs=(request,))
+            d = StickModuleSql.handleAppSubRequest(wsdbpool, payload['username'], payload['name'], payload['code'])
+            d.addCallback(self.onSubscribe, request)
+            d.addErrback(onError, request)
             return NOT_DONE_YET
 
         if request.args['action'] == ['getbatterylevel']:

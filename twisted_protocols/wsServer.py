@@ -6,6 +6,7 @@ from twisted.protocols import basic
 from twisted.enterprise import adbapi
 from sqlhelper import handleSosSql, handleBindSql, insertLocationSql, handleImsiSql, selectWsinfoSql, insertBatteryLevel
 from SosModuleSql import deleteSosNumberSql, syncSosSql
+from StickModuleSql import handleStickBindAck
 from GetLocationByBs import getLocationByBsinfo
 
 
@@ -109,7 +110,7 @@ class WsServer(protocol.Protocol):
 
         #this is ok becase protocol is instantiated for each connection, so it won't has confusion
         if message[0] == '1':
-            handleBindSql(self.factory.wsdbpool, message).addCallbacks(self.onSuccess, onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
+            handleStickBindAck(self.factory.wsdbpool, message).addCallbacks(self.onSuccess, onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
         elif message[0] == '2':
             handleSosSql(self.factory.wsdbpool, message).addCallbacks(self.onSuccess, onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
         elif message[0] == '3':

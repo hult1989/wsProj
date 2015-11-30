@@ -15,6 +15,7 @@ def handleUnsubscribeSql(wsdbpool, username, imei):
     return wsdbpool.runInteraction(_handleUnsubscribe, username, imei)
 
 def _handleUnsubscribe(txn, username, imei):
+    '''
     txn.execute('select * from userinfo where username = %s', (username,))
     if len(txn.fetchall()) == 0:
         raise NoUserException
@@ -24,6 +25,7 @@ def _handleUnsubscribe(txn, username, imei):
     txn.execute('select * from user_ws where username = %s and imei = %s', (username, imei))
     if len(txn.fetchall()) == 0:
         raise NoSubException
+    '''
     return txn.execute('delete from user_ws where username = %s and imei = %s', (username, imei))
 
 
@@ -124,6 +126,7 @@ def handleBindSql(wsdbpool, message):
     return wsdbpool.runInteraction(_handleBind, message)
 
 def _handleBind(txn, message):
+    print 'into bind sql'
     #1,123456789abcdef,bon13800000000,+8613600000000
     message = message.split(',')
     imei = message[1]
@@ -133,6 +136,7 @@ def _handleBind(txn, message):
     #check if stick has already accepted bind request from app by sms 
     txn.execute('select username, name from temp_user_ws where simnum = %s', (simnum,))
     result = txn.fetchall()
+    print 'temp_user_ws table', result
     if len(result) == 0:
         return False
 
