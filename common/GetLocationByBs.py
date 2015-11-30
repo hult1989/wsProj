@@ -20,5 +20,5 @@ def getLocationByBsinfo(mcc, mnc, imei, imsi, lac, cid, signal, timestamp):
     locations = urllib2.urlopen(request).read()
     locations = eval(locations)['result']['location'].split(',')
     result = gcj2wgs_exact(float(locations[1]), float(locations[0]))
-    return str(result[0])+','+str(result[1])
+    return str(result[1])+','+str(result[0])
 

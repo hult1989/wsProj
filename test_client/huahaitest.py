@@ -59,7 +59,7 @@ tcpsync = '5,98789,3,7,12332112345,92332112345,22332112345'
 
 
 
-gpsrequest = dumps({'imei': '1024', 'timestamp': '1400030032000'})
+gpsrequest = dumps({'imei': '867715029610974', 'timestamp': '1448824052000'})
 bindrequest = dumps({'username': 'zod', 'simnum': '1234567890', 'name': '拐杖'})
 imeirequest = dumps({'username': 'zod', 'simnum': '13836435683'})
 setsosrequest = dumps({'imei': '98787', 'adminpwd': '123456', 'contactentry': {'sosnumber': '72332112345', 'contact':'蝙蝠侠'}})
@@ -69,10 +69,10 @@ varifydel = dumps({'imei': '98789', 'sosnumber': '12332112345'})
 getsos = dumps({'imei': '1024'})
 updatepwd = dumps({'imei': '1024', 'adminpwd': '123456', 'newadminpwd': '223456'})
 register = dumps({'username': 'zod', 'password':'f'})
-login = dumps({'username': 'zod', 'password':'f'})
+login = dumps({'username': 'Baby', 'password':'123456789'})
 upwd = dumps({'username': 'wonderwoman', 'password':'f', 'newpassword': 'g'})
 newname = dumps({'username': 'zod', 'imei': '1024', 'name': '绿巨人'})
-getstick = dumps({'username': 'zod'})
+getstick = dumps({'username': 'Baby'})
 current = dumps({'username': 'zod', 'imei': '1024'})
 upload = dumps({'username': 'zod', 'sticks': [{'name': 'hull', 'imei': '9981'}, {'name': 'del', 'imei': '1028'}] })
 review = dumps({'username': 'zod', 'review': '很好的app'})
