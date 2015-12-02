@@ -205,10 +205,13 @@ def _handleSos(txn, message):
     #2,123456789abcdef,add13800000000
     message = message.split(',')
     imei = message[1]
-    sosnumber = message[2][3:]
-    txn.execute('select * from temp_sos where imei = %s and sosnumber = %s', (imei, sosnumber))
+    number = message[2][3:]
+    if message[2][0:3] in ('add', 'del'):
+        txn.execute('select * from temp_sos where imei = %s and sosnumber = %s', (imei, number))
+    elif message[2][0:3] in('adf', 'def'):
+        txn.execute('select * from temp_family where imei = %s and familynumber = %s', (imei, number))
     contactentry = txn.fetchall()
-    # sosnumber from walkingstick and what from app don't match
+    # if server didn't receive request from app
     if len(contactentry) == 0:
         return False
     '''
