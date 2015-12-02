@@ -13,8 +13,8 @@ import time
 from pprint import pprint
 
 
-#domain = 'smartcane.huahailife.com'
-domain = 'localhost'
+domain = 'smartcane.huahailife.com'
+#domain = 'localhost'
 host =  domain + ':8082/api'
 def stickSend(message):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -158,7 +158,8 @@ def stickAckNumber(imei, numbers, numberType):
 def numberTest(numberType, username, imei, number, contact, oper) :
     print appNumber(imei, '123456', number, contact, numberType, oper)
     print appPollingNumberResult(imei, number, oper, numberType)
-    print stickAckNumber(imei, ('', '32332112345', ''), numberType)
+    print stickCheckNumber(imei, number, oper, numberType)
+    print stickAckNumber(imei, ('', '32332112345', '22332112345'), numberType)
     print appPollingNumberResult(imei, number, oper, numberType)
     print appGetNumber(imei, numberType)
 
@@ -181,9 +182,10 @@ def subtest(username, imei, otheruser, name):
     
 
 if __name__ == '__main__':
+    #print appGetNumber(98790, 'f')
     #stickSend('3,868986022047287,000000000000,00000.00000E,0000.00000N,2495,1395,19,083,0')
-    print stickCheckNumber(98790, 9877912345, 'ADD', 'f')
-    #numberTest('f', 'zod', 98790, 32332112345, 'xod', 'ADD')
+    #print stickCheckNumber(98790, 9877912345, 'ADD', 'f')
+    numberTest('f', 'zod', 98790, 22332112345, 'xod', 'ADD')
     #print stickAckNumber(1024, ('9877912345', '', ''), 'f')
     #print appPollingNumberResult(1024, 9877912345, 'ADD', 'f')
     #print appNumber(98790, 123456, 9877912345, 'bob', 'f', 'ADD')

@@ -59,7 +59,7 @@ tcpsync = '5,98789,3,7,12332112345,92332112345,22332112345'
 
 
 
-gpsrequest = dumps({'imei': '867715029610974', 'timestamp': '1448824052000'})
+gpsrequest = dumps({'imei': '1024', 'timestamp': '1448824052000'})
 bindrequest = dumps({'username': 'zod', 'simnum': '1234567890', 'name': '拐杖'})
 imeirequest = dumps({'username': 'zod', 'simnum': '13836435683'})
 setsosrequest = dumps({'imei': '98787', 'adminpwd': '123456', 'contactentry': {'sosnumber': '72332112345', 'contact':'蝙蝠侠'}})
@@ -84,7 +84,8 @@ unsubrequest = dumps({'username': 'zox', 'imei': '1024'})
 forgotpassword = dumps({'username': 'xmen'})
 emailrequest = dumps({'username': 'alice', 'email': 'htang@pku.edu.cn'})
 
-host = 'http://smartcane.huahailife.com:8082/api'
+#host = 'http://smartcane.huahailife.com:8082/api'
+host = 'http://huahai:8082/api'
 gpsaddress = host + '/gps?action=getuserlocation'
 bindaddress = host + '/stick?action=bind'
 imeiaddress = host + '/stick?action=getimei'
