@@ -5,7 +5,7 @@ from twisted.internet import protocol, reactor, defer, threads
 from twisted.protocols import basic
 from twisted.enterprise import adbapi
 from sqlhelper import handleSosSql, handleBindSql, insertLocationSql, handleImsiSql, selectWsinfoSql, insertBatteryLevel
-from SosModuleSql import deleteSosNumberSql, syncSosSql
+from SosModuleSql import deleteSosNumberSql, syncSosSql, syncFamilySql
 from StickModuleSql import handleStickBindAck
 from GetLocationByBs import getLocationByBsinfo
 
@@ -104,7 +104,7 @@ class WsServer(protocol.Protocol):
     def dataReceived(self, message):
         log.msg(message)
         for m in message.split(','):
-            if len(m) == 0 and message[0] != '5':
+            if len(m) == 0 and message[0] != '5' and message[0] != '7':
                 self.transport.write(''.join(("Result:", message[0], ',0')))
                 return
 
@@ -119,12 +119,13 @@ class WsServer(protocol.Protocol):
             handleImsiSql(self.factory.wsdbpool, message).addCallbacks(self.onSuccess, onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
         elif message[0] == '5':
             syncSosSql(self.factory.wsdbpool, message).addCallbacks(self.onSuccess, onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
-            
         elif message[0] == '6':
             if message[-2:] == 'ok' or message[-2:] == 'OK':
                 deleteSosNumberSql(self.factory.wsdbpool, message.split(',')[1]).addCallbacks(self.onSuccess, onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
             else:
                 self.transport.write(''.join(("Result:", message[0], ',0')))
+        elif message[0] == '7':
+            syncFamilySql(self.factory.wsdbpool, message).addCallbacks(self.onSuccess, onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
 
 
 

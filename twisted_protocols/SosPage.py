@@ -12,11 +12,11 @@ from sqlPool import wsdbpool
 
 
 def nextMethod(result, method, *args):
-    if method.func_name in ('checkImeiSimnumSql','selectSosNumberSql'):
+    if method.func_name in ('checkImeiSimnumSql','selectSosNumberSql', 'selectFamilyNumberSql'):
         d = method(args[0], args[1])
-    if method.func_name in ('deleteTempSosSql', 'checkAdminPwdSql', 'updateAdminPwdSql'):
+    if method.func_name in ('deleteTempSosSql', 'deleteTempFamilySql', 'checkAdminPwdSql', 'updateAdminPwdSql'):
         d = method(args[0], args[1], args[2])
-    if method.func_name in ('insertTempSosSql', 'verifyOperSql', 'checkSosnumberSql'):
+    if method.func_name in ('insertTempSosSql', 'insertTempFamilySql', 'verifyOperSql', 'verifyFamilyOperSql', 'checkSosnumberSql', 'checkFamilynumberSql'):
         d = method(args[0], args[1], args[2], args[3])
     return d
 
@@ -37,6 +37,19 @@ class SosPage(Resource):
                 request.write(dumps({'result': '1', 'contactentries': contactentries}))
             request.finish()
 
+    def onGetFamily(self, result, request):
+            if len(result) == 0:
+                request.write(resultValue(5031))
+            else:
+                contactentries = list()
+                for r in result:
+                    contact = dict()
+                    contact['familynumber'] = r[1]
+                    contact['contact'] = r[2]
+                    contactentries.append(contact)
+                request.write(dumps({'result': '1', 'contactentries': contactentries}))
+            request.finish()
+
     def render_POST(self, request):
         payload = eval(request.content.read())
         log.msg(str(payload))
@@ -48,21 +61,40 @@ class SosPage(Resource):
             d = checkAdminPwdSql(wsdbpool, payload['imei'], payload['adminpwd']).addCallback(nextMethod, checkImeiSimnumSql, wsdbpool, payload['imei']).addCallback(nextMethod, checkSosnumberSql, wsdbpool, payload['imei'], payload['contactentry']['sosnumber'], 'ADD').addCallback(nextMethod, insertTempSosSql, wsdbpool, payload['imei'], payload['contactentry']['sosnumber'], payload['contactentry']['contact'])
             d.addCallbacks(onSuccess, onError, callbackArgs=(request,), errbackArgs=(request,))
         
+        if request.args['action'] == ['addfamilynumber']:
+            d = checkAdminPwdSql(wsdbpool, payload['imei'], payload['adminpwd']).addCallback(nextMethod, checkImeiSimnumSql, wsdbpool, payload['imei']).addCallback(nextMethod, checkFamilynumberSql, wsdbpool, payload['imei'], payload['contactentry']['familynumber'], 'ADD').addCallback(nextMethod, insertTempFamilySql, wsdbpool, payload['imei'], payload['contactentry']['familynumber'], payload['contactentry']['contact'])
+            d.addCallbacks(onSuccess, onError, callbackArgs=(request,), errbackArgs=(request,))
+        
         elif request.args['action'] == ['delnumber']:
             d = checkAdminPwdSql(wsdbpool, payload['imei'], payload['adminpwd']).addCallback(nextMethod, checkImeiSimnumSql, wsdbpool, payload['imei']).addCallback(nextMethod, checkSosnumberSql, wsdbpool, payload['imei'],payload['contactentry']['sosnumber'], 'DEL').addCallback(nextMethod, insertTempSosSql, wsdbpool, payload['imei'], payload['contactentry']['sosnumber'], payload['contactentry']['contact'])
+            d.addCallbacks(onSuccess, onError, callbackArgs=(request,), errbackArgs=(request,))
+
+        elif request.args['action'] == ['delfamilynumber']:
+            d = checkAdminPwdSql(wsdbpool, payload['imei'], payload['adminpwd']).addCallback(nextMethod, checkImeiSimnumSql, wsdbpool, payload['imei']).addCallback(nextMethod, checkFamilynumberSql, wsdbpool, payload['imei'],payload['contactentry']['familynumber'], 'DEL').addCallback(nextMethod, insertTempFamilySql, wsdbpool, payload['imei'], payload['contactentry']['familynumber'], payload['contactentry']['contact'])
             d.addCallbacks(onSuccess, onError, callbackArgs=(request,), errbackArgs=(request,))
 
         elif request.args['action'] == ['varifyadd']:
             d = verifyOperSql(wsdbpool, payload['imei'], payload['sosnumber'], 'ADD')
             d.addCallbacks(onSuccess, onError, callbackArgs=(request,), errbackArgs=(request,))
 
+        elif request.args['action'] == ['varifyaddfamilynumber']:
+            d = verifyFamilyOperSql(wsdbpool, payload['imei'], payload['familynumber'], 'ADD')
+            d.addCallbacks(onSuccess, onError, callbackArgs=(request,), errbackArgs=(request,))
+
         elif request.args['action'] == ['varifydel']:
             d = verifyOperSql(wsdbpool, payload['imei'], payload['sosnumber'], 'DEL')
             d.addCallbacks(onSuccess, onError, callbackArgs=(request,), errbackArgs=(request,))
 
+        elif request.args['action'] == ['varifydelfamilynumber']:
+            d = verifyFamilyOperSql(wsdbpool, payload['imei'], payload['familynumber'], 'DEL')
+            d.addCallbacks(onSuccess, onError, callbackArgs=(request,), errbackArgs=(request,))
         elif request.args['action'] == ['getnumber']:
             d = selectSosNumberSql(wsdbpool, payload['imei'])
             d.addCallbacks(self.onGetSos, onError, callbackArgs=(request,), errbackArgs=(request,))
+
+        elif request.args['action'] == ['getfamilynumber']:
+            d = selectFamilyNumberSql(wsdbpool, payload['imei'])
+            d.addCallbacks(self.onGetFamily, onError, callbackArgs=(request,), errbackArgs=(request,))
 
         elif request.args['action'] == ['updatepassword']:
             d = checkAdminPwdSql(wsdbpool, payload['imei'], payload['adminpwd']).addCallback(nextMethod, updateAdminPwdSql, wsdbpool, payload['imei'], payload['newadminpwd'])

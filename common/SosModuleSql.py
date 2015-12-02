@@ -56,6 +56,27 @@ def _checkSosnumber(txn, imei, number, oper):
     return True
 
    
+def checkFamilynumberSql(wsdbpool, imei, number, oper):
+    return wsdbpool.runInteraction(_checkFamilynumber, imei, number, oper)
+
+def _checkFamilynumber(txn, imei, number, oper):
+    MAXNUM = 3
+    MINNUM = 0
+    if oper == 'ADD':
+        txn.execute('select * from familynumber where imei = %s', (imei,))
+        num = len(txn.fetchall())
+        if num >= MAXNUM:
+            raise StorageLimitException
+        txn.execute('select * from familynumber where imei = %s and familynumber = %s', (imei, number))
+        num = len(txn.fetchall())
+        if num != 0:
+            raise DuplicateFamilynumberException
+    txn.execute('select * from familynumber where imei = %s', (imei,))
+    num = len(txn.fetchall())
+    if oper == 'DEL' and num == 0:
+        raise NoFamilynumberException
+    return True
+
 
 
 '''''''''''''''''''''''''''''''''''''''''''''
@@ -69,6 +90,11 @@ def deleteTempSosSql(wsdbpool, imei, number):
     return wsdbpool.runOperation('delete from temp_sos where imei = %s and sosnumber = %s', (imei, number))
 
 
+def insertTempFamilySql(wsdbpool, imei, number, contact):
+    return wsdbpool.runOperation('replace into temp_family (imei, familynumber, contact) values(%s, %s, %s)', (imei, number, contact))
+
+def deleteTempFamilySql(wsdbpool, imei, number):
+    return wsdbpool.runOperation('delete from temp_family where imei = %s and familynumber = %s', (imei, number))
 
 
 '''''''''''''''''''''''''''''''''''''''''''''
@@ -94,6 +120,23 @@ def _selectSosNumber(txn, imei):
     return result
 
 
+def insertFamilyNumberSql(wsdbpool, imei, number, contact):
+    return wsdbpool.runOperation('replace into familynumber (imei, familynumber, contact) values(%s, %s, %s)', (imei, number, contact))
+
+def deleteFamilyNumberSql(wsdbpool, imei, number=None):
+    if number is None:
+        return wsdbpool.runOperation('delete from familynumber where imei = %s', (imei,))
+    return wsdbpool.runOperation('delete from familynumber where imei = %s and familynumber = %s', (imei, number))
+
+def selectFamilyNumberSql(wsdbpool, imei):
+    return wsdbpool.runInteraction(_selectFamilyNumber, imei)
+
+def _selectFamilyNumber(txn, imei):
+    txn.execute('select * from familynumber where imei = %s order by seq desc', (imei,))
+    result = txn.fetchall()
+    if len(result) == 0:
+        raise NoFamilynumberException
+    return result
 
 
 '''''''''''''''''''''''''''''''''''''''''''''
@@ -113,6 +156,18 @@ def _verifyOper(txn, imei, number, oper):
     raise NoStickAckException
 
 
+def verifyFamilyOperSql(wsdbpool, imei, number, oper):
+    return wsdbpool.runInteraction(_verifyFamilyOper, imei, number, oper)
+
+def _verifyFamilyOper(txn, imei, number, oper):
+    txn.execute('select * from familynumber where familynumber = %s and imei = %s', (number,imei))
+    result = txn.fetchall()
+    if oper == 'ADD' and len(result) == 1:
+        return True
+    if oper == 'DEL' and len(result) == 0:
+        return True
+    raise NoStickAckException
+
 
 
 '''''''''''''''''''''''''''''''''''''''''''''
@@ -126,6 +181,7 @@ def _syncSos(txn, message):
     message = message.split(',')
     imei = message[1]
     tag = message[3]
+    #key=number, value=seq {'+8613xxxxxxxxx': '4', '+8613xxxxxxxxx': '2', '+8613xxxxxxxxx': '1'}
     numbersInStick = dict([ (message[4+i], 2**(2-i)) for i in range(3) if len(message[4+i] ) != 0 ]) 
 
     numbersInDb = set()
@@ -153,6 +209,40 @@ def _syncSos(txn, message):
     return True
         
 
+def syncFamilySql(wsdbpool, message):
+    return wsdbpool.runInteraction(_syncFamily, message)
+
+def _syncFamily(txn, message):
+    message = message.split(',')
+    imei = message[1]
+    tag = message[3]
+    #key=number, value=seq {'+8613xxxxxxxxx': '4', '+8613xxxxxxxxx': '2', '+8613xxxxxxxxx': '1'}
+    numbersInStick = dict([ (message[4+i], 2**(2-i)) for i in range(3) if len(message[4+i] ) != 0 ]) 
+
+    numbersInDb = set()
+    txn.execute('select familynumber from familynumber where imei = %s', (imei,))
+    for r in txn.fetchall():
+        numbersInDb.add(r[0])
+
+    #number in database but not in stick, to be deleted
+    for number in numbersInDb.difference(set(numbersInStick.keys())):
+        txn.execute('delete from familynumber where familynumber = %s', (number,))
+        txn.execute('delete from temp_family where imei = %s and familynumber = %s', (imei, number))
+
+    #number in stick but not in database, to be added to table number
+    for number in set(numbersInStick.keys()).difference(numbersInDb):
+        txn.execute('select contact from temp_family where imei = %s and familynumber = %s', (imei, number))
+        contact = txn.fetchall()
+        if len(contact) != 0:
+            contact = contact[0][0]
+            txn.execute('replace into familynumber (imei, familynumber, contact, seq) values(%s, %s, %s, %s)', (imei, number, contact, numbersInStick[number]))
+            txn.execute('delete from temp_family where imei = %s and familynumber = %s', (imei, number))
+
+    #update seq number
+    for number in numbersInStick.keys():
+        txn.execute('update familynumber set seq = %s where imei =  %s and familynumber = %s', (numbersInStick[number], imei, number))
+    return True
+        
 
     
 
@@ -172,8 +262,7 @@ if __name__ == '__main__':
 
     from sqlPool import wsdbpool
     from twisted.internet import reactor, defer
-    #insertTempSosSql(wsdbpool, 1027, '12345678901', 'name').addCallbacks(onResult, onError)
-    message = '5,123456789abcdef,3,7,+8613800000001,+8613800000000,+8613800000101'
-    syncSosSql(wsdbpool, message).addCallbacks(onResult, onError)
+    message = '7,1024,3,7,12332112345,22332112345,32332112345'
+    syncFamilySql(wsdbpool, message).addCallbacks(onResult, onError)
     reactor.run()
 

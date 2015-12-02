@@ -87,6 +87,73 @@ def appUnbind(username, imei):
     result = appRequest(request, address)
     return result
 
+def appNumber(imei, adminpwd, number, contact, numberType, oper):
+    sosnumberRequest = dumps({'imei': str(imei), 'adminpwd': str(adminpwd), 'contactentry': {'sosnumber': str(number), 'contact': str(contact)}})
+    familynumberRequest = dumps({'imei': str(imei), 'adminpwd': str(adminpwd), 'contactentry': {'familynumber': str(number), 'contact': str(contact)}})
+    sosaddaddress = '/api/sos?action=addnumber'
+    sosdeladdress = '/api/sos?action=delnumber'
+    familyaddaddress = '/api/sos?action=addfamilynumber'
+    familydeladdress = '/api/sos?action=delfamilynumber'
+    if numberType == 's':
+        if oper == 'ADD':
+            result = appRequest(sosnumberRequest, sosaddaddress)
+        elif oper == 'DEL':
+            result = appRequest(sosnumberRequest, sosdeladdress)
+    elif numberType == 'f':
+        if oper == 'ADD':
+            result = appRequest(familynumberRequest, familyaddaddress)
+        elif oper == 'DEL':
+            result = appRequest(familynumberRequest, familydeladdress)
+    return result
+
+def appPollingNumberResult(imei, number, oper, numberType):
+    sosvarify = dumps({'imei': str(imei), 'sosnumber': str(number)})
+    familyvarify = dumps({'imei': str(imei), 'familynumber': str(number)})
+    sosaddaddress = '/api/sos?action=varifyadd'
+    sosdeladdress = '/api/sos?action=varifydel'
+    familyaddaddress = '/api/sos?action=varifyaddfamilynumber'
+    familydeladdress = '/api/sos?action=varifydelfamilynumber'
+    if numberType == 's':
+        if oper == 'ADD':
+            result = appRequest(sosvarify, sosaddaddress)
+        elif oper == 'DEL':
+            result = appRequest(sosvarify, sosdeladdress)
+    elif numberType == 'f':
+        if oper == 'ADD':
+            result = appRequest(familyvarify, familyaddaddress)
+        elif oper == 'DEL':
+            result = appRequest(familyvarify, familydeladdress)
+    return result
+
+def appGetNumber(imei, numberType):
+    sosaddress = '/api/sos?action=getnumber';
+    familyaddress = '/api/sos?action=getfamilynumber';
+    request = dumps({'imei': str(imei)})
+    if numberType == 'f':
+        return appRequest(request, familyaddress)
+    else:
+        return appRequest(request, sosaddress)
+
+
+
+def stickAckNumber(imei, numbers, numberType):
+    if numberType == 'f':
+        sync = ','.join(('7', str(imei), '3', '7', str(numbers[0]), str(numbers[1]), str(numbers[2])))
+    else:
+        sync = ','.join(('5', str(imei), '3', '7', str(numbers[0]), str(numbers[1]), str(numbers[2])))
+    return stickSend(sync)
+
+
+def numberTest(numberType, username, imei, number, contact, oper) :
+    print appNumber(imei, 123456, number, contact, numberType, oper)
+    print appPollingNumberResult(imei, number, oper, numberType)
+    print stickAckNumber(imei, ('22332112345', '32332112345', '12332112345'), numberType)
+    print appPollingNumberResult(imei, number, oper, numberType)
+    print appGetNumber(imei, numberType)
+
+
+
+
 def bindtest(username, imei, simnum, name):
     print stickSendImsi, stickSendImsi(imei)
     print appBindRequest, appBindRequest(username, simnum, name)
@@ -103,10 +170,14 @@ def subtest(username, imei, otheruser, name):
     
 
 if __name__ == '__main__':
+    numberTest('s', 'zod', 98790, 42332112345, 'xod', 'ADD')
+    #print stickAckNumber(1024, ('9877912345', '', ''), 'f')
+    #print appPollingNumberResult(1024, 9877912345, 'ADD', 'f')
+    #print appNumber(1024, 123456, 9877912345, 'bob', 'f', 'ADD')
     #print appUnbind('zad', '19890924') 
     #print appUnbind('zod', '19890929') 
-    print bindtest('zod', '19890929', '13836435683', 'birthday')
+    #print bindtest('zod', '19890929', '13836435683', 'birthday')
     #print subtest('zod', '19890929', 'xxx', 'alicezod')
-    print dumps(appGetStickList('zod'), indent=1)
+    #print dumps(appGetStickList('zod'), indent=1)
     #print dumps(appGetStickList('superman'), indent=1)
 

@@ -52,10 +52,20 @@ class DuplicateSosnumberException(AppException):
         super(Exception, self).__init__(args)
         self.errCode = 502
 
+class DuplicateFamilynumberException(AppException):
+    def __init__(self, args=None):
+        super(Exception, self).__init__(args)
+        self.errCode = 5021
+
 class NoSosnumberException(AppException):
     def __init__(self, args=None):
         super(Exception, self).__init__(args)
         self.errCode = 503
+
+class NoFamilynumberException(AppException):
+    def __init__(self, args=None):
+        super(Exception, self).__init__(args)
+        self.errCode = 5031
 
 class NoMoreDataException(AppException):
     def __init__(self, args=None):
