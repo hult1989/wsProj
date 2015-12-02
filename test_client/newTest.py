@@ -26,7 +26,7 @@ def stickSend(message):
         data = sock.recv(96)
     finally:
         sock.close()
-    #print data
+    print data
     return str(data)
 
 
@@ -134,7 +134,18 @@ def appGetNumber(imei, numberType):
     else:
         return appRequest(request, sosaddress)
 
-
+def stickCheckNumber(imei, number, oper, numberType):
+    if oper == 'ADD':
+        if numberType == 's':
+            message = ','.join(('2', str(imei), 'add'+str(number) ))
+        elif numberType == 'f':
+            message = ','.join(('2', str(imei), 'adf'+str(number) ))
+    elif oper == 'DEL':
+        if numberType == 's':
+            message = ','.join(('2', str(imei), 'del'+str(number) ))
+        elif numberType == 'f':
+            message = ','.join(('2', str(imei), 'def'+str(number) ))
+    return stickSend(message)
 
 def stickAckNumber(imei, numbers, numberType):
     if numberType == 'f':
@@ -145,9 +156,9 @@ def stickAckNumber(imei, numbers, numberType):
 
 
 def numberTest(numberType, username, imei, number, contact, oper) :
-    print appNumber(imei, 123456, number, contact, numberType, oper)
+    print appNumber(imei, '123456', number, contact, numberType, oper)
     print appPollingNumberResult(imei, number, oper, numberType)
-    print stickAckNumber(imei, ('22332112345', '32332112345', '12332112345'), numberType)
+    print stickAckNumber(imei, ('', '32332112345', ''), numberType)
     print appPollingNumberResult(imei, number, oper, numberType)
     print appGetNumber(imei, numberType)
 
@@ -170,10 +181,12 @@ def subtest(username, imei, otheruser, name):
     
 
 if __name__ == '__main__':
-    numberTest('s', 'zod', 98790, 42332112345, 'xod', 'ADD')
+    #stickSend('3,868986022047287,000000000000,00000.00000E,0000.00000N,2495,1395,19,083,0')
+    print stickCheckNumber(98790, 9877912345, 'ADD', 'f')
+    #numberTest('f', 'zod', 98790, 32332112345, 'xod', 'ADD')
     #print stickAckNumber(1024, ('9877912345', '', ''), 'f')
     #print appPollingNumberResult(1024, 9877912345, 'ADD', 'f')
-    #print appNumber(1024, 123456, 9877912345, 'bob', 'f', 'ADD')
+    #print appNumber(98790, 123456, 9877912345, 'bob', 'f', 'ADD')
     #print appUnbind('zad', '19890924') 
     #print appUnbind('zod', '19890929') 
     #print bindtest('zod', '19890929', '13836435683', 'birthday')
