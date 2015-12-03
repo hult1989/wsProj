@@ -119,7 +119,7 @@ def UpdateUserPasswordSql(wsdbpool, username, newpassword):
     return wsdbpool.runOperation('update userinfo set password = %s where username = %s', (newpassword, username))
 
 def selectLoginInfoSql(wsdbpool, username):
-    return wsdbpool.runQuery('select user_ws.username, user_ws.imei, user_ws.name,user_ws.state, wsinfo.simnum from user_ws, wsinfo where user_ws.imei = wsinfo.imei and user_ws.username = %s', (username,))
+    return wsdbpool.runQuery('select user_ws.username, user_ws.imei, user_ws.name,user_ws.state, user_ws.isdefault, wsinfo.simnum from user_ws, wsinfo where user_ws.imei = wsinfo.imei and user_ws.username = %s', (username,))
 
 
 def handleBindSql(wsdbpool, message):

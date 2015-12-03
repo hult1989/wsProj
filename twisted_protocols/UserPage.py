@@ -45,15 +45,15 @@ class UserPage(Resource):
         elif type(result) == tuple and len(result) != 0:
             #user has only 1 stick
             if len(result) == 1:
-                request.write(dumps({'result': '1', 'imei': result[0][1], 'name': result[0][2], 'type': result[0][3], 'simnum': result[0][4]}))
+                request.write(dumps({'result': '1', 'imei': result[0][1], 'name': result[0][2], 'type': result[0][3], 'simnum': result[0][5]}))
             else:
                 #user have many sticks
                 info = result[0]
                 for r in result:
                     if r[4] == '1':
-                        into = r
+                        info = r
                 print 'INFO !!!! ', info
-                request.write(dumps({'result': '1', 'imei': info[1], 'name': info[2], 'type': info[3], 'simnum': info[4]}))
+                request.write(dumps({'result': '1', 'imei': info[1], 'name': info[2], 'type': info[3], 'simnum': info[5]}))
 
 
         elif type(result) == tuple and len(result) == 0:
