@@ -48,7 +48,7 @@ def printResource(response):
 def stop(result):
     reactor.stop()
 
-tcplocation = ' 3,868986022047287,000000000000,00000.00000E,0000.00000N,2495,1395,19,083,0'
+tcplocation = '3,1024,151202071454,11356.28750E,2232.94179N,2495,1395,24,100,0'
 tcpaddsos = '2,98789,add22332112345'
 tcpdelsos = '2,8789,del12332112345'
 tcpimsi = '4,868986022047287,460002606774194'
@@ -159,7 +159,8 @@ def asynchroTest(requests, addresses):
 def testTcp(message):
     import socket
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_address = ('smartcane.huahailife.com', 8081)
+    #server_address = ('smartcane.huahailife.com', 8081)
+    server_address = ('huahai', 8081)
     sock.connect(server_address)
 
     try:
