@@ -221,7 +221,7 @@ class UserPage(Resource):
 
         if request.args['action'] == ['fillinemail']:
             hashcode = hash(payload['username'] + payload['email'])
-            authlink = 'http://smartcane.huahailife.com:8082/api/user?action=checkemail&&username=%s&&hc=%s' %(payload['username'], hashcode)
+            authlink = 'http://smartstick.huahailife.com:8082/api/user?action=checkemail&&username=%s&&hc=%s' %(payload['username'], hashcode)
             from sendMail import sendAuthLinkByEmail
             d = threads.deferToThread(sendAuthLinkByEmail, payload['email'], payload['username'], authlink).addCallback(insertTempEmailSql, wsdbpool, payload['username'], payload['email'])
             return resultValue(1)

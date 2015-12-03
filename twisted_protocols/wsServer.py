@@ -76,7 +76,7 @@ def insertLocation(wsdbpool, message):
         batteryLevel = 50
         charging = 0
 
-    if longitude == 0 and latitude == 0:
+    if longitude == 0 or latitude == 0:
         d = selectWsinfoSql(wsdbpool, imei).addCallback(_getGpsinfoCallback, imei, lac, cid, signal, timestamp).addCallback(_insertLocation, wsdbpool, imei, timestamp)
     else:
         d = insertLocationSql(wsdbpool, imei, longitude, latitude,  timestamp)
