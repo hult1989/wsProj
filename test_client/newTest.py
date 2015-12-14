@@ -159,7 +159,7 @@ def numberTest(numberType, username, imei, number, contact, oper) :
     print appNumber(imei, '123456', number, contact, numberType, oper)
     print appPollingNumberResult(imei, number, oper, numberType)
     print stickCheckNumber(imei, number, oper, numberType)
-    print stickAckNumber(imei, ('', '32332112345', '22332112345'), numberType)
+    print stickAckNumber(imei, ('', '', '18688702834'), numberType)
     print appPollingNumberResult(imei, number, oper, numberType)
     print appGetNumber(imei, numberType)
 
@@ -182,13 +182,13 @@ def subtest(username, imei, otheruser, name):
     
 
 if __name__ == '__main__':
-    #print appGetNumber(98790, 'f')
+    #print appGetNumber(98789, 's')
     #stickSend('3,868986022047287,000000000000,00000.00000E,0000.00000N,2495,1395,19,083,0')
-    #print stickCheckNumber(98790, 9877912345, 'ADD', 'f')
-    numberTest('f', 'zod', 98790, 22332112345, 'xod', 'ADD')
-    #print stickAckNumber(1024, ('9877912345', '', ''), 'f')
-    #print appPollingNumberResult(1024, 9877912345, 'ADD', 'f')
-    #print appNumber(98790, 123456, 9877912345, 'bob', 'f', 'ADD')
+    #print stickCheckNumber(98789, 9877912345, 'ADD', 's')
+    numberTest('s', 'zod', '862609000056700', '18688702834', 'dan', 'ADD')
+    #print stickAckNumber(98789, ('9877912345', '', ''), 's')
+    #print appPollingNumberResult(98789, 9877912345, 'ADD', 's')
+    #print appNumber(98789, 123456, 9877912345, 'bob', 's', 'ADD')
     #print appUnbind('zad', '19890924') 
     #print appUnbind('zod', '19890929') 
     #print bindtest('zod', '19890929', '13836435683', 'birthday')

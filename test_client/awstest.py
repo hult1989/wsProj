@@ -49,7 +49,7 @@ def stop(result):
     reactor.stop()
 
 tcplocation = '3,1024,151202071454,11356.28750E,2232.94179N,2495,1395,24,100,0'
-tcpaddsos = '2,98789,add22332112345'
+tcpaddsos = '2,862609000056700,add18688702834'
 tcpdelsos = '2,8789,del12332112345'
 tcpimsi = '4,868986022047287,460002606774194'
 tcpbind = '1,1028,bon1234567890,15882205392'
@@ -80,7 +80,7 @@ review = dumps({'username': 'zod', 'review': '很好的app'})
 rurequest = dumps({'username': 'zoo', 'password':'f'})
 #upload = dumps({'username': 'zod', 'sticks': [] })
 getcoderequest = dumps({'username': 'alice', 'imei': '98789'})
-unsubrequest = dumps({'username': 'zox', 'imei': '1024'})
+unsubrequest = dumps({'username': '702', 'imei': '868986022047287'})
 forgotpassword = dumps({'username': 'xmen'})
 emailrequest = dumps({'username': 'alice', 'email': 'htang@pku.edu.cn'})
 
@@ -263,6 +263,7 @@ if sys.argv[1] == 'getstick':
 if sys.argv[1] == 'tcpimsi':
     testTcp(tcpimsi)
 if sys.argv[1] == 'tcpsetsos':
+    print tcpaddsos
     testTcp(tcpaddsos)
 if sys.argv[1] == 'tcpdelsos':
     testTcp(tcpdelsos)
