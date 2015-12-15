@@ -278,7 +278,12 @@ class UserPage(Resource):
         request.finish()
     
     def UpdateVerson(self,request):
-        f = open("./common/updateinfo.json", 'r')
+        if (request.args.has_key('lang') is False) or (request.args['lang'] == ['cn']):
+            f = open("./common/updateinfo_cn.json", 'r')
+        elif request.args['lang'] == ['en']:
+            f = open("./common/updateinfo_en.json", 'r')
+        elif request.args['lang'] == ['tw']:
+            f = open("./common/updateinfo_tw.json", 'r')
         result = f.read()
         f.close()
         request.write(result)
