@@ -22,3 +22,6 @@ def getLocationByBsinfo(mcc, mnc, imei, imsi, lac, cid, signal, timestamp):
     result = gcj2wgs_exact(float(locations[1]), float(locations[0]))
     return str(result[1])+','+str(result[0])
 
+if __name__ == '__main__':
+    print getLocationByBsinfo(460, 00, 868986022055835,460002606774197,9365 ,5013,-93,20151218074832)
+
