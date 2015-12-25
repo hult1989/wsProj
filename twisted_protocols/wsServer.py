@@ -95,7 +95,7 @@ class WsServer(protocol.Protocol):
         #log.msg('in wsServer, wsdbpool id: ' + str(id(self.factory.wsdbpool)))
     
     def onSuccess(self, result, transport, message):
-        if result == True or result == None or type(result) == tuple:
+        if result == True or result == None or type(result) == tuple or type(result) == list:
             transport.write(''.join(("Result:", message[0], ',1')))
         elif result == False:
             transport.write(''.join(("Result:", message[0], ',0')))
@@ -114,7 +114,13 @@ class WsServer(protocol.Protocol):
         elif message[0] == '2':
             handleSosSql(self.factory.wsdbpool, message).addCallbacks(self.onSuccess, onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
         elif message[0] == '3':
-            insertLocation(self.factory.wsdbpool, message).addCallbacks(self.onSuccess, onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
+            tempList = list()
+            for msg in message.splitlines():
+                #d = insertLocation(self.factory.wsdbpool, msg).addCallbacks(self.onSuccess, onError, callbackArgs=(self.transport, msg), errbackArgs=(self.transport, msg))
+                tempList.append(insertLocation(self.factory.wsdbpool, msg))
+            d = defer.gatherResults(tempList, consumeErrors=True).addCallbacks(self.onSuccess, onError, callbackArgs=(self.transport, msg), errbackArgs=(self.transport, msg))
+
+
         elif message[0] == '4':
             handleImsiSql(self.factory.wsdbpool, message).addCallbacks(self.onSuccess, onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
         elif message[0] == '5':
