@@ -249,14 +249,30 @@ class UserPage(Resource):
             return NOT_DONE_YET
 
     def onCheckEmail(self, result, request):
+	f1 = open("./twisted_protocols/correct.html",'r')
+	all_the_html_correct = f1.read()
+	f1.close()
+
+	f2 = open("./twisted_protocols/invalid602.htnl","r")
+	all_the_html_invalid602 = f2.read()
+	f2.close()
+
+	f3 = open("./twisted_protocols/invalid604.html","r")
+	all_the_html_invalid604 = f3.read()
+	f3.close()
+
+	f4 = open("./twisted_protocols/invalid401.html","r")
+	all_the_html_invalid401 = f4.read()
+	f4.close()
+
         if result == 602:
-            request.write('验证链接已失效')
+            request.write(all_the_html_invalid602)
         elif result == 604:
-            request.write('验证链接无效')
+            request.write(all_the_html_invalid604)
         elif result == 401:
-            request.write('邮箱地址或用户信息不存在')
+            request.write(all_the_html_invalid401)
         else:
-            request.write('%s，您的地址为 %s 的邮箱已通过验证' %(result[0], result[1]) )
+            request.write(all_the_html_correct )
         request.finish()
 
 
