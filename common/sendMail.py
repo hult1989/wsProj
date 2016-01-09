@@ -5,10 +5,11 @@ from email.mime.text import MIMEText
 from email.utils import parseaddr, formataddr
 from email.mime.text import MIMEText
 import smtplib
+import time
 
 
 def sendPasswordByEmail(useraddress, password, username):
-    mailbody = readMailBody('FindPasswordMailBody.txt') + 'password'
+    mailbody = readMailBody('FindPasswordMailBody.txt') + password
     sendMail(useraddress, username, '找回拐杖的密码', mailbody)
 
 def readMailBody(textFile):
