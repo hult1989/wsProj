@@ -214,9 +214,9 @@ def _handleSos(txn, message):
     # if server didn't receive request from app
     if len(contactentry) == 0:
         return False
-    if message[2][0:3] in ('add', 'del'):
+    if message[2][0:3] in ('add',):
         txn.execute('select * from sosnumber where imei = %s and sosnumber = %s', (imei, number))
-    elif message[2][0:3] in('adf', 'def'):
+    elif message[2][0:3] in('adf',):
         txn.execute('select * from familynumber where imei = %s and familynumber = %s', (imei, number))
     contactentry = txn.fetchall()
     # if server didn't receive request from app
