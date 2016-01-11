@@ -13,8 +13,8 @@ import time
 from pprint import pprint
 
 
-domain = 'smartcane.huahailife.com'
-#domain = 'localhost'
+#domain = 'smartcane.huahailife.com'
+domain = 'localhost'
 host =  domain + ':8082/api'
 def stickSend(message):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -185,7 +185,7 @@ if __name__ == '__main__':
     #print appGetNumber(98789, 's')
     #stickSend('3,868986022047287,000000000000,00000.00000E,0000.00000N,2495,1395,19,083,0')
     #print stickCheckNumber(98789, 9877912345, 'ADD', 's')
-    numberTest('s', 'zod', '862609000056700', '18688702834', 'dan', 'ADD')
+    numberTest('s', 'zod', '1024', '18688702834', 'dan', 'ADD')
     #print stickAckNumber(98789, ('9877912345', '', ''), 's')
     #print appPollingNumberResult(98789, 9877912345, 'ADD', 's')
     #print appNumber(98789, 123456, 9877912345, 'bob', 's', 'ADD')

@@ -5,7 +5,6 @@ from email.mime.text import MIMEText
 from email.utils import parseaddr, formataddr
 from email.mime.text import MIMEText
 import smtplib
-import time
 
 
 def sendPasswordByEmail(useraddress, password, username):
@@ -36,11 +35,16 @@ def sendMail(mailaddress, username, mailsubject, mailbody):
     msg['Subject'] = Header(mailsubject, 'utf-8').encode()
 
     server = smtplib.SMTP(config['smtpserver'], 587)
-    server.starttls()
-    server.set_debuglevel(1)
-    server.login(config['account'], config['password'])
-    server.sendmail(config['account'], mailaddress, msg.as_string())
-    server.quit()
+    server.set_debuglevel(False)
+    try:
+        server.starttls()
+        server.login(config['account'], config['password'])
+        server.sendmail(config['account'], mailaddress, msg.as_string())
+    except Exception as e:
+        with open('./mail.log' ,'a') as f:
+            f.write(str(e))
+    finally:
+	server.quit()
 
 
 

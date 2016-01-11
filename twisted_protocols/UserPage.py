@@ -232,7 +232,7 @@ class UserPage(Resource):
 
     def onGetEmail(self, result, request):
         if result[0][3] is None:
-            result.write(resultValue(604))
+            request.write(resultValue(604))
         else:
             request.write(dumps({'result': '1', 'email': result[0][3]}))
         request.finish()
