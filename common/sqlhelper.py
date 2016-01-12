@@ -9,7 +9,24 @@ from appException import *
 
 
 def FoundPasswordSql(wsdbpool,username):#查找指定用户名的password和email
-    return wsdbpool.runQuery('select email, password from userinfo where username = %s', (username,))
+    return wsdbpool.runInteraction(_handleFoundPassword, username)
+
+def _handleFoundPassword(txn, username):
+    txn.execute('select email, password from userinfo where username = %s', (username,))
+    email, password = txn.fetchall()[0]
+    if email and len(email) != 0:
+        return str(email), str(password)
+    else:
+        txn.execute('select email from temp_email where username = %s', (username,))
+        if len(txn.fetchall()) == 0:
+            #if user didnot fillin email address before, return None
+            return (None, None)
+        else:
+            #if user  fill in email address before but not authenticate it, return empty
+            return ('', None)
+
+    
+
 
 def handleUnsubscribeSql(wsdbpool, username, imei):
     return wsdbpool.runInteraction(_handleUnsubscribe, username, imei)

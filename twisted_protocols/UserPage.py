@@ -15,6 +15,7 @@ import cgi
 from appServerCommon import onError, resultValue
 from sqlhelper import *
 from sqlPool import wsdbpool
+from sendMail import sendPasswordByEmail
 
 
 class UserPage(Resource):
@@ -227,14 +228,16 @@ class UserPage(Resource):
             return resultValue(1)
 
         if request.args['action'] == ['getemail']:
-            selectUserSql(wsdbpool, payload['username']).addCallback(self.onGetEmail, request)
+            FoundPasswordSql(wsdbpool, payload['username']).addCallback(self.onGetEmail, request)
             return NOT_DONE_YET
 
     def onGetEmail(self, result, request):
-        if result[0][3] is None:
+        if result[0] is None:
+            request.write(resultValue(605))
+        elif len(result[0]) == 0:
             request.write(resultValue(604))
         else:
-            request.write(dumps({'result': '1', 'email': result[0][3]}))
+            request.write(dumps({'result': '1', 'email': result[0]}))
         request.finish()
 
 
@@ -282,15 +285,22 @@ class UserPage(Resource):
 
 
     def onFoundPassword(self, result, request, username):
-        address = result[0][0]
-        password = result[0][1]
-        log.msg('RESULT FROM SQL IS:\t', address, password)
-        from sendMail import sendPasswordByEmail
-        try:
-            sendPasswordByEmail(address, password, username)     
-        except Exception, e:
-            log.msg(str(e))
-        request.write(resultValue(1))
+        print 'into call back-----------------------'
+        address = result[0]
+        password = result[1]
+        if address is None:
+            #address in None when user hasnot fill email
+            request.write(resultValue(605))
+        elif len(address) == 0:
+            #address in empty if  user filled in email but didnot authenticate it
+            request.write(resultValue(604))
+        else:
+        #log.msg('RESULT FROM SQL IS:\t', address, password)
+            try:
+                sendPasswordByEmail(address, password, username)     
+            except Exception, e:
+                log.msg(str(e))
+            request.write(resultValue(1))
         request.finish()
     
     def UpdateVerson(self,request):
