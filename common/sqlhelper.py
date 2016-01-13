@@ -386,7 +386,7 @@ def insertWsinfoSql(wsdbpool, imei, imsi = None, simnum = None, adminpwd='123456
     return wsdbpool.runOperation('replace into wsinfo (imei, imsi, simnum, adminpwd) values (%s, %s, %s, %s)', (imei, imsi, simnum, adminpwd))
 
 def selectLocationSql(wsdbpool, imei, timestamp):
-    return wsdbpool.runQuery('select imei, longitude, latitude, unix_timestamp(timestamp), type from location where imei = %s and unix_timestamp(timestamp) > %s', (imei, timestamp[0:-3]))
+    return wsdbpool.runQuery('select imei, longitude, latitude, unix_timestamp(timestamp), type, issleep from location where imei = %s and unix_timestamp(timestamp) > %s', (imei, timestamp[0:-3]))
 
 
 
