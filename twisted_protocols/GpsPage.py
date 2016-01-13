@@ -47,7 +47,10 @@ class GpsPage(Resource):
                 location['latitude'] = str(r[2])
                 location['timestamp'] = str(r[3]) + '000'
                 location['type'] = str(r[4])
-                location['issleep'] = str(r[5])
+                if r[5]:
+                    location['issleep'] = str(r[5])
+                else:
+                    location['issleep'] = '0'
                 locations.append(location)
             request.write(dumps({'result': '1', 'locations': locations}))
             request.finish()
