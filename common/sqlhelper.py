@@ -369,8 +369,8 @@ def _checkSosnumber(txn, imei, sosnumber):
     return txn.fetchall()
     
 
-def insertLocationSql(wsdbpool, imei, longitude, latitude, timestamp, gpstype='g'):
-    return wsdbpool.runOperation('replace into location (imei, longitude, latitude, timestamp, type) values (%s, %s, %s, %s, %s)', (imei, float(longitude), float(latitude), timestamp, gpstype))
+def insertLocationSql(wsdbpool, imei, longitude, latitude, timestamp, issleep, gpstype='g'):
+    return wsdbpool.runOperation('replace into location (imei, longitude, latitude, timestamp, type, issleep) values (%s, %s, %s, %s, %s, %s)', (imei, float(longitude), float(latitude), timestamp, gpstype, issleep))
 
 def selectWsinfoSql(wsdbpool, imei):
     return wsdbpool.runQuery('select * from wsinfo where imei = %s', (imei,))

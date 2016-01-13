@@ -285,7 +285,6 @@ class UserPage(Resource):
 
 
     def onFoundPassword(self, result, request, username):
-        print 'into call back-----------------------'
         address = result[0]
         password = result[1]
         if address is None:

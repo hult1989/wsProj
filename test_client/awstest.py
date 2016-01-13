@@ -81,7 +81,7 @@ rurequest = dumps({'username': 'zoo', 'password':'f'})
 #upload = dumps({'username': 'zod', 'sticks': [] })
 getcoderequest = dumps({'username': 'alice', 'imei': '98789'})
 unsubrequest = dumps({'username': '702', 'imei': '868986022047287'})
-forgotpassword = dumps({'username': 'zz'})
+forgotpassword = dumps({'username': 'zod'})
 emailrequest = dumps({'username': 'zz', 'email': 'kindth@qq.com'})
 
 host = 'http://52.68.218.151:8082/api'

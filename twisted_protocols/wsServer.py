@@ -55,7 +55,7 @@ def insertLocation(wsdbpool, message):
     def _insertLocation(gpsinfo, wsdbpool, imei, timestamp):
         if gpsinfo != '0,0':
             gpsinfo = str(gpsinfo).split(',')
-            return insertLocationSql(wsdbpool, imei, gpsinfo[0], gpsinfo[1], timestamp, 'b')
+            return insertLocationSql(wsdbpool, imei, gpsinfo[0], gpsinfo[1], timestamp, issleep, 'b')
         else:
             d = defer.Deferred()
             d.callback(None)
@@ -78,14 +78,16 @@ def insertLocation(wsdbpool, message):
     try:
         batteryLevel = int(message[8])
         charging = int(message[9])
+        issleep = message[10]
     except Exception as e:
         batteryLevel = 50
         charging = 0
+        issleep = '0'
 
     if longitude == 0 or latitude == 0:
         d = selectWsinfoSql(wsdbpool, imei).addCallback(_getGpsinfoCallback, imei, lac, cid, signal, timestamp).addCallback(_insertLocation, wsdbpool, imei, timestamp)
     else:
-        d = insertLocationSql(wsdbpool, imei, longitude, latitude,  timestamp)
+        d = insertLocationSql(wsdbpool, imei, longitude, latitude,  timestamp, issleep)
     d.addCallback(insertBatteryLevel, wsdbpool, imei, batteryLevel, charging, timestamp)
     return d
 
