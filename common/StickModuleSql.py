@@ -2,6 +2,34 @@
 import random
 from appException import *
 
+
+
+def getRelatedUsers(wsdbpool, imei):
+    return wsdbpool.runQuery('select username, state from user_ws where imei = %s', (imei,))
+
+def deleteUser(wsdbpool, imei, username, deleteuser):
+    return wsdbpool.runInteraction(_deleteUser, imei, username, deleteuser)
+
+def _deleteUser(txn, imei, username, deleteuser):
+    txn.execute('select username, state from user_ws where imei = %s' ,(imei,))
+    users = txn.fetchall()
+    print users
+    if len(users) == 0:
+        raise NoImeiException
+    if username not in [u[0] for u in users if u[1] == 'o']:
+        raise NoPermissionException
+    if deleteuser in [u[0] for u in users if u[1] == 'o']:
+        raise NoPermissionException
+    if deleteuser not in [u[0] for u in users if u[1] != 'o']:
+        raise NoTargetException
+    txn.execute('delete from user_ws where imei = %s and username = %s', (str(imei), str(deleteuser)))
+    return True
+
+
+
+
+
+
 def getRelationByUsernameSimnum(wsdbpool, username, simnum):
     return wsdbpool.runInteraction(_getRelationByUsernameSimnum, username, simnum)
 
@@ -159,10 +187,12 @@ if __name__ == '__main__':
         reactor.stop()
 
     import sys
-    from sqlPool import wsdbpool, bsdbpool
+    from sqlPool import wsdbpool
     #wsdbpool.runInteraction(_insertTempRelationSql, 'zod', '13836435682', 'd').addCallbacks(onSuccess, onError)
     #handleAppBindRequest(wsdbpool, 'zod', '10086', 'duplicate').addCallbacks(onSuccess, onError)
     #handleStickBindAck(wsdbpool, '1,abcdef12345,bon13836435682,+8613600000000').addCallbacks(onSuccess, onError)
     #createAuthCode(wsdbpool, '1023').addCallbacks(onSuccess, onError)
-    handleAppSubRequest(wsdbpool, 'zod', 'ddx', 603752).addCallbacks(onSuccess, onError)
+    #handleAppSubRequest(wsdbpool, 'zod', 'ddx', 603752).addCallbacks(onSuccess, onError)
+    deleteUser(wsdbpool, '19890924', 'zod', 'zad').addCallbacks(onSuccess, onError)
+
     reactor.run()

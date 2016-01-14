@@ -30,5 +30,5 @@ def getLocationByBsinfo(mcc, mnc, imei, imsi, lac, cid, signal, timestamp):
     return latlog
 
 if __name__ == '__main__':
-    print getLocationByBsinfo(460, 00, 868986022055835,460002606774197,93659,5013,-93,20151218074832)
+    print getLocationByBsinfo(460, 00, 862609000057542,460002606774193,9763,3593,-93,20151218074832)
 

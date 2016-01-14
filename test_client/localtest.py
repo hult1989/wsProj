@@ -48,7 +48,7 @@ def printResource(response):
 def stop(result):
     reactor.stop()
 
-tcplocation = '3,867715029610974,150930141223,0000.00000W,0000.000000N,2623,0e07,15,078,0,1\r\n3,867715029610974,140930141223,0000.00000W,0000.000000N,2623,0e07,15,078,0'
+tcplocation = '3,967715029610974,150930141223,0000.00000W,0000.000000N,2623,0e07,15,078,0,1\r\n3,967715029610974,140930141223,0000.00000W,0000.000000N,2623,0e07,15,078,0'
 #tcplocation = '3,867715029610974,130922141223,0000.00000W,0000.000000N,fffff,fffff,15\r\n3,867715029610974,130922141223,0000.00000W,0000.000000N,fffff,fffff,15\r\n3,867715029610974,130922141223,0000.00000W,0000.000000N,fffff,fffff,15\r\n3,867715029610974,130922141223,0000.00000W,0000.000000N,fffff,fffff,15\r\n3,867715029610974,130922141223,0000.00000W,0000.000000N,fffff,fffff,15\r\n'
 tcpaddsos = '2,1027,add9989'
 tcpdelsos = '2,8789,del12332112345'
@@ -85,6 +85,8 @@ unsubrequest = dumps({'username': 'zox', 'imei': '1024'})
 forgotpassword = dumps({'username': 'lod'})
 getemail = dumps({'username': 'lod'})
 emailrequest = dumps({'username': '1025', 'email': 'kindth@qq.com'})
+relatedusers = dumps({'imei': '19890924'})
+deleteuser = dumps({'imei': '19890924', 'username': 'zod', 'deleteuser': 'alice'})
 
 host = 'http://localhost:8082/api'
 gpsaddress = host + '/gps?action=getuserlocation'
@@ -105,6 +107,8 @@ newnameaddress = host + '/user?action=setstickname'
 getsticksaddress = host + '/user?action=getsticks'
 getcodeaddress = host + '/stick?action=getverifycode'
 getbycodeaddress = host + '/stick?action=getimeibycode'
+relatedaddress = host + '/stick?action=relatedusers'
+deleteuseraddress = host + '/stick?action=deleteuser'
 uploadaddress = host + '/user?action=uploadsticks'
 unsubaddress = host + '/user?action=unsubscribe'
 reviewaddress = host + '/user?action=review'
@@ -209,6 +213,12 @@ if sys.argv[1] == 'forgotpassword':
 
 if sys.argv[1] == 'unsub':
     makeTest(unsubrequest, unsubaddress)
+
+if sys.argv[1] == 'users':
+    makeTest(relatedusers, relatedaddress)
+
+if sys.argv[1] == 'deleteuser':
+    makeTest(deleteuser, deleteuseraddress)
 
 if sys.argv[1] == 'updateapp':
     makeTest('asdfadsf', updateaddress)

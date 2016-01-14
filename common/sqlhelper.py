@@ -104,7 +104,7 @@ def _createVerifyCode(txn, imei):
         return 0
     code = random.randint(100000, 999999)
     #delete timeout code
-    txn.execute('delete from temp_code where unix_timestamp(timestamp) + 120 < unix_timestamp(now())', ())
+    txn.execute('delete from temp_code where unix_timestamp(timestamp) + 60 < unix_timestamp(now())', ())
     txn.execute('select * from temp_code where code = %s', (code,))
     result = txn.fetchall()
     while len(result) != 0:
@@ -119,7 +119,7 @@ def getImeiByCodeSql(wsdbpool, code):
     return wsdbpool.runInteraction(_getImeiByCode, code)
 
 def _getImeiByCode(txn, code):
-    txn.execute('delete from temp_code where unix_timestamp(timestamp) + 120 < unix_timestamp(now())', ())
+    txn.execute('delete from temp_code where unix_timestamp(timestamp) + 60 < unix_timestamp(now())', ())
     txn.execute('select imei from temp_code where code = %s', (code,))
     result = txn.fetchall()
     if len(result) == 0:

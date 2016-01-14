@@ -16,7 +16,16 @@ import StickModuleSql
 
 class StickPage(Resource):
     isLeaf = True
-        
+
+    def onGetusers(self, users, request):
+        result = dict()
+        result['users']=[]
+        result['result'] = '1'
+        for u in users:
+            result['users'].append({'username': str(u[0]), 'type': str(u[1])})
+        request.write(dumps(result))
+        request.finish()
+
 
     def onImeiResult(self, result, request):
         if len(result) == 0:
@@ -93,6 +102,16 @@ class StickPage(Resource):
 
         if request.args['action'] == ['getbatterylevel']:
             selectBatteryLevel(wsdbpool, payload['imei']).addCallbacks(self.onBatteryLevel, onError, callbackArgs=(request,))
+            return NOT_DONE_YET
+
+        if request.args['action'] == ['relatedusers']:
+            d = StickModuleSql.getRelatedUsers(wsdbpool, payload['imei']).addCallbacks(self.onGetusers, onError, callbackArgs=(request,))
+            return NOT_DONE_YET
+
+        if request.args['action'] == ['deleteuser']:
+            d = StickModuleSql.deleteUser(wsdbpool, payload['imei'], payload['username'], payload['deleteuser'])
+            d.addCallback(onSuccess, request)
+            d.addErrback(onError, request)
             return NOT_DONE_YET
 
             

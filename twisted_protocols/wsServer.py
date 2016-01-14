@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 import time
-from twisted.python import log
+from twisted.python import log, failure
 from twisted.internet import protocol, reactor, defer, threads
 from twisted.protocols import basic
 from twisted.enterprise import adbapi
@@ -26,6 +26,8 @@ def insertLocation(wsdbpool, message):
         latitude = message[4][:-1].strip()
         longitude = _convertToFloat(longitude)
         latitude = _convertToFloat(latitude)
+        if longitude == 0 or latitude == 0:
+            return 0, 0
         if (message[3][-1] == 'W') or (message[3][-1] == 'w'):
             longitude = 0 - longitude
         if (message[4][-1] == 's') or (message[4][-1] == 'S'):
@@ -47,10 +49,15 @@ def insertLocation(wsdbpool, message):
             return -56
 
     def _getGpsinfoCallback(wsinfo, imei, lac, cid, signal, timestamp):
-        imsi = wsinfo[0][1]
-        mcc = imsi[0:3]
-        mnc = imsi[3:5]
-        return threads.deferToThread(getLocationByBsinfo, mcc, mnc, imei, imsi, lac, cid, signal, timestamp)
+        try:
+            imsi = wsinfo[0][1]
+            mcc = imsi[0:3]
+            mnc = imsi[3:5]
+            return threads.deferToThread(getLocationByBsinfo, mcc, mnc, imei, imsi, lac, cid, signal, timestamp)
+        except Exception as e:
+            d = defer.Deferred()
+            d.errback(failure.Failure(Exception('no imsi info about this stick')))
+            return d
 
     def _insertLocation(gpsinfo, wsdbpool, imei, timestamp):
         if gpsinfo != '0,0':
@@ -92,7 +99,7 @@ def insertLocation(wsdbpool, message):
     return d
 
 def onError(failure, transport, message):
-        log.msg(failure)
+        log.msg(str(failure.value))
         transport.write(''.join(("Result:", message[0], ',0')))
 
 

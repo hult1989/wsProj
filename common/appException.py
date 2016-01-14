@@ -37,6 +37,18 @@ class StickExistsException(AppException):
         self.errCode = 406
 
 
+class NoPermissionException(AppException):
+    def __init__(self, args=None):
+        super(Exception, self).__init__(args)
+        self.errCode = 407
+
+
+class NoTargetException(AppException):
+    def __init__(self, args=None):
+        super(Exception, self).__init__(args)
+        self.errCode = 408
+
+
 class NoBindException(AppException):
     def __init__(self, args=None):
         super(Exception, self).__init__(args)
