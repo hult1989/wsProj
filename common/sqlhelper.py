@@ -14,7 +14,7 @@ def FoundPasswordSql(wsdbpool,username):#查找指定用户名的password和emai
 def _handleFoundPassword(txn, username):
     txn.execute('select email, password from userinfo where username = %s', (username,))
     if len(txn.fetchall()) == 0:
-            return (None, None)
+        raise NoUserException
     email, password = txn.fetchall()[0]
     if email and len(email) != 0:
         return str(email), str(password)
