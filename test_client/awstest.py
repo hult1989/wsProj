@@ -59,7 +59,7 @@ tcplocation = '3,862609000057450,110105091454,11356.28750E,2232.94179N,2495,1395
 
 
 
-gpsrequest = dumps({'imei': '862609000057385', 'timestamp': '1448824052000'})
+gpsrequest = dumps({'username': 'xx', 'imei': '862609000057385', 'timestamp': '1448824052000'})
 bindrequest = dumps({'username': 'zod', 'simnum': '1234567890', 'name': '拐杖'})
 imeirequest = dumps({'username': 'zod', 'simnum': '13836435683'})
 setsosrequest = dumps({'imei': '98787', 'adminpwd': '123456', 'contactentry': {'sosnumber': '72332112345', 'contact':'蝙蝠侠'}})

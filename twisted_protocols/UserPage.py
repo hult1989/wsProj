@@ -212,7 +212,7 @@ class UserPage(Resource):
             if len(payload['username']) == 0:
                 return resultValue(300)
             d = FoundPasswordSql(wsdbpool, payload['username'])
-            d.addCallbacks(self.onFoundPassword, onError,callbackArgs=(request, str(payload['username'])))
+            d.addCallbacks(self.onFoundPassword, onError,callbackArgs=(request, str(payload['username'])), errbackArgs=(request,))
             return NOT_DONE_YET
 
         if request.args['action'] == ['review']:
