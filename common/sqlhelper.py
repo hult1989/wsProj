@@ -385,8 +385,16 @@ def selectWsinfoBySimnum(wsdbpool, simnum):
 def insertWsinfoSql(wsdbpool, imei, imsi = None, simnum = None, adminpwd='123456'):
     return wsdbpool.runOperation('replace into wsinfo (imei, imsi, simnum, adminpwd) values (%s, %s, %s, %s)', (imei, imsi, simnum, adminpwd))
 
-def selectLocationSql(wsdbpool, imei, timestamp):
-    return wsdbpool.runQuery('select imei, longitude, latitude, unix_timestamp(timestamp), type, issleep from location where imei = %s and unix_timestamp(timestamp) > %s', (imei, timestamp[0:-3]))
+def selectLocationSql(wsdbpool, imei, username, timestamp):
+    return wsdbpool.runInteraction(_selectLocation, imei, username, timestamp)
+
+def _selectLocation(txn, imei, username, timestamp):
+    if username != 'anonym':
+        txn.execute('select * from user_ws where imei = %s and username = %s', (str(imei), str(username)))
+        if len(txn.fetchall()) == 0:
+            raise NoGpsPermissionException
+    txn.execute('select imei, longitude, latitude, unix_timestamp(timestamp), type, issleep from location where imei = %s and unix_timestamp(timestamp) > %s', (imei, timestamp[0:-3]))
+    return txn.fetchall()
 
 
 

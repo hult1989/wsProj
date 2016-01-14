@@ -83,6 +83,8 @@ getcoderequest = dumps({'username': 'alice', 'imei': '98789'})
 unsubrequest = dumps({'username': '702', 'imei': '868986022047287'})
 forgotpassword = dumps({'username': 'zod'})
 emailrequest = dumps({'username': 'zz', 'email': 'kindth@qq.com'})
+relatedusers = dumps({'imei': '867715029610974'})
+deleteuser = dumps({'imei': '867715029610974', 'username': 'Pan', 'deleteuser': 'tester'})
 
 host = 'http://52.68.218.151:8082/api'
 gpsaddress = host + '/gps?action=getuserlocation'
@@ -113,6 +115,8 @@ getemailaddress = host + '/user?action=getemail'
 emailaddress = host + '/user?action=fillinemail'
 passwordaddress = host + '/user?action=forgotpassword'
 subaddress = host + '/stick?action=subscribebycode'
+relatedaddress = host + '/stick?action=relatedusers'
+deleteuseraddress = host + '/stick?action=deleteuser'
 
 
 agent = Agent(reactor)
@@ -190,6 +194,9 @@ def multiTest():
         print >> sys.stdout, 'CLOSING SOCKET'
         sock1.close()
         sock2.close()
+
+if sys.argv[1] == 'users':
+    makeTest(relatedusers, relatedaddress)
 
 if sys.argv[1] == 'multi':
     multiTest()
@@ -276,6 +283,9 @@ if sys.argv[1] == 'getcode':
 if sys.argv[1] == 'getbycode':
     makeTest(dumps({'code': str(sys.argv[2])}), getbycodeaddress)
 
+
+if sys.argv[1] == 'deleteuser':
+    makeTest(deleteuser, deleteuseraddress)
 
 if sys.argv[1] == 'gpspage':
     requests = list()

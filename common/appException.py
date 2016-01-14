@@ -48,6 +48,11 @@ class NoTargetException(AppException):
         super(Exception, self).__init__(args)
         self.errCode = 408
 
+class NoGpsPermissionException(AppException):
+    def __init__(self, args=None):
+        super(Exception, self).__init__(args)
+        self.errCode = 409
+
 
 class NoBindException(AppException):
     def __init__(self, args=None):
