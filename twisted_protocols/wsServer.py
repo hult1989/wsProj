@@ -117,7 +117,7 @@ class WsServer(protocol.Protocol):
 
 
     def dataReceived(self, message):
-        log.msg(message)
+        log.msg(message + 'at: ' + str(self.transport.client))
         for m in message.split(','):
             if len(m) == 0 and message[0] != '5' and message[0] != '7':
                 self.transport.write(''.join(("Result:", message[0], ',0')))

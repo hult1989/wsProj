@@ -13,9 +13,10 @@ def FoundPasswordSql(wsdbpool,username):#查找指定用户名的password和emai
 
 def _handleFoundPassword(txn, username):
     txn.execute('select email, password from userinfo where username = %s', (username,))
-    if len(txn.fetchall()) == 0:
+    try:
+        email, password = txn.fetchall()[0]
+    except Exception as e:
         raise NoUserException
-    email, password = txn.fetchall()[0]
     if email and len(email) != 0:
         return str(email), str(password)
     else:
@@ -75,11 +76,11 @@ def _handleSubscribeByCode(txn, payload):
     imei = _getImeiByCode(txn, payload['code'])
     if imei == 0:
         return 0
-    print 'code is: ', payload['code'], 'imei is: ', imei
+    #print 'code is: ', payload['code'], 'imei is: ', imei
     #user didn't regist before and just want to get imei
     txn.execute('select simnum from wsinfo where imei = %s', (imei,))
     simnum = txn.fetchall()[0][0]
-    print 'simnum is: ', simnum
+    #print 'simnum is: ', simnum
     if 'username' in payload:
         txn.execute('update user_ws set isdefault = 0 and state = "s" where username = %s', (str(payload['username']),))
         txn.execute('replace into user_ws(username, imei, name, isdefault, state) values(%s, %s, %s, 1, "s")', (str(payload['username']), imei, str(payload['name'])))
@@ -387,15 +388,24 @@ def selectWsinfoBySimnum(wsdbpool, simnum):
 def insertWsinfoSql(wsdbpool, imei, imsi = None, simnum = None, adminpwd='123456'):
     return wsdbpool.runOperation('replace into wsinfo (imei, imsi, simnum, adminpwd) values (%s, %s, %s, %s)', (imei, imsi, simnum, adminpwd))
 
-def selectLocationSql(wsdbpool, imei, username, timestamp):
-    return wsdbpool.runInteraction(_selectLocation, imei, username, timestamp)
+def selectLocationSql(wsdbpool, imei, username, timestamp, payload):
+    return wsdbpool.runInteraction(_selectLocation, imei, username, timestamp, payload)
 
-def _selectLocation(txn, imei, username, timestamp):
+def _selectLocation(txn, imei, username, timestamp, payload):
     if username != 'anonym':
         txn.execute('select * from user_ws where imei = %s and username = %s', (str(imei), str(username)))
         if len(txn.fetchall()) == 0:
             raise NoGpsPermissionException
-    txn.execute('select imei, longitude, latitude, unix_timestamp(timestamp), type, issleep from location where imei = %s and unix_timestamp(timestamp) > %s', (imei, timestamp[0:-3]))
+
+    sql = 'select imei, longitude, latitude, unix_timestamp(timestamp), type, issleep from location where imei = %s and unix_timestamp(timestamp) > %s' %(imei, timestamp[0:-3])
+    if 'type' in payload and  payload['type'] == 'g':
+        sql += ' and type = "g"'
+    if 'after' in payload:
+        sql += ' and unix_timestamp(opertime) > %s' %(payload['after'])
+    sql += ' order by opertime desc '
+    if 'limit' in payload:
+        sql += ' limit %d' %(int(payload['limit']))
+    txn.execute(sql)
     return txn.fetchall()
 
 
@@ -484,7 +494,7 @@ if __name__ == '__main__':
         reactor.stop()
 
     import sys
-    from sqlPool import wsdbpool, bsdbpool
-    selectLoginInfoSql(wsdbpool, 'zod').addCallbacks(onSuccess, onError)
+    from sqlPool import wsdbpool
+    selectLocationSql(wsdbpool, '1024', 'hulk', '1053262523222', {}).addCallbacks(onSuccess, onError)
 
     reactor.run()

@@ -48,7 +48,7 @@ def printResource(response):
 def stop(result):
     reactor.stop()
 
-tcplocation = '3,967715029610974,150930141223,0000.00000W,0000.000000N,2623,0e07,15,078,0,1\r\n3,967715029610974,140930141223,0000.00000W,0000.000000N,2623,0e07,15,078,0'
+tcplocation = '3,1024,150930141223,0001.00000W,0000.100000N,2623,0e07,15,078,0,1\r\n3,1024,140930141223,0001.00000W,0001.000000N,2623,0e07,15,078,0'
 #tcplocation = '3,867715029610974,130922141223,0000.00000W,0000.000000N,fffff,fffff,15\r\n3,867715029610974,130922141223,0000.00000W,0000.000000N,fffff,fffff,15\r\n3,867715029610974,130922141223,0000.00000W,0000.000000N,fffff,fffff,15\r\n3,867715029610974,130922141223,0000.00000W,0000.000000N,fffff,fffff,15\r\n3,867715029610974,130922141223,0000.00000W,0000.000000N,fffff,fffff,15\r\n'
 tcpaddsos = '2,1027,add9989'
 tcpdelsos = '2,8789,del12332112345'
@@ -60,7 +60,7 @@ tcpsync = '5,98789,3,7,12332112345,92332112345,22332112345'
 
 
 
-gpsrequest = dumps({'imei': '1024', 'timestamp': '1400030032000', 'username': 'de'})
+gpsrequest = dumps({'imei': '1024', 'timestamp': '1400030032000', 'username': 'hulk',  'after': '1'})
 bindrequest = dumps({'username': 'zod', 'simnum': '1234567890', 'name': '拐杖'})
 imeirequest = dumps({'username': 'zod', 'simnum': '1234567890'})
 setsosrequest = dumps({'imei': '98787', 'adminpwd': '123456', 'contactentry': {'sosnumber': '72332112345', 'contact':'蝙蝠侠'}})

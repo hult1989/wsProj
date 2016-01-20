@@ -31,13 +31,13 @@ class GpsPage(Resource):
             log.msg(e)
             return resultValue(300)
 
-        d = selectLocationSql(wsdbpool, payload['imei'], payload['username'], payload['timestamp'])
-        d.addCallback(self.OnGpsResult, request)
+        d = selectLocationSql(wsdbpool, payload['imei'], payload['username'], payload['timestamp'], payload)
+        d.addCallback(self.OnGpsResult, request, payload)
         d.addErrback(onError, request)
         return NOT_DONE_YET
 
 
-    def OnGpsResult(self, result, request):
+    def OnGpsResult(self, result, request, payload):
         if len(result) == 0:
             request.write(resultValue(504))
             request.finish()
@@ -54,7 +54,7 @@ class GpsPage(Resource):
                 else:
                     location['issleep'] = '0'
                 locations.append(location)
-            request.write(dumps({'result': '1', 'locations': locations}))
+            request.write(dumps({'result': '1', 'imei': str(payload['imei']), 'locations': locations}))
             request.finish()
 
 gpsPage = GpsPage()
