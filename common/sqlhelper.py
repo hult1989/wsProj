@@ -401,7 +401,7 @@ def _selectLocation(txn, imei, username, timestamp, payload):
     if 'type' in payload and  payload['type'] == 'g':
         sql += ' and type = "g"'
     if 'after' in payload:
-        sql += ' and unix_timestamp(opertime) > %s' %(payload['after'])
+        sql += ' and unix_timestamp(opertime) > %s' %(payload['after'][0:-3])
     sql += ' order by opertime desc '
     if 'limit' in payload:
         sql += ' limit %d' %(int(payload['limit']))
