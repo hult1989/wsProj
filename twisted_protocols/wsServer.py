@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 import time
 from twisted.python import log, failure
-from twisted.internet import protocol, reactor, defer, threads
+from twisted.internet import protocol, reactor, defer, threads, task
 from twisted.protocols import basic
 from twisted.enterprise import adbapi
 from sqlhelper import handleSosSql, handleBindSql, insertLocationSql, handleImsiSql, selectWsinfoSql, insertBatteryLevel
@@ -117,6 +117,8 @@ class WsServer(protocol.Protocol):
 
 
     def dataReceived(self, message):
+        self.factory.connections[self.transport] = int(time.time()) % 3
+        log.msg(self.factory.connections)
         log.msg(message + 'at: ' + str(self.transport.client))
         for m in message.split(','):
             if len(m) == 0 and message[0] != '5' and message[0] != '7':
@@ -154,9 +156,34 @@ class WsServer(protocol.Protocol):
 class WsServerFactory(protocol.Factory):
     def __init__(self, wsdbpool):
         self.wsdbpool = wsdbpool
+        self.connections = {}
+        self.cctask = task.LoopingCall(self.closeTimeoutConnection)
+        self.cctask.start(60)
+
+        
 
     def buildProtocol(self, addr):
         return WsServer(self)
+
+    def closeTimeoutConnection(self):
+        no = int(time.time()) % 3
+        f = open('./connection.log', 'a')
+        f.write('--------------------------------------\n')
+        for port in self.connections.keys():
+            #if bucket no is x, then sockets from bucket (n+1)%3 is timeout
+            if self.connections[port] == (no+1) % 3:
+                try:
+                    port.loseConnection()
+                except Exception as e:
+                    log.msg(e)
+                finally:
+                    f.write('remove connection %s\n' %(str(port.client)))
+                    self.connections.pop(port)
+        for port in self.connections.keys():
+            f.write('alive connection %s\n' %(str(port.client)))
+        f.write('--------------------------------------\n')
+        f.close()
+
 
 if __name__ == '__main__':
     from sqlPool import wsdbpool
