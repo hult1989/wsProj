@@ -55,11 +55,11 @@ tcpimsi = '4,868986022047287,460002606774194'
 tcpbind = '1,1028,bon1234567890,15882205392'
 tcpdelete = '6,1023,ok'
 tcpsync = '5,98789,3,7,12332112345,92332112345,22332112345'
-tcplocation = '3,862609000057450,110105091454,00000.00000E,0000.00000N,2495,1395,24,100,0,2'
+tcplocation = '3,862609000056585,100120094516,00000.000000,0000.000000,00a1,24a5,28,084,0,0,0,6'
 
 
 
-gpsrequest = dumps({'imei': '862609000056585', 'timestamp': '1402837648000', 'limit': '10',  'after': '1153270455' })
+gpsrequest = dumps({'imei': '862609000056585', 'timestamp': '1402837648000'})
 bindrequest = dumps({'username': 'zod', 'simnum': '1234567890', 'name': '拐杖'})
 imeirequest = dumps({'username': 'zod', 'simnum': '13836435683'})
 setsosrequest = dumps({'imei': '98787', 'adminpwd': '123456', 'contactentry': {'sosnumber': '72332112345', 'contact':'蝙蝠侠'}})
@@ -227,7 +227,8 @@ if sys.argv[1] == 'fillinemail':
     makeTest(emailrequest, emailaddress)
 
 if sys.argv[1] == 'gps':
-    makeTest(gpsrequest, gpsaddress)
+    for i in range(100):
+        makeTest(gpsrequest, gpsaddress)
 if sys.argv[1] == 'bind':
     makeTest(bindrequest, bindaddress)
 if sys.argv[1] == 'tcpbind':
@@ -255,10 +256,12 @@ if sys.argv[1] == 'register':
 if sys.argv[1] == 'current':
     makeTest(current, currentaddress)
 if sys.argv[1] == 'login':
-    try:
-        makeTest(login, loginaddress)
-    except Exception, e:
-        print 'Server gone away, err msg: ', e
+    for i in range(1):
+        try:
+            makeTest(login, loginaddress)
+        except Exception, e:
+            print 'Server gone away, err msg: ', e
+
 if sys.argv[1] == 'upwd':
     makeTest(upwd, upwdaddress)
 if sys.argv[1] == 'newname':

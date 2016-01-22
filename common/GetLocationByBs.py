@@ -21,6 +21,7 @@ def getLocationByBsinfo(mcc, mnc, imei, imsi, lac, cid, signal, timestamp):
         try:
             locations = urllib2.urlopen(request).read()
             locations = eval(locations)['result']['location'].split(',')
+            print locations
             result = gcj2wgs_exact(float(locations[1]), float(locations[0]))
             latlog = str(result[1])+','+str(result[0])
         except Exception as e:
@@ -30,5 +31,5 @@ def getLocationByBsinfo(mcc, mnc, imei, imsi, lac, cid, signal, timestamp):
     return latlog
 
 if __name__ == '__main__':
-    print getLocationByBsinfo(460, 00, 862609000057542,460002606774193,9763,3593,-93,20151218074832)
+    print getLocationByBsinfo(454, 06,862609000056585 ,454065300192751, 161, 9381,-56,20151218074832)
 

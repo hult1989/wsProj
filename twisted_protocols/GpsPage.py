@@ -49,6 +49,7 @@ class GpsPage(Resource):
                 location['latitude'] = str(r[2])
                 location['timestamp'] = str(r[3]) + '000'
                 location['type'] = str(r[4])
+                location['imei'] = str(payload['imei'])
                 if r[5]:
                     location['issleep'] = str(r[5])
                 else:
