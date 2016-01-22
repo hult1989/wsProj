@@ -397,7 +397,10 @@ def _selectLocation(txn, imei, username, timestamp, payload):
         if len(txn.fetchall()) == 0:
             raise NoGpsPermissionException
 
-    sql = 'select imei, longitude, latitude, unix_timestamp(timestamp), type, issleep from location where imei = %s and unix_timestamp(timestamp) > %s' %(imei, timestamp[0:-3])
+    if int(timestamp) != 0:
+        sql = 'select imei, longitude, latitude, unix_timestamp(timestamp), type, issleep from location where imei = %s and unix_timestamp(timestamp) > %s' %(imei, timestamp[0:-3])
+    else:
+        sql = 'select imei, longitude, latitude, unix_timestamp(timestamp), type, issleep from location where imei = %s and unix_timestamp(timestamp) > %s' %(imei, '0')
     if 'type' in payload and  payload['type'] == 'g':
         sql += ' and type = "g"'
     if 'after' in payload:
@@ -405,6 +408,7 @@ def _selectLocation(txn, imei, username, timestamp, payload):
     sql += ' order by opertime desc '
     if 'limit' in payload:
         sql += ' limit %d' %(int(payload['limit']))
+    print sql
     txn.execute(sql)
     return txn.fetchall()
 

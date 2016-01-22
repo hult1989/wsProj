@@ -21,7 +21,7 @@ def getLocationByBsinfo(mcc, mnc, imei, imsi, lac, cid, signal, timestamp):
         try:
             locations = urllib2.urlopen(request).read()
             locations = eval(locations)['result']['location'].split(',')
-            print locations
+            #print locations
             result = gcj2wgs_exact(float(locations[1]), float(locations[0]))
             latlog = str(result[1])+','+str(result[0])
         except Exception as e:
@@ -31,5 +31,18 @@ def getLocationByBsinfo(mcc, mnc, imei, imsi, lac, cid, signal, timestamp):
     return latlog
 
 if __name__ == '__main__':
-    print getLocationByBsinfo(454, 06,862609000056585 ,454065300192751, 161, 9381,-56,20151218074832)
+    print getLocationByBsinfo(460, 00,862609000056585,460002606774193, int('2612', 16), int('0e07', 16), -71,20151218074832)
+    print getLocationByBsinfo(460, 00,862609000056585,460002606774193, int('2613', 16), int('0e07', 16), -71,20151218074832)
+    print getLocationByBsinfo(460, 00,862609000056585,460002606774193, int('2614', 16), int('0e07', 16), -71,20151218074832)
+    print getLocationByBsinfo(460, 00,862609000056585,460002606774193, int('2615', 16), int('0e07', 16), -71,20151218074832)
+    print getLocationByBsinfo(460, 00,862609000056585,460002606774193, int('2616', 16), int('0e07', 16), -71,20151218074832)
+    print getLocationByBsinfo(460, 00,862609000056585,460002606774193, int('2617', 16), int('0e07', 16), -71,20151218074832)
+    print getLocationByBsinfo(460, 00,862609000056585,460002606774193, int('2618', 16), int('0e07', 16), -71,20151218074832)
+    print getLocationByBsinfo(460, 00,862609000056585,460002606774193, int('2619', 16), int('0e07', 16), -71,20151218074832)
+    print getLocationByBsinfo(460, 00,862609000056585,460002606774193, int('2620', 16), int('0e07', 16), -71,20151218074832)
+    print getLocationByBsinfo(460, 00,862609000056585,460002606774193, int('2621', 16), int('0e07', 16), -71,20151218074832)
+    print getLocationByBsinfo(460, 00,862609000056585,460002606774193, int('2622', 16), int('0e07', 16), -71,20151218074832)
+    print getLocationByBsinfo(460, 00,862609000056585,460002606774193, int('2623', 16), int('0e07', 16), -71,20151218074832)
+    print getLocationByBsinfo(460, 00,862609000056585,460002606774193, int('2624', 16), int('0e07', 16), -71,20151218074832)
+    print getLocationByBsinfo(460, 00,862609000056585,460002606774193, int('2625', 16), int('0e07', 16), -71,20151218074832)
 

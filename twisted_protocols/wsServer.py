@@ -149,6 +149,8 @@ class WsServer(protocol.Protocol):
                 self.transport.write(''.join(("Result:", message[0], ',0')))
         elif message[0] == '7':
             syncFamilySql(self.factory.wsdbpool, message).addCallbacks(self.onSuccess, onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
+        elif message[0] == '9':
+            self.transport.write(''.join(("Result:", message[0], ',1')))
 
 
 
