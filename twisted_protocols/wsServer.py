@@ -169,8 +169,10 @@ class WsServerFactory(protocol.Factory):
 
     def closeTimeoutConnection(self):
         no = int(time.time()) % 3
+        '''
         f = open('./connection.log', 'a')
         f.write('--------------------------------------\n')
+        '''
         for port in self.connections.keys():
             #if bucket no is x, then sockets from bucket (n+1)%3 is timeout
             if self.connections[port] == (no+1) % 3:
@@ -179,12 +181,14 @@ class WsServerFactory(protocol.Factory):
                 except Exception as e:
                     log.msg(e)
                 finally:
-                    f.write('remove connection %s\n' %(str(port.client)))
+                    #f.write('remove connection %s\n' %(str(port.client)))
                     self.connections.pop(port)
+        '''
         for port in self.connections.keys():
             f.write('alive connection %s\n' %(str(port.client)))
         f.write('--------------------------------------\n')
         f.close()
+        '''
 
 
 if __name__ == '__main__':

@@ -60,7 +60,7 @@ tcpsync = '5,98789,3,7,12332112345,92332112345,22332112345'
 
 
 
-gpsrequest = dumps({'imei': '1024', 'timestamp': '0', 'username': 'hulk' })
+gpsrequest = dumps({'imei': '1024', 'timestamp': '1452691947000', 'username': 'hulk' })
 bindrequest = dumps({'username': 'zod', 'simnum': '1234567890', 'name': '拐杖'})
 imeirequest = dumps({'username': 'zod', 'simnum': '1234567890'})
 setsosrequest = dumps({'imei': '98787', 'adminpwd': '123456', 'contactentry': {'sosnumber': '72332112345', 'contact':'蝙蝠侠'}})

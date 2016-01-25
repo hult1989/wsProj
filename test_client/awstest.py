@@ -59,7 +59,7 @@ tcplocation = '3,862609000056585,100120094516,00000.000000,0000.000000,00a1,24a5
 
 
 
-gpsrequest = dumps({'imei': '862609000056585', 'timestamp': '1402837648000'})
+gpsrequest = dumps({'imei': '862609000056585', 'timestamp': '0'})
 bindrequest = dumps({'username': 'zod', 'simnum': '1234567890', 'name': '拐杖'})
 imeirequest = dumps({'username': 'zod', 'simnum': '13836435683'})
 setsosrequest = dumps({'imei': '98787', 'adminpwd': '123456', 'contactentry': {'sosnumber': '72332112345', 'contact':'蝙蝠侠'}})
@@ -227,8 +227,7 @@ if sys.argv[1] == 'fillinemail':
     makeTest(emailrequest, emailaddress)
 
 if sys.argv[1] == 'gps':
-    for i in range(100):
-        makeTest(gpsrequest, gpsaddress)
+    makeTest(gpsrequest, gpsaddress)
 if sys.argv[1] == 'bind':
     makeTest(bindrequest, bindaddress)
 if sys.argv[1] == 'tcpbind':
