@@ -52,7 +52,7 @@ class SosPage(Resource):
 
     def render_POST(self, request):
         payload = eval(request.content.read())
-        log.msg(str(payload))
+        #log.msg(str(payload))
         apprequest = appRequest(payload)
         if apprequest.isValid == False:
             return resultValue(300)

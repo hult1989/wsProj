@@ -118,7 +118,7 @@ class WsServer(protocol.Protocol):
 
     def dataReceived(self, message):
         self.factory.connections[self.transport] = int(time.time()) % 3
-        log.msg(self.factory.connections)
+        #log.msg(self.factory.connections)
         log.msg(message + 'at: ' + str(self.transport.client))
         for m in message.split(','):
             if len(m) == 0 and message[0] != '5' and message[0] != '7':

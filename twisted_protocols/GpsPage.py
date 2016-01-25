@@ -26,7 +26,7 @@ class GpsPage(Resource):
     def render_POST(self, request):
         try:
             payload = self.getLegalPayload(request)
-            log.msg(str(payload))
+            #log.msg(str(payload))
         except Exception, e:
             log.msg(e)
             return resultValue(300)

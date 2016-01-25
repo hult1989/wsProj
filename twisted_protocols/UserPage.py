@@ -125,7 +125,7 @@ class UserPage(Resource):
 
     def render_POST(self, request):
         payload = eval(request.content.read())
-        log.msg(str(payload))
+        #log.msg(str(payload))
 
         if request.args['action'] == ['register']:
             if 'username' not in payload or 'password' not in payload:
