@@ -53,7 +53,7 @@ class UserPage(Resource):
                 for r in result:
                     if r[4] == '1':
                         info = r
-                print 'INFO !!!! ', info
+                #print 'INFO !!!! ', info
                 request.write(dumps({'result': '1', 'imei': info[1], 'name': info[2], 'type': info[3], 'simnum': info[5]}))
 
 

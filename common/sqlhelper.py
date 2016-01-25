@@ -146,7 +146,7 @@ def handleBindSql(wsdbpool, message):
     return wsdbpool.runInteraction(_handleBind, message)
 
 def _handleBind(txn, message):
-    print 'into bind sql'
+    #print 'into bind sql'
     #1,123456789abcdef,bon13800000000,+8613600000000
     message = message.split(',')
     imei = message[1]
@@ -156,7 +156,7 @@ def _handleBind(txn, message):
     #check if stick has already accepted bind request from app by sms 
     txn.execute('select username, name from temp_user_ws where simnum = %s', (simnum,))
     result = txn.fetchall()
-    print 'temp_user_ws table', result
+    #print 'temp_user_ws table', result
     if len(result) == 0:
         return False
 
@@ -408,7 +408,7 @@ def _selectLocation(txn, imei, username, timestamp, payload):
     sql += ' order by opertime desc '
     if 'limit' in payload:
         sql += ' limit %d' %(int(payload['limit']))
-    print sql
+    #print sql
     txn.execute(sql)
     return txn.fetchall()
 
