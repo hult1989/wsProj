@@ -190,10 +190,10 @@ class WsServerFactory(protocol.Factory):
                 except Exception as e:
                     log.msg(e)
                 finally:
-                    log.msg('remove connection at bucket %s\n' %(str(port.client)))
+                    log.msg('remove connection %s at bucket %s\n' %(str(port.client), (no+1)%4))
                     self.connections.pop(port)
         for port in self.connections.keys():
-            log.msg('alive connection at bucket %s\n' %(str(port.client)))
+            log.msg('alive connection %s at bucket %s\n' %(str(port.client), self.connections[port]))
 
 
 if __name__ == '__main__':
