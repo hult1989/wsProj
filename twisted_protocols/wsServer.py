@@ -1,5 +1,5 @@
 # -*- coding:utf-8 -*-
-import time
+import time, math
 from twisted.python import log, failure
 from twisted.internet import protocol, reactor, defer, threads, task
 from twisted.protocols import basic
@@ -99,8 +99,16 @@ def insertLocation(wsdbpool, message):
     return d
 
 def onError(failure, transport, message):
-        log.msg(str(failure.value))
-        transport.write(''.join(("Result:", message[0], ',0')))
+    log.msg(str(failure.value))
+    transport.write(''.join(("Result:", message[0], ',0')))
+
+def onGpsMsgError(failure, message):
+    message = 'failed to process message ' + message
+    log.msg(message)
+
+def onGpsMsgSuccess(result, message):
+    message = message + ' processing finished'
+    log.msg(message)
 
 
 
@@ -115,11 +123,12 @@ class WsServer(protocol.Protocol):
         elif result == False:
             transport.write(''.join(("Result:", message[0], ',0')))
 
+    def connectionMade(self):
+        log.msg('transport %s connected' %(str(self.transport.client)))
+        self.factory.connections[self.transport] = math.floor(time.time()/60) % 4
 
     def dataReceived(self, message):
-        self.factory.connections[self.transport] = int(time.time()) % 3
-        #log.msg(self.factory.connections)
-        log.msg(message + 'at: ' + str(self.transport.client))
+        log.msg(message + ' from: %s ' %(str(self.transport.client),))
         for m in message.split(','):
             if len(m) == 0 and message[0] != '5' and message[0] != '7':
                 self.transport.write(''.join(("Result:", message[0], ',0')))
@@ -131,12 +140,15 @@ class WsServer(protocol.Protocol):
         elif message[0] == '2':
             handleSosSql(self.factory.wsdbpool, message).addCallbacks(self.onSuccess, onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
         elif message[0] == '3':
-            tempList = list()
-            for msg in message.splitlines():
-                #d = insertLocation(self.factory.wsdbpool, msg).addCallbacks(self.onSuccess, onError, callbackArgs=(self.transport, msg), errbackArgs=(self.transport, msg))
-                tempList.append(insertLocation(self.factory.wsdbpool, msg))
-            d = defer.gatherResults(tempList, consumeErrors=True).addCallbacks(self.onSuccess, onError, callbackArgs=(self.transport, msg), errbackArgs=(self.transport, msg))
-
+            self.transport.write(''.join(("Result:", message[0], ',1')))
+            try:
+                tempList = list()
+                for msg in message.splitlines():
+                    #d = insertLocation(self.factory.wsdbpool, msg).addCallbacks(self.onSuccess, onError, callbackArgs=(self.transport, msg), errbackArgs=(self.transport, msg))
+                    tempList.append(insertLocation(self.factory.wsdbpool, msg))
+                d = defer.gatherResults(tempList, consumeErrors=True).addCallbacks(onGpsMsgSuccess, onGpsMsgError, callbackArgs=(msg,), errbackArgs=(msg,))
+            except Exception as e:
+                onGpsMsgError(failure.Failure(Exception(e)), message)
 
         elif message[0] == '4':
             handleImsiSql(self.factory.wsdbpool, message).addCallbacks(self.onSuccess, onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
@@ -168,27 +180,20 @@ class WsServerFactory(protocol.Factory):
         return WsServer(self)
 
     def closeTimeoutConnection(self):
-        no = int(time.time()) % 3
-        '''
-        f = open('./connection.log', 'a')
-        f.write('--------------------------------------\n')
-        '''
+        no = math.floor(time.time()/60) % 4
+        log.msg('current time bucket %s' %(no))
         for port in self.connections.keys():
-            #if bucket no is x, then sockets from bucket (n+1)%3 is timeout
-            if self.connections[port] == (no+1) % 3:
+            #if current bucket is x, then sockets from bucket (n+1)%4 is timeout
+            if self.connections[port] == (no+1) % 4:
                 try:
                     port.loseConnection()
                 except Exception as e:
                     log.msg(e)
                 finally:
-                    #f.write('remove connection %s\n' %(str(port.client)))
+                    log.msg('remove connection at bucket %s\n' %(str(port.client)))
                     self.connections.pop(port)
-        '''
         for port in self.connections.keys():
-            f.write('alive connection %s\n' %(str(port.client)))
-        f.write('--------------------------------------\n')
-        f.close()
-        '''
+            log.msg('alive connection at bucket %s\n' %(str(port.client)))
 
 
 if __name__ == '__main__':

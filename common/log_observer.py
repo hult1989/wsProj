@@ -2,9 +2,9 @@
 import os
 import psutil
 import time
+import subprocess
 from sendMail import sendMail
 
-pid = os.popen('ps aux | grep \[i]nit.py').readline().split()[1]
 address = 'kindth@qq.com'
 
 def getSockNum(pid):
@@ -33,4 +33,18 @@ def isEMFILEFound():
             print 'everything normal'
         time.sleep(1)
     
-isEMFILEFound()
+
+def scanLog(logAddr):
+    popen = subprocess.Popen('tail -n 1 -f ' + logAddr, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    while True:
+        line = popen.stdout.readline().strip().lower()
+        if line.find('emfile') != -1:
+            sendSockInfo()
+            subprocess.Popen('python restart.py', shell=True)
+        elif (line.find('exception') != -1) or (line.find('error') != -1):
+            sendMail(address, 'huahai', '发现一个异常', line)
+
+
+
+if __name__ == '__main__':
+    scanLog('./log_file/server.log')
