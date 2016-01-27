@@ -54,10 +54,8 @@ tcpdelsos = '2,8789,del12332112345'
 tcpimsi = '4,868986022047287,460002606774194'
 tcpbind = '1,1028,bon1234567890,15882205392'
 tcpdelete = '6,1023,ok'
-tcpsync = '5,98789,3,7,12332112345,92332112345,22332112345'
-tcplocation = '3,962609000057427,160122075318,00000.000000,0000.000000,008c,0065,13,098,0,0,0,31'
-
-
+tcpsync = '5,862609000062401,3,0,18898584479,13800000002,13609619731'
+tcplocation = '3,862609000062526,130127033305,00000.000000,0000.000000,2490,10f6,18,000,0,0,0,1'
 
 gpsrequest = dumps({'imei': '862609000056585', 'timestamp': '0'})
 bindrequest = dumps({'username': 'zod', 'simnum': '1234567890', 'name': '拐杖'})
@@ -66,7 +64,7 @@ setsosrequest = dumps({'imei': '98787', 'adminpwd': '123456', 'contactentry': {'
 delsosrequest = dumps({'imei': '1024', 'adminpwd': '123456', 'contactentry': {'sosnumber': '12332112345', 'contact':'蝙蝠侠'}})
 varifyadd = dumps({'imei': '98789', 'sosnumber': '12332112345'})
 varifydel = dumps({'imei': '98789', 'sosnumber': '12332112345'})
-getsos = dumps({'imei': '1024'})
+getsos = dumps({'imei': '862609000062401'})
 updatepwd = dumps({'imei': '1024', 'adminpwd': '123456', 'newadminpwd': '223456'})
 register = dumps({'username': 'zod', 'password':'f'})
 login = dumps({'username': 'apple', 'password':'123456'})

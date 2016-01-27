@@ -4,16 +4,18 @@ from twisted.python import log, failure
 from twisted.internet import protocol, reactor, defer, threads, task
 from twisted.protocols import basic
 from twisted.enterprise import adbapi
+from twisted.web.client import Agent, readBody, HTTPConnectionPool
+
 from sqlhelper import handleSosSql, handleBindSql, insertLocationSql, handleImsiSql, selectWsinfoSql, insertBatteryLevel
 from SosModuleSql import deleteSosNumberSql, syncSosSql, syncFamilySql
 from StickModuleSql import handleStickBindAck
-from GetLocationByBs import getLocationByBsinfo
+from GetLocationByBs import getLocationByBsinfo, getLocationByBsinfoAsync, _httpBodyToGpsinfo
 
 
 SQLUSER = 'tanghao'
 PASSWORD = '123456'
 
-def insertLocation(wsdbpool, message):
+def insertLocation(httpagent, wsdbpool, message):
     def _convertToFloat(lati_or_longi):
         #convert string to float, iiff.ffff->dd + (ffffff)/60
         index = lati_or_longi.index('.')
@@ -48,15 +50,20 @@ def insertLocation(wsdbpool, message):
         elif signal >= 28:
             return -56
 
+
     def _getGpsinfoCallback(wsinfo, imei, lac, cid, signal, timestamp):
         try:
             imsi = wsinfo[0][1]
             mcc = imsi[0:3]
             mnc = imsi[3:5]
-            return threads.deferToThread(getLocationByBsinfo, mcc, mnc, imei, imsi, lac, cid, signal, timestamp)
+            #return threads.deferToThread(getLocationByBsinfo, mcc, mnc, imei, imsi, lac, cid, signal, timestamp)
+            return getLocationByBsinfoAsync(httpagent, mcc, mnc, imei, imsi, lac, cid, signal).addCallback(readBody).addCallback(_httpBodyToGpsinfo)
         except Exception as e:
             d = defer.Deferred()
-            d.errback(failure.Failure(Exception('no imsi info about this stick')))
+            if len(wsinfo) == 0:
+                d.errback(failure.Failure(Exception('cannot read imsi of the simcard in this stick' )))
+            else:
+                d.errback(failure.Failure(e))
             return d
 
     def _insertLocation(gpsinfo, wsdbpool, imei, timestamp):
@@ -65,7 +72,7 @@ def insertLocation(wsdbpool, message):
             return insertLocationSql(wsdbpool, imei, gpsinfo[0], gpsinfo[1], timestamp, issleep, 'b')
         else:
             d = defer.Deferred()
-            d.callback(None)
+            d.callback(failure.Failure(Exception('illegal result from amap api')))
             return d
 
 
@@ -99,11 +106,11 @@ def insertLocation(wsdbpool, message):
     return d
 
 def onError(failure, transport, message):
-    log.msg(str(failure.value))
+    log.msg('message %s failed to process because of %s' %(message, str(failure.value)))
     transport.write(''.join(("Result:", message[0], ',0')))
 
 def onGpsMsgError(failure, message):
-    message = 'failed to process message ' + message
+    message = 'failed to process message ' + message + ' because of ' + str(failure.value)
     log.msg(message)
 
 def onGpsMsgSuccess(result, message):
@@ -115,7 +122,6 @@ def onGpsMsgSuccess(result, message):
 class WsServer(protocol.Protocol):
     def __init__(self, factory):
         self.factory = factory
-        #log.msg('in wsServer, wsdbpool id: ' + str(id(self.factory.wsdbpool)))
     
     def onSuccess(self, result, transport, message):
         if result == True or result == None or type(result) == tuple or type(result) == list:
@@ -145,7 +151,7 @@ class WsServer(protocol.Protocol):
                 tempList = list()
                 for msg in message.splitlines():
                     #d = insertLocation(self.factory.wsdbpool, msg).addCallbacks(self.onSuccess, onError, callbackArgs=(self.transport, msg), errbackArgs=(self.transport, msg))
-                    tempList.append(insertLocation(self.factory.wsdbpool, msg))
+                    tempList.append(insertLocation(self.factory.httpagent, self.factory.wsdbpool, msg))
                 d = defer.gatherResults(tempList, consumeErrors=True).addCallbacks(onGpsMsgSuccess, onGpsMsgError, callbackArgs=(msg,), errbackArgs=(msg,))
             except Exception as e:
                 onGpsMsgError(failure.Failure(Exception(e)), message)
@@ -171,6 +177,7 @@ class WsServerFactory(protocol.Factory):
     def __init__(self, wsdbpool):
         self.wsdbpool = wsdbpool
         self.connections = {}
+        self.httpagent = Agent(reactor, pool=HTTPConnectionPool(reactor))
         self.cctask = task.LoopingCall(self.closeTimeoutConnection)
         self.cctask.start(60)
 

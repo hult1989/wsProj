@@ -1,3 +1,4 @@
+# -*- coding:utf-8 -*-
 import os
 import sys
 from twisted.python import log
@@ -10,18 +11,24 @@ from zope.interface import implements
 from json import dumps
 import time
 from twisted.internet.task import LoopingCall
-
 import socket
+
+
+from sendMail import sendMail
+
+
 server_address = ('localhost', 8081)
+email_address = 'kindth@qq.com'
 
 def testTcp():
-    tcplocation = '6,1024,ok'
+    tcplocation = '9,1024,ok'
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect(server_address)
         sock.sendall(tcplocation)
         data = sock.recv(96)
-        log.msg(data)
+        if data != 'Result:9,1':
+            sendMail(email_address, 'huahai', 'SERVER DEAD!!!', '服务器没有回应心跳包')
     except Exception, e:
         log.msg(e)
         log.msg('\tSERVER RESTART')
@@ -32,8 +39,8 @@ def finish():
     reactor.stop()
 
 if __name__ == '__main__':
-    os.system('touch ./babysiter.py')
-    log.startLogging(open('./log_file/babysiter.log', 'w'))
-    LoopingCall(testTcp).start(600)
+    pid = os.popen('ps aux | grep \[b]abysiter.py').read().strip()
+    print pid
+    LoopingCall(testTcp).start(60)
     reactor.run()
 

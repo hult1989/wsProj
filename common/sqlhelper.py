@@ -3,7 +3,7 @@ import mysql.connector
 import time
 from twisted.internet import reactor, defer
 from twisted.enterprise import adbapi
-from twisted.python import failure
+from twisted.python import failure, log
 import random
 from appException import *
 
@@ -373,6 +373,7 @@ def _checkSosnumber(txn, imei, sosnumber):
     
 
 def insertLocationSql(wsdbpool, imei, longitude, latitude, timestamp, issleep, gpstype='g'):
+    log.msg('write to sql:  %s ' %(','.join((str(imei), str(longitude), str(latitude), str(timestamp), str(gpstype)))))
     return wsdbpool.runOperation('replace into location (imei, longitude, latitude, timestamp, type, issleep) values (%s, %s, %s, %s, %s, %s)', (imei, float(longitude), float(latitude), timestamp, gpstype, issleep))
 
 def selectWsinfoSql(wsdbpool, imei):
