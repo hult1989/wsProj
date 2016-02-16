@@ -29,10 +29,12 @@ def testTcp():
         data = sock.recv(96)
         if data != 'Result:9,1':
             sendMail(email_address, 'huahai', 'SERVER DEAD!!!', '服务器没有回应心跳包')
+            exit()
     except Exception, e:
         log.msg(e)
         log.msg('\tSERVER RESTART')
     finally:
+        exit()
         sock.close()
 
 def finish():

@@ -37,7 +37,7 @@ def checkSosnumberSql(wsdbpool, imei, number, oper):
 
 def _checkSosnumber(txn, imei, number, oper):
     MAXNUM = 3
-    MINNUM = 1
+    MINNUM = 0
     if oper == 'ADD':
         txn.execute('select * from sosnumber where imei = %s', (imei,))
         num = len(txn.fetchall())

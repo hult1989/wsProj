@@ -107,6 +107,7 @@ def insertLocation(httpagent, wsdbpool, message):
 
 def onError(failure, transport, message):
     log.msg('message %s failed to process because of %s' %(message, str(failure.value)))
+    log.msg('RECV %s , RESP WITH %s' %(message, ''.join(("Result:", message[0], ',0'))))
     transport.write(''.join(("Result:", message[0], ',0')))
 
 def onGpsMsgError(failure, message):
@@ -126,18 +127,21 @@ class WsServer(protocol.Protocol):
     def onSuccess(self, result, transport, message):
         if result == True or result == None or type(result) == tuple or type(result) == list:
             transport.write(''.join(("Result:", message[0], ',1')))
+	    log.msg('RECV %s , RESP WITH %s' %(message, ''.join(("Result:", message[0], ',1'))))
         elif result == False:
+	    log.msg('RECV %s , RESP WITH %s' %(message, ''.join(("Result:", message[0], ',0'))))
             transport.write(''.join(("Result:", message[0], ',0')))
 
     def connectionMade(self):
         log.msg('transport %s connected' %(str(self.transport.client)))
-        self.factory.connections[self.transport] = math.floor(time.time()/60) % 4
 
     def dataReceived(self, message):
+        self.factory.connections[self.transport] = math.floor(time.time()/60) % 4
         log.msg(message + ' from: %s ' %(str(self.transport.client),))
         for m in message.split(','):
             if len(m) == 0 and message[0] != '5' and message[0] != '7':
                 self.transport.write(''.join(("Result:", message[0], ',0')))
+	        log.msg('RECV %s , RESP WITH %s' %(message, ''.join(("Result:", message[0], ',0'))))
                 return
 
         #this is ok becase protocol is instantiated for each connection, so it won't has confusion
@@ -147,6 +151,7 @@ class WsServer(protocol.Protocol):
             handleSosSql(self.factory.wsdbpool, message).addCallbacks(self.onSuccess, onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
         elif message[0] == '3':
             self.transport.write(''.join(("Result:", message[0], ',1')))
+	    log.msg('RECV %s , RESP WITH %s' %(message, ''.join(("Result:", message[0], ',1'))))
             try:
                 tempList = list()
                 for msg in message.splitlines():
@@ -165,9 +170,11 @@ class WsServer(protocol.Protocol):
                 deleteSosNumberSql(self.factory.wsdbpool, message.split(',')[1]).addCallbacks(self.onSuccess, onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
             else:
                 self.transport.write(''.join(("Result:", message[0], ',0')))
+	        log.msg('RECV %s , RESP WITH %s' %(message, ''.join(("Result:", message[0], ',0'))))
         elif message[0] == '7':
             syncFamilySql(self.factory.wsdbpool, message).addCallbacks(self.onSuccess, onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
         elif message[0] == '9':
+	    log.msg('RECV %s , RESP WITH %s' %(message, ''.join(("Result:", message[0], ',1'))))
             self.transport.write(''.join(("Result:", message[0], ',1')))
 
 

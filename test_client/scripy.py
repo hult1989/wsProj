@@ -18,8 +18,8 @@ import socket
 f = open('./testinput.txt')
 
 
-#server_address = ('localhost', 8081)
-server_address = ('smartcane.huahailife.com',8081)
+server_address = ('localhost', 8081)
+#server_address = ('smartcane.huahailife.com',8081)
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 sock.connect(server_address)
 text = f.readline()
