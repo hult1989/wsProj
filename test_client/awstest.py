@@ -57,7 +57,7 @@ tcpdelete = '6,1023,ok'
 tcpsync = '5,862609000062401,3,0,18898584479,13800000002,13609619731'
 tcplocation = '3,862609000062526,130127033305,00000.000000,0000.000000,2490,10f6,18,000,0,0,0,1'
 
-gpsrequest = dumps({'imei': '862609000056585', 'timestamp': '0'})
+gpsrequest = dumps({'imei': '862609000062906', 'timestamp': '0'})
 bindrequest = dumps({'username': 'zod', 'simnum': '1234567890', 'name': '拐杖'})
 imeirequest = dumps({'username': 'zod', 'simnum': '13836435683'})
 setsosrequest = dumps({'imei': '862609000062401', 'adminpwd': '123456', 'contactentry': {'sosnumber': '13609613781', 'contact':'蝙蝠侠'}})

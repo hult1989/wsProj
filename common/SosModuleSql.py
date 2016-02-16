@@ -191,7 +191,7 @@ def _syncSos(txn, message):
 
     #number in database but not in stick, to be deleted
     for number in numbersInDb.difference(set(numbersInStick.keys())):
-        txn.execute('delete from sosnumber where sosnumber = %s', (number,))
+        txn.execute('delete from sosnumber where imei = %s and sosnumber = %s', (imei, number))
         txn.execute('delete from temp_sos where imei = %s and sosnumber = %s', (imei, number))
 
     #number in stick but not in database, to be added to table sosnumber
@@ -226,7 +226,7 @@ def _syncFamily(txn, message):
 
     #number in database but not in stick, to be deleted
     for number in numbersInDb.difference(set(numbersInStick.keys())):
-        txn.execute('delete from familynumber where familynumber = %s', (number,))
+        txn.execute('delete from familynumber where imei = %s and familynumber = %s', (imei, number))
         txn.execute('delete from temp_family where imei = %s and familynumber = %s', (imei, number))
 
     #number in stick but not in database, to be added to table number

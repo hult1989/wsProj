@@ -185,8 +185,8 @@ if __name__ == '__main__':
     #print appNumber(862609000062401, 123456, 13609613781, 'bob', 'f', 'ADD')
 
 
-    print appGetNumber(862609000063169, 's')
-    print appGetNumber(862609000063169, 'f')
+    print appGetNumber(862609000062906, 's')
+    print appGetNumber(862609000062906, 'f')
     #stickSend('3,868986022047287,000000000000,00000.00000E,0000.00000N,2495,1395,19,083,0')
     #print stickCheckNumber(98789, 9877912345, 'ADD', 's')
     #numberTest('s', 'zod', '1024', '18688702834', 'dan', 'ADD')
