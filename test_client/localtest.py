@@ -88,6 +88,7 @@ getemail = dumps({'username': 'lod'})
 emailrequest = dumps({'username': '1025', 'email': 'kindth@qq.com'})
 relatedusers = dumps({'imei': '19890924'})
 deleteuser = dumps({'imei': '19890924', 'username': 'zod', 'deleteuser': 'alice'})
+transferrequest = dumps({'imei': '1024', 'username': 'batman', 'newowner': 'hulk', 'password': 'b'})
 
 host = 'http://localhost:8082/api'
 gpsaddress = host + '/gps?action=getuserlocation'
@@ -95,6 +96,7 @@ bindaddress = host + '/stick?action=bind'
 imeiaddress = host + '/stick?action=getimei'
 currentaddress = host + '/stick?action=setcurrentimei'
 batteryaddress = host + '/stick?action=getbatterylevel'
+transferaddress = host + '/stick?action=transferownership'
 setsosaddress = host + '/sos?action=addnumber'
 delsosaddress = host + '/sos?action=delnumber'
 varifyaddaddress = host + '/sos?action=varifyadd'
@@ -287,6 +289,8 @@ if sys.argv[1] == 'getcode':
     makeTest(getcoderequest, getcodeaddress)
 if sys.argv[1] == 'getbycode':
     makeTest(dumps({'code': str(sys.argv[2])}), getbycodeaddress)
+if sys.argv[1] == 'transfer':
+    makeTest(transferrequest, transferaddress)
 
 
 if sys.argv[1] == 'gpspage':

@@ -4,6 +4,41 @@ from appException import *
 
 
 
+
+
+def transferOwnershipSql(wsdbpool, imei, username, password, newowner):
+    return wsdbpool.runInteraction(_transferOwnership, imei, username, password, newowner)
+
+def _transferOwnership(txn, imei, username, password, newowner):
+    if  _checkPassword(txn, username, password):
+        txn.execute('select username from user_ws where username = %s and imei = %s', (newowner, str(imei)))
+        if not txn.fetchone():
+            raise NoUserException
+        txn.execute('select state from user_ws where username = %s and imei = %s', (username, str(imei)))
+        if txn.fetchone()[0] != 'o':
+            raise NoPermissionException
+        txn.execute('update user_ws set state = "o" where username = %s and imei = %s', (newowner, imei))
+        txn.execute('update user_ws set state = "b" where username = %s and imei = %s', (username, imei))
+    print 'ownership changed'
+    return True
+
+
+
+
+
+
+
+def _checkPassword(txn, username, password):
+    txn.execute('select password from userinfo where username = %s', (username,))
+    pwd = txn.fetchone()
+    if not pwd:
+        raise NoUserException
+    if pwd[0] != password:
+        raise PasswordErrorException
+    return True
+
+
+
 def getRelatedUsers(wsdbpool, imei):
     return wsdbpool.runQuery('select username, state from user_ws where imei = %s', (imei,))
 
@@ -24,10 +59,6 @@ def _deleteUser(txn, imei, username, deleteuser):
         raise NoTargetException
     txn.execute('delete from user_ws where imei = %s and username = %s', (str(imei), str(deleteuser)))
     return True
-
-
-
-
 
 
 def getRelationByUsernameSimnum(wsdbpool, username, simnum):
@@ -184,6 +215,7 @@ if __name__ == '__main__':
 
     def onError(failure):
         print str(failure), failure.__class__
+        print failure.value.errCode
         reactor.stop()
 
     import sys
@@ -193,6 +225,6 @@ if __name__ == '__main__':
     #handleStickBindAck(wsdbpool, '1,abcdef12345,bon13836435682,+8613600000000').addCallbacks(onSuccess, onError)
     #createAuthCode(wsdbpool, '1023').addCallbacks(onSuccess, onError)
     #handleAppSubRequest(wsdbpool, 'zod', 'ddx', 603752).addCallbacks(onSuccess, onError)
-    deleteUser(wsdbpool, '19890924', 'zod', 'zad').addCallbacks(onSuccess, onError)
+    transferOwnershipSql(wsdbpool, '1024', 'batman', 'b', 'hulk').addCallbacks(onSuccess, onError)
 
     reactor.run()

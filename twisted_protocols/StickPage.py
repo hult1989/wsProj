@@ -76,44 +76,49 @@ class StickPage(Resource):
             d.addErrback(onError, request)
             return NOT_DONE_YET
 
-        if request.args['action'] == ['setcurrentimei']:
+        elif request.args['action'] == ['setcurrentimei']:
             d = StickModuleSql.setImeiDefault(wsdbpool, payload['username'], payload['imei'])
             d.addCallback(onSuccess, request)
             d.addErrback(onError, request)
             return NOT_DONE_YET
 
-        if request.args['action'] == ['getverifycode']:
+        elif request.args['action'] == ['getverifycode']:
             d = StickModuleSql.createAuthCode(wsdbpool, payload['imei'])
             d.addCallback(self.onGetCode, request, payload)
             d.addErrback(onError, request)
             return NOT_DONE_YET
 
-        if request.args['action'] == ['getimeibycode']:
+        elif request.args['action'] == ['getimeibycode']:
             d = StickModuleSql.getImeiByCode(wsdbpool, payload['code'])
             d.addCallback(self.onGetImei, request)
             d.addErrback(onError, request)
             return NOT_DONE_YET
 
-        if request.args['action'] == ['subscribebycode']:
+        elif request.args['action'] == ['subscribebycode']:
             d = StickModuleSql.handleAppSubRequest(wsdbpool, payload['username'], payload['name'], payload['code'])
             d.addCallback(self.onSubscribe, request)
             d.addErrback(onError, request)
             return NOT_DONE_YET
 
-        if request.args['action'] == ['getbatterylevel']:
+        elif request.args['action'] == ['getbatterylevel']:
             selectBatteryLevel(wsdbpool, payload['imei']).addCallbacks(self.onBatteryLevel, onError, callbackArgs=(request,))
             return NOT_DONE_YET
 
-        if request.args['action'] == ['relatedusers']:
+        elif request.args['action'] == ['relatedusers']:
             d = StickModuleSql.getRelatedUsers(wsdbpool, payload['imei']).addCallbacks(self.onGetusers, onError, callbackArgs=(request,))
             return NOT_DONE_YET
 
-        if request.args['action'] == ['deleteuser']:
+        elif request.args['action'] == ['deleteuser']:
             d = StickModuleSql.deleteUser(wsdbpool, payload['imei'], payload['username'], payload['deleteuser'])
             d.addCallback(onSuccess, request)
             d.addErrback(onError, request)
             return NOT_DONE_YET
 
+        elif request.args['action'] == ['transferownership']:
+            d = StickModuleSql.transferOwnershipSql(wsdbpool, payload['imei'], payload['username'], payload['password'], payload['newowner'])
+            d.addCallback(onSuccess, request)
+            d.addErrback(onError, request)
+            return NOT_DONE_YET
             
 
 
