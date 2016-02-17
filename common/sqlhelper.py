@@ -392,21 +392,23 @@ def insertWsinfoSql(wsdbpool, imei, imsi = None, simnum = None, adminpwd='123456
 def selectLocationSql(wsdbpool, imei, username, timestamp, payload):
     return wsdbpool.runInteraction(_selectLocation, imei, username, timestamp, payload)
 
-def _selectLocation(txn, imei, username, timestamp, payload):
+def _selectLocation(txn, imei, username, lastsync, payload):
     if username != 'anonym':
         txn.execute('select * from user_ws where imei = %s and username = %s', (str(imei), str(username)))
         if len(txn.fetchall()) == 0:
             raise NoGpsPermissionException
 
-    if int(timestamp) != 0:
-        sql = 'select imei, longitude, latitude, unix_timestamp(timestamp), type, issleep from location where imei = %s and unix_timestamp(timestamp) > %s' %(imei, timestamp[0:-3])
+    if int(lastsync) != 0:
+        sql = 'select imei, longitude, latitude, unix_timestamp(timestamp), type, issleep from location where imei = %s and unix_timestamp(opertime) > %s' %(imei, lastsync[0:-3])
     else:
-        sql = 'select imei, longitude, latitude, unix_timestamp(timestamp), type, issleep from location where imei = %s and unix_timestamp(timestamp) > %s' %(imei, '0')
+        sql = 'select imei, longitude, latitude, unix_timestamp(timestamp), type, issleep from location where imei = %s and unix_timestamp(opertime) > %s' %(imei, '0')
     if 'type' in payload and  payload['type'] == 'g':
         sql += ' and type = "g"'
     if 'after' in payload:
-        sql += ' and unix_timestamp(opertime) > %s' %(payload['after'][0:-3])
-    sql += ' order by opertime desc '
+        sql += ' and unix_timestamp(timestamp) >= %s' %(payload['after'][0:-3])
+    if 'before' in payload:
+        sql += ' and unix_timestamp(timestamp) <= %s' %(payload['before'][0:-3])
+    sql += ' order by timestamp desc '
     if 'limit' in payload:
         sql += ' limit %d' %(int(payload['limit']))
     #print sql

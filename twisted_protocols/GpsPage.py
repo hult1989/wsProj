@@ -17,8 +17,8 @@ class GpsPage(Resource):
         imei = payload['imei']
         if not 'username' in payload:
             payload['username'] = 'anonym'
-        timestamp = payload['timestamp']
-        if len(imei) > 15 or len(imei) == 0 or len(timestamp) > 13 or len(timestamp) == 0 or timestamp.isdigit == False:
+        lastsync = payload['lastsync']
+        if len(imei) > 15 or len(imei) == 0 or len(lastsync) > 13 or len(lastsync) == 0 or lastsync.isdigit() == False:
             raise Exception('illegal input')
         return payload
         
@@ -31,7 +31,7 @@ class GpsPage(Resource):
             log.msg(e)
             return resultValue(300)
 
-        d = selectLocationSql(wsdbpool, payload['imei'], payload['username'], payload['timestamp'], payload)
+        d = selectLocationSql(wsdbpool, payload['imei'], payload['username'], payload['lastsync'], payload)
         d.addCallback(self.OnGpsResult, request, payload)
         d.addErrback(onError, request)
         return NOT_DONE_YET
