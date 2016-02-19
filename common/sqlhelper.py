@@ -389,14 +389,16 @@ def selectWsinfoBySimnum(wsdbpool, simnum):
 def insertWsinfoSql(wsdbpool, imei, imsi = None, simnum = None, adminpwd='123456'):
     return wsdbpool.runOperation('replace into wsinfo (imei, imsi, simnum, adminpwd) values (%s, %s, %s, %s)', (imei, imsi, simnum, adminpwd))
 
-def selectLocationSql(wsdbpool, imei, username, timestamp, payload):
-    return wsdbpool.runInteraction(_selectLocation, imei, username, timestamp, payload)
+def selectLocationSql(wsdbpool, imei, username, lastsync, payload):
+    return wsdbpool.runInteraction(_selectLocation, imei, username, lastsync, payload)
 
 def _selectLocation(txn, imei, username, lastsync, payload):
     if username != 'anonym':
         txn.execute('select * from user_ws where imei = %s and username = %s', (str(imei), str(username)))
         if len(txn.fetchall()) == 0:
             raise NoGpsPermissionException
+    txn.execute('select unix_timestamp(opertime) from location where imei = %s order by opertime desc limit 1', (str(imei),))
+    opertime = txn.fetchone()[0]
 
     if int(lastsync) != 0:
         sql = 'select imei, longitude, latitude, unix_timestamp(timestamp), type, issleep from location where imei = %s and unix_timestamp(opertime) > %s' %(imei, lastsync[0:-3])
@@ -413,7 +415,7 @@ def _selectLocation(txn, imei, username, lastsync, payload):
         sql += ' limit %d' %(int(payload['limit']))
     #print sql
     txn.execute(sql)
-    return txn.fetchall()
+    return txn.fetchall(), opertime
 
 
 
@@ -502,6 +504,6 @@ if __name__ == '__main__':
 
     import sys
     from sqlPool import wsdbpool
-    selectLocationSql(wsdbpool, '1024', 'hulk', '1053262523222', {}).addCallbacks(onSuccess, onError)
+    selectLocationSql(wsdbpool, '1024', 'hulk', '0', {}).addCallbacks(onSuccess, onError)
 
     reactor.run()

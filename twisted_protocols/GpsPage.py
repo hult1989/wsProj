@@ -17,7 +17,7 @@ class GpsPage(Resource):
         imei = payload['imei']
         if not 'username' in payload:
             payload['username'] = 'anonym'
-        lastsync = payload['lastsync']
+        lastsync = payload['timestamp']
         if len(imei) > 15 or len(imei) == 0 or len(lastsync) > 13 or len(lastsync) == 0 or lastsync.isdigit() == False:
             raise Exception('illegal input')
         return payload
@@ -31,19 +31,19 @@ class GpsPage(Resource):
             log.msg(e)
             return resultValue(300)
 
-        d = selectLocationSql(wsdbpool, payload['imei'], payload['username'], payload['lastsync'], payload)
+        d = selectLocationSql(wsdbpool, payload['imei'], payload['username'], payload['timestamp'], payload)
         d.addCallback(self.OnGpsResult, request, payload)
         d.addErrback(onError, request)
         return NOT_DONE_YET
 
 
     def OnGpsResult(self, result, request, payload):
-        if len(result) == 0:
+        if len(result[0]) == 0:
             request.write(resultValue(504))
             request.finish()
         else:
             locations = list()
-            for r in result:
+            for r in result[0]:
                 location = dict()
                 location['longitude'] = str(r[1])
                 location['latitude'] = str(r[2])
@@ -55,7 +55,7 @@ class GpsPage(Resource):
                 else:
                     location['issleep'] = '0'
                 locations.append(location)
-            request.write(dumps({'result': '1', 'imei': str(payload['imei']), 'locations': locations}))
+            request.write(dumps({'result': '1', 'imei': str(payload['imei']), 'locations': locations, 'opertime': str(result[1]) +  '000'}))
             request.finish()
 
 gpsPage = GpsPage()
