@@ -7,6 +7,7 @@ from twisted.web.server import Site, NOT_DONE_YET
 import cgi
 
 from SosModuleSql import *
+from sqlhelper import checkUsernamePasswordSql
 from appServerCommon import onError, onSuccess, resultValue, appRequest
 from sqlPool import wsdbpool
 
@@ -58,19 +59,24 @@ class SosPage(Resource):
             return resultValue(300)
 
         if request.args['action'] == ['addnumber']:
-            d = checkAdminPwdSql(wsdbpool, payload['imei'], payload['adminpwd']).addCallback(nextMethod, checkImeiSimnumSql, wsdbpool, payload['imei']).addCallback(nextMethod, checkSosnumberSql, wsdbpool, payload['imei'], payload['contactentry']['sosnumber'], 'ADD').addCallback(nextMethod, insertTempSosSql, wsdbpool, payload['imei'], payload['contactentry']['sosnumber'], payload['contactentry']['contact'])
+            d = checkUsernamePasswordSql(wsdbpool, payload['username'], payload['password']) if 'username' in payload else  checkAdminPwdSql(wsdbpool, payload['imei'], payload['adminpwd'])
+            d.addCallback(nextMethod, checkImeiSimnumSql, wsdbpool, payload['imei']).addCallback(nextMethod, checkSosnumberSql, wsdbpool, payload['imei'], payload['contactentry']['sosnumber'], 'ADD').addCallback(nextMethod, insertTempSosSql, wsdbpool, payload['imei'], payload['contactentry']['sosnumber'], payload['contactentry']['contact'])
+
             d.addCallbacks(onSuccess, onError, callbackArgs=(request,), errbackArgs=(request,))
         
-        if request.args['action'] == ['addfamilynumber']:
-            d = checkAdminPwdSql(wsdbpool, payload['imei'], payload['adminpwd']).addCallback(nextMethod, checkImeiSimnumSql, wsdbpool, payload['imei']).addCallback(nextMethod, checkFamilynumberSql, wsdbpool, payload['imei'], payload['contactentry']['familynumber'], 'ADD').addCallback(nextMethod, insertTempFamilySql, wsdbpool, payload['imei'], payload['contactentry']['familynumber'], payload['contactentry']['contact'])
+        elif request.args['action'] == ['addfamilynumber']:
+            d = checkUsernamePasswordSql(wsdbpool, payload['username'], payload['password']) if 'username' in payload else  checkAdminPwdSql(wsdbpool, payload['imei'], payload['adminpwd'])
+            d.addCallback(nextMethod, checkImeiSimnumSql, wsdbpool, payload['imei']).addCallback(nextMethod, checkFamilynumberSql, wsdbpool, payload['imei'], payload['contactentry']['familynumber'], 'ADD').addCallback(nextMethod, insertTempFamilySql, wsdbpool, payload['imei'], payload['contactentry']['familynumber'], payload['contactentry']['contact'])
             d.addCallbacks(onSuccess, onError, callbackArgs=(request,), errbackArgs=(request,))
         
         elif request.args['action'] == ['delnumber']:
-            d = checkAdminPwdSql(wsdbpool, payload['imei'], payload['adminpwd']).addCallback(nextMethod, checkImeiSimnumSql, wsdbpool, payload['imei']).addCallback(nextMethod, checkSosnumberSql, wsdbpool, payload['imei'],payload['contactentry']['sosnumber'], 'DEL').addCallback(nextMethod, insertTempSosSql, wsdbpool, payload['imei'], payload['contactentry']['sosnumber'], payload['contactentry']['contact'])
+            d = checkUsernamePasswordSql(wsdbpool, payload['username'], payload['password']) if 'username' in payload else  checkAdminPwdSql(wsdbpool, payload['imei'], payload['adminpwd'])
+            d.addCallback(nextMethod, checkImeiSimnumSql, wsdbpool, payload['imei']).addCallback(nextMethod, checkSosnumberSql, wsdbpool, payload['imei'],payload['contactentry']['sosnumber'], 'DEL').addCallback(nextMethod, insertTempSosSql, wsdbpool, payload['imei'], payload['contactentry']['sosnumber'], payload['contactentry']['contact'])
             d.addCallbacks(onSuccess, onError, callbackArgs=(request,), errbackArgs=(request,))
 
         elif request.args['action'] == ['delfamilynumber']:
-            d = checkAdminPwdSql(wsdbpool, payload['imei'], payload['adminpwd']).addCallback(nextMethod, checkImeiSimnumSql, wsdbpool, payload['imei']).addCallback(nextMethod, checkFamilynumberSql, wsdbpool, payload['imei'],payload['contactentry']['familynumber'], 'DEL').addCallback(nextMethod, insertTempFamilySql, wsdbpool, payload['imei'], payload['contactentry']['familynumber'], payload['contactentry']['contact'])
+            d = checkUsernamePasswordSql(wsdbpool, payload['username'], payload['password']) if 'username' in payload else  checkAdminPwdSql(wsdbpool, payload['imei'], payload['adminpwd'])
+            d.addCallback(nextMethod, checkImeiSimnumSql, wsdbpool, payload['imei']).addCallback(nextMethod, checkFamilynumberSql, wsdbpool, payload['imei'],payload['contactentry']['familynumber'], 'DEL').addCallback(nextMethod, insertTempFamilySql, wsdbpool, payload['imei'], payload['contactentry']['familynumber'], payload['contactentry']['contact'])
             d.addCallbacks(onSuccess, onError, callbackArgs=(request,), errbackArgs=(request,))
 
         elif request.args['action'] == ['varifyadd']:

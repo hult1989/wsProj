@@ -1,5 +1,6 @@
 import os
 import subprocess
+import time
 
 os.popen('touch ./log_file/server.log')
 subprocess.Popen('tail -f ./log_file/server.log&', shell=True)
@@ -12,6 +13,7 @@ else:
     print '1. main program exists'
 
 
+time.sleep(1)
 siterPid = os.popen('ps axu | grep \[b]abysiter.py').read().strip()
 if siterPid == '':
     os.popen('python ./common/babysiter.py&')

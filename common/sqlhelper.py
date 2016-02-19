@@ -7,6 +7,11 @@ from twisted.python import failure, log
 import random
 from appException import *
 
+from StickModuleSql import _checkPassword
+
+
+def checkUsernamePasswordSql(wsdbpool, username, password):
+    return wsdbpool.runInteraction(_checkPassword, username, password)
 
 def FoundPasswordSql(wsdbpool,username):#查找指定用户名的password和email
     return wsdbpool.runInteraction(_handleFoundPassword, username)
@@ -499,11 +504,12 @@ if __name__ == '__main__':
         reactor.stop()
 
     def onError(failure):
-        print str(failure)
+        print str(failure.value.errCode)
         reactor.stop()
 
     import sys
     from sqlPool import wsdbpool
-    selectLocationSql(wsdbpool, '1024', 'hulk', '0', {}).addCallbacks(onSuccess, onError)
+    #selectLocationSql(wsdbpool, '1024', 'hulk', '0', {}).addCallbacks(onSuccess, onError)
+    checkUsernamePasswordSql(wsdbpool, 'hulk', 'x').addCallbacks(onSuccess, onError)
 
     reactor.run()

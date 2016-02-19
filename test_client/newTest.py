@@ -13,8 +13,8 @@ import time
 from pprint import pprint
 
 
-domain = 'smartcane.huahailife.com'
-#domain = 'localhost'
+#domain = 'smartcane.huahailife.com'
+domain = 'localhost'
 host =  domain + ':8082/api'
 def stickSend(message):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

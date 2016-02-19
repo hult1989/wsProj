@@ -27,6 +27,8 @@ def testTcp():
     data = sock.recv(96)
     if data != 'Result:9,1':
         raise Exception('server dead')
+    else:
+        sock.close()
 
 def finish(result, pid):
     print 'in finish: %s' %(str(result.value))
@@ -39,7 +41,7 @@ def finish(result, pid):
 
 if __name__ == '__main__':
     pid = os.popen('ps aux | grep \[b]abysiter.py').readline().split()[1]
-    d = LoopingCall(testTcp).start(6)
+    d = LoopingCall(testTcp).start(60)
     d.addErrback(finish, pid)
     reactor.run()
 
