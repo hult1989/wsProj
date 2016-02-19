@@ -30,7 +30,7 @@ def sendMail(mailaddress, username, mailsubject, mailbody):
     with open('./common/mail_account.config', 'r') as f:
         config = eval(f.read())
     msg = MIMEText(mailbody, 'plain', 'utf-8')
-    msg['From'] = _format_addr('hult <%s>' % config['account'])
+    msg['From'] = _format_addr('HuahaiLife <%s>' % config['account'])
     msg['To'] = _format_addr('%s <%s>' % (username, mailaddress))
     msg['Subject'] = Header(mailsubject, 'utf-8').encode()
 

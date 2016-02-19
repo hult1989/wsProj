@@ -6,6 +6,7 @@ from twisted.web.server import Site, NOT_DONE_YET
 from twisted.python import log
 
 from appServerCommon import resultValue, onError
+import appException
 from sqlhelper import selectLocationSql
 from sqlPool import wsdbpool
 
@@ -39,8 +40,7 @@ class GpsPage(Resource):
 
     def OnGpsResult(self, result, request, payload):
         if len(result[0]) == 0:
-            request.write(resultValue(504))
-            request.finish()
+            raise appException.NoMoreDataException
         else:
             locations = list()
             for r in result[0]:
