@@ -132,12 +132,10 @@ from twisted_protocols.UserPage import userPage
 mainPage = Resource()
 apiPage = Resource()
 mainPage.putChild('api', apiPage)
-
 apiPage.putChild('gps', gpsPage)
 apiPage.putChild('stick', stickPage)
 apiPage.putChild('sos', sosPage)
 apiPage.putChild('user', userPage)
-
 
 mainPage.putChild('location', LocationPage())
 mainPage.putChild('sos', NumberPage())

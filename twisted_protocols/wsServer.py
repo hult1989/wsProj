@@ -10,6 +10,7 @@ from sqlhelper import handleSosSql, handleBindSql, insertLocationSql, handleImsi
 from SosModuleSql import deleteSosNumberSql, syncSosSql, syncFamilySql
 from StickModuleSql import handleStickBindAck
 from GetLocationByBs import getLocationByBsinfo, getLocationByBsinfoAsync, _httpBodyToGpsinfo
+from OnlineStatusHelper import OnlineStatusHelper
 
 
 SQLUSER = 'tanghao'
@@ -135,9 +136,14 @@ class WsServer(protocol.Protocol):
     def connectionMade(self):
         log.msg('transport %s connected' %(str(self.transport.client)))
 
+
     def dataReceived(self, message):
-        self.factory.connections[self.transport] = math.floor(time.time()/60) % 4
-        log.msg(message + ' from: %s ' %(str(self.transport.client),))
+        try:
+            imei = message.split(',')[1]
+            self.factory.onlineHelper.updateOnlineStatus(self.transport, imei)
+        except Exception as e:
+            log.msg(e)
+        log.msg('%s send message %s' %(str(self.transport.client), message))
         for m in message.split(','):
             if len(m) == 0 and message[0] != '5' and message[0] != '7':
                 self.transport.write(''.join(("Result:", message[0], ',0')))
@@ -183,31 +189,18 @@ class WsServer(protocol.Protocol):
 class WsServerFactory(protocol.Factory):
     def __init__(self, wsdbpool):
         self.wsdbpool = wsdbpool
-        self.connections = {}
+        self.onlineHelper = OnlineStatusHelper(log)
         self.httpagent = Agent(reactor, pool=HTTPConnectionPool(reactor))
-        self.cctask = task.LoopingCall(self.closeTimeoutConnection)
+        self.onlineHelper.getLoopingKickStart()
+        '''
+        self.cctask = task.LoopingCall(self.onlineHelper.kickoutIdleConnection)
         self.cctask.start(60)
+        '''
 
         
 
     def buildProtocol(self, addr):
         return WsServer(self)
-
-    def closeTimeoutConnection(self):
-        no = math.floor(time.time()/60) % 4
-        log.msg('current time bucket %s' %(no))
-        for port in self.connections.keys():
-            #if current bucket is x, then sockets from bucket (n+1)%4 is timeout
-            if self.connections[port] == (no+1) % 4:
-                try:
-                    port.loseConnection()
-                except Exception as e:
-                    log.msg(e)
-                finally:
-                    log.msg('remove connection %s at bucket %s\n' %(str(port.client), (no+1)%4))
-                    self.connections.pop(port)
-        for port in self.connections.keys():
-            log.msg('alive connection %s at bucket %s\n' %(str(port.client), self.connections[port]))
 
 
 if __name__ == '__main__':
