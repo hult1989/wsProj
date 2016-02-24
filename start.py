@@ -13,6 +13,7 @@ else:
     print '1. main program exists'
 
 
+'''
 time.sleep(1)
 siterPid = os.popen('ps axu | grep \[b]abysiter.py').read().strip()
 if siterPid == '':
@@ -20,6 +21,7 @@ if siterPid == '':
     print '2. babisiter program init'
 else:
     print '2. babisiter program exists'
+'''
 
 os.popen('pkill twistd')
 os.popen('twistd web --port=8083 --path=../')
