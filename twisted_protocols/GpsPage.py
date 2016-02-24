@@ -5,10 +5,12 @@ from twisted.web.resource import Resource
 from twisted.web.server import Site, NOT_DONE_YET
 from twisted.python import log
 
-from appServerCommon import resultValue, onError
+from appServerCommon import resultValue, onError, onSuccess
 import appException
 from sqlhelper import selectLocationSql
 from sqlPool import wsdbpool
+from OnlineStatusHelper import onlineStatusHelper
+
 
 class GpsPage(Resource):
     isLeaf = True
@@ -25,20 +27,28 @@ class GpsPage(Resource):
         
 
     def render_POST(self, request):
-        try:
-            payload = self.getLegalPayload(request)
-            #log.msg(str(payload))
-        except Exception, e:
-            log.msg(e)
-            return resultValue(300)
-
         if request.args['action'] == ['getuserlocation']:
+            try:
+                payload = self.getLegalPayload(request)
+                #log.msg(str(payload))
+            except Exception, e:
+                log.msg(e)
+                return resultValue(300)
+
             d = selectLocationSql(wsdbpool, payload['imei'], payload['username'], payload['timestamp'], payload)
             d.addCallback(self.OnGpsResult, request, payload)
             d.addErrback(onError, request)
             return NOT_DONE_YET
         elif request.args['action'] == ['switch']:
-            pass
+            payload = eval(request.content.read())
+            if payload['oper'] == 'enable':
+                for port, status in onlineStatusHelper.connectedSticks.items():
+                    if status.imei == str(payload['imei']):
+                        port.write('8,'+status.imei + ',1')
+                        d = status.switchGps(True).addCallbacks(onSuccess, onError, callbackArgs = (request,), errbackArgs=(request,))
+                        return NOT_DONE_YET
+                return resultValue(509)
+
 
 
 

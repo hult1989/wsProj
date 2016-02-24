@@ -89,9 +89,12 @@ emailrequest = dumps({'username': '1025', 'email': 'kindth@qq.com'})
 relatedusers = dumps({'imei': '19890924'})
 deleteuser = dumps({'imei': '19890924', 'username': 'zod', 'deleteuser': 'alice'})
 transferrequest = dumps({'imei': '1024', 'username': 'batman', 'newowner': 'hulk', 'password': 'b'})
+switchrequest = dumps({'imei': '1111', 'oper': 'enable'})
+
 
 host = 'http://localhost:8082/api'
 gpsaddress = host + '/gps?action=getuserlocation'
+switchaddress = host + '/gps?action=switch'
 bindaddress = host + '/stick?action=bind'
 imeiaddress = host + '/stick?action=getimei'
 currentaddress = host + '/stick?action=setcurrentimei'
@@ -292,6 +295,8 @@ if sys.argv[1] == 'getbycode':
 if sys.argv[1] == 'transfer':
     makeTest(transferrequest, transferaddress)
 
+if sys.argv[1] == 'switch':
+    makeTest(switchrequest, switchaddress)
 
 if sys.argv[1] == 'gpspage':
     requests = list()

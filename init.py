@@ -7,9 +7,11 @@ import sys
 sys.path.append('./common')
 
 from twisted_protocols.wsServer import WsServerFactory
+from twisted_protocols.OnlineStatusHelper import onlineStatusHelper
 from appServer import mainPage
 from sqlPool import wsdbpool
 from online import StatusPage
+
 
 if __name__ == '__main__':
     wsServerFactory = WsServerFactory(wsdbpool)
@@ -17,6 +19,6 @@ if __name__ == '__main__':
     reactor.listenTCP(8081, wsServerFactory)
     reactor.listenTCP(8082, Site(mainPage))
     statusResource = Resource()
-    statusResource.putChild('status', StatusPage(wsServerFactory.onlineHelper))
+    statusResource.putChild('status', StatusPage(onlineStatusHelper))
     reactor.listenTCP(8084, Site(statusResource))
     reactor.run()

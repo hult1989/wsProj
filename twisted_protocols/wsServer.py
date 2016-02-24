@@ -10,7 +10,7 @@ from sqlhelper import handleSosSql, handleBindSql, insertLocationSql, handleImsi
 from SosModuleSql import deleteSosNumberSql, syncSosSql, syncFamilySql
 from StickModuleSql import handleStickBindAck
 from GetLocationByBs import getLocationByBsinfo, getLocationByBsinfoAsync, _httpBodyToGpsinfo
-from OnlineStatusHelper import OnlineStatusHelper
+from OnlineStatusHelper import onlineStatusHelper
 
 
 SQLUSER = 'tanghao'
@@ -179,6 +179,7 @@ class WsServer(protocol.Protocol):
 	        log.msg('RECV %s , RESP WITH %s' %(message, ''.join(("Result:", message[0], ',0'))))
         elif message[0] == '7':
             syncFamilySql(self.factory.wsdbpool, message).addCallbacks(self.onSuccess, onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
+
         elif message[0] == '9':
 	    log.msg('RECV %s , RESP WITH %s' %(message, ''.join(("Result:", message[0], ',1'))))
             self.transport.write(''.join(("Result:", message[0], ',1')))
@@ -187,12 +188,25 @@ class WsServer(protocol.Protocol):
 	    log.msg('RECV %s , RESP WITH %s' %(message, ''.join(("Result:", message[0], ',1'))))
             self.transport.write(''.join(("Result:", message[0], ',1')))
 
+        elif message[0] == 'R':
+            status = onlineStatusHelper.connectedSticks[self.transport]
+            d = status.getDefer()
+            if d:
+                if message.strip()[-1] == '1':
+                    log.msg('确认打开gps，defer id 为 %s' %(str(id(d))))
+                    status.gpsStatus = True
+                else:
+                    log.msg('确认关闭gps，defer id 为 %s' %(str(id(d))))
+                    status.gpsStatus = False
+                d.callback(True)
+
+
 
 
 class WsServerFactory(protocol.Factory):
     def __init__(self, wsdbpool):
         self.wsdbpool = wsdbpool
-        self.onlineHelper = OnlineStatusHelper(log)
+        self.onlineHelper = onlineStatusHelper
         self.httpagent = Agent(reactor, pool=HTTPConnectionPool(reactor))
         self.onlineHelper.getLoopingKickStart()
         '''

@@ -1,5 +1,5 @@
 import time
-from twisted.internet import task
+from twisted.internet import task, defer
 class OnlineStatusHelper(object):
     TASK_INTERVAL = 60
     IDLE_COUNT = 6
@@ -9,6 +9,22 @@ class OnlineStatusHelper(object):
             self.socket = transport.client
             self.lastvisit = lastvisit
             self.buckNo = buckNo
+            self.requestDefer = None
+            self.transport = transport
+            self.gpsStatus = False
+
+        def switchGps(self, enable):
+            if enable:
+                self.transport.write(','.join(('8', self.imei, '1')))
+            else:
+                self.transport.write(','.join(('8', self.imei, '0')))
+            self.requestDefer = defer.Deferred()
+            return self.requestDefer
+
+        def getDefer(self):
+            if not self.requestDefer:
+                self.requestDefer = defer.Deferred()
+            return self.requestDefer
 
     def __init__(self, log):
         self.connectedSticks = {}
@@ -63,15 +79,17 @@ class OnlineStatusHelper(object):
     def getStatusWebPage(self):
         title = '<title>online sticks</title>'
         head = '<h3 align="center">%s sticks connected, current no: %s</h3>' %(self.getOnlineSticksNum(), self.getCurBuckNo())
-        table = '<table border="1" align="center" cellpadding=5><tr><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th></tr>' %('ID', 'IMEI', 'SOCKET', 'LAST BEAT', 'BUCKET NO', 'FORCED OFFLINE')
+        table = '<table border="1" align="center" cellpadding=5><tr><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th></tr>' %('ID', 'IMEI', 'GPS', 'SOCKET', 'LAST BEAT', 'BUCKET NO', 'DISABLE GPS', 'FORCED OFFLINE')
         for i, port in enumerate(self.connectedSticks):
             table += '<tr>'
             status = self.connectedSticks[port]
             table += '<td>%s</td>' %(i)
             table += '<td>%s</td>' %(str(status.imei))
+            table += '<td>%s</td>' %(str(status.gpsStatus))
             table += '<td>%s</td>' %(str(status.socket))
             table += '<td>%s</td>' %(str(status.lastvisit))
             table += '<td align="center">%s</td>' %(str(status.buckNo))
+            table += '<td align="center"><form method="POST"><input type="submit" name="disgps" value="%s" /></form></td>' %(self.connectedSticks[port].imei)
             table += '<td align="center"><form method="POST"><input type="submit" name="button" value="%s" /></form></td>' %(self.connectedSticks[port].imei)
             table += '</tr>'
         return '<!DOCTYPE html><html><head>%s</head><body>%s%s</body></html>' %(title, head, table)
@@ -80,10 +98,11 @@ class OnlineStatusHelper(object):
             
         
 
+from twisted.python import log
+onlineStatusHelper = OnlineStatusHelper(log)
 
 if __name__ == '__main__':
     from random import randint
-    from twisted.python import log
     helper = OnlineStatusHelper(log)
     for i in range(10000, 11111):
         helper.updateOnlineStatus(randint(10000, 11111), randint(90000, 99999))
