@@ -26,7 +26,7 @@ class OnlineStatusHelper(object):
     def removePort(self, port):
         port.loseConnection()
         if port in self.connectedSticks:
-            self.connectedSticks.pop(port)
+            del self.connectedSticks[port]
             return True
         return False
 

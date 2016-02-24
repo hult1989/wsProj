@@ -32,10 +32,14 @@ class GpsPage(Resource):
             log.msg(e)
             return resultValue(300)
 
-        d = selectLocationSql(wsdbpool, payload['imei'], payload['username'], payload['timestamp'], payload)
-        d.addCallback(self.OnGpsResult, request, payload)
-        d.addErrback(onError, request)
-        return NOT_DONE_YET
+        if request.args['action'] == ['getuserlocation']:
+            d = selectLocationSql(wsdbpool, payload['imei'], payload['username'], payload['timestamp'], payload)
+            d.addCallback(self.OnGpsResult, request, payload)
+            d.addErrback(onError, request)
+            return NOT_DONE_YET
+        elif request.args['action'] == ['switch']:
+            pass
+
 
 
     def OnGpsResult(self, result, request, payload):

@@ -104,6 +104,10 @@ class SosMinimumException(AppException):
         super(Exception, self).__init__(args)
         self.errCode = 508
 
+class StickOfflineException(AppException):
+    def __init__(self, args=None):
+        super(Exception, self).__init__(args)
+        self.errCode = 509
 
 class InvalidCodeException(AppException):
     def __init__(self, args=None):

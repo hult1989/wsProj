@@ -183,6 +183,9 @@ class WsServer(protocol.Protocol):
 	    log.msg('RECV %s , RESP WITH %s' %(message, ''.join(("Result:", message[0], ',1'))))
             self.transport.write(''.join(("Result:", message[0], ',1')))
 
+        elif message[0] == 'a':
+	    log.msg('RECV %s , RESP WITH %s' %(message, ''.join(("Result:", message[0], ',1'))))
+            self.transport.write(''.join(("Result:", message[0], ',1')))
 
 
 
