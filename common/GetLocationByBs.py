@@ -65,12 +65,19 @@ def getLocationFromMinigpsAsync(httpagent, mcc, mnc, bsInfos):
     #d = httpagent.request('GET', 'http://minigps.org/cw', Headers({'Connection': ['Keep-Alive']}), StringProducer(urllib.urlencode(paramsDict)))
     return d
 
-def onResult(body):
+def decodeMinigpsResult(body, args):
     try:
-        print eval(body)
+        resp = eval(body)
+        #log.msg('%s %s' %(str(args), str(resp)))
+        if resp['status'] == 0:
+            return ','.join((str(resp['lat']), str(resp['lon'])))
+        else:
+            log.msg('failed to get gpsinfo from minigps, reason: [%s]' %(resp['cause']))
+            return '0,0'
     except Exception as e:
-        print e, body
-    reactor.stop()
+        log.msg(str(body))
+        log.msg('failed to get gpsinfo from minigps, reason: [%s]' %(str(e)))
+        return '0,0'
 
 
 def onError(failure):
@@ -101,5 +108,5 @@ if __name__ == '__main__':
     from GpsMessage import GpsMessage
     msg = GpsMessage('3,866523028123929,160101120000,11356.3373E,2232.9325N,050,1,1,0,0460,0000,0000,0007,27ba,0df5,0078,27ba,0f53,0068,27ba,0fbf,0082,27ba,0eda,0083,25f0,0e44,0086,27ba,0f1f,0087,27ba,0df4,0090,6')
     agent = Agent(reactor, pool=HTTPConnectionPool(reactor))
-    getLocationFromMinigpsAsync(agent, msg.mcc, msg.mnc, msg.baseStationInfos).addCallback(readBody).addCallbacks(onResult, onError)
+    getLocationFromMinigpsAsync(agent, msg.mcc, msg.mnc, msg.baseStationInfos).addCallback(readBody).addCallbacks(decodeMinigpsResult, onError)
     reactor.run()

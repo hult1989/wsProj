@@ -9,7 +9,7 @@ from twisted.web.client import Agent, readBody, HTTPConnectionPool
 from sqlhelper import handleSosSql, handleBindSql, insertLocationSql, handleImsiSql, selectWsinfoSql, insertBatteryLevel
 from SosModuleSql import deleteSosNumberSql, syncSosSql, syncFamilySql
 from StickModuleSql import handleStickBindAck
-from GetLocationByBs import getLocationByBsinfo, getLocationByBsinfoAsync, _httpBodyToGpsinfo
+from GetLocationByBs import getLocationByBsinfo, getLocationByBsinfoAsync, _httpBodyToGpsinfo, getLocationFromMinigpsAsync, decodeMinigpsResult 
 from OnlineStatusHelper import onlineStatusHelper
 from GpsMessage import GpsMessageOldVer, GpsMessage
 
@@ -39,7 +39,7 @@ def insertLocation(httpagent, wsdbpool, message):
             return insertLocationSql(wsdbpool, imei, gpsinfo[0], gpsinfo[1], timestamp, issleep, 'b')
         else:
             d = defer.Deferred()
-            d.callback(failure.Failure(Exception('illegal result from amap api')))
+            d.callback(failure.Failure(Exception('illegal result, cannot get gpsinfo by bsinfo ')))
             return d
 
 
@@ -66,14 +66,23 @@ def insertLocation(httpagent, wsdbpool, message):
         charging = 0
         issleep = '0'
     '''
+    if message[0] == '3':
+        #old format
+        gpsMsg = GpsMessageOldVer(message)
+        if gpsMsg.longitude == 0 or gpsMsg.latitude == 0:
+            d = selectWsinfoSql(wsdbpool, gpsMsg.imei).addCallback(_getGpsinfoCallback, gpsMsg.imei, gpsMsg.baseStationInfo.lac, gpsMsg.baseStationInfo.cid, gpsMsg.baseStationInfo.signal, gpsMsg.timestamp).addCallback(_insertLocation, wsdbpool, gpsMsg.imei, gpsMsg.timestamp, gpsMsg.issleep)
+        else:
+            d = insertLocationSql(wsdbpool, gpsMsg.imei, gpsMsg.longitude, gpsMsg.latitude,  gpsMsg.timestamp, gpsMsg.issleep)
 
-    gpsMsg = GpsMessageOldVer(message)
-    
+    elif message[0] == 'a':
+        #new format
+        gpsMsg = GpsMessage(message)
+        if gpsMsg.longitude == 0 or gpsMsg.latitude == 0:
+            d = getLocationFromMinigpsAsync(httpagent, gpsMsg.mcc, gpsMsg.mnc, gpsMsg.baseStationInfos).addCallback(readBody).addCallback(decodeMinigpsResult, (gpsMsg.mcc, gpsMsg.mnc, gpsMsg.baseStationInfos)).addCallback(_insertLocation, wsdbpool, gpsMsg.imei, gpsMsg.timestamp, gpsMsg.issleep)
+        else:
+            d = insertLocationSql(wsdbpool, gpsMsg.imei, gpsMsg.longitude, gpsMsg.latitude,  gpsMsg.timestamp, gpsMsg.issleep)
 
-    if gpsMsg.longitude == 0 or gpsMsg.latitude == 0:
-        d = selectWsinfoSql(wsdbpool, gpsMsg.imei).addCallback(_getGpsinfoCallback, gpsMsg.imei, gpsMsg.baseStationInfo.lac, gpsMsg.baseStationInfo.cid, gpsMsg.baseStationInfo.signal, gpsMsg.timestamp).addCallback(_insertLocation, wsdbpool, gpsMsg.imei, gpsMsg.timestamp, gpsMsg.issleep)
-    else:
-        d = insertLocationSql(wsdbpool, gpsMsg.imei, gpsMsg.longitude, gpsMsg.latitude,  gpsMsg.timestamp, gpsMsg.issleep)
+    #same operation for both old format msg and new format msg
     d.addCallback(insertBatteryLevel, wsdbpool, gpsMsg.imei, gpsMsg.batteryLevel, gpsMsg.charging, gpsMsg.timestamp)
     return d
 
@@ -87,8 +96,7 @@ def onGpsMsgError(failure, message):
     log.msg(message)
 
 def onGpsMsgSuccess(result, message):
-    message = message + ' processing finished'
-    log.msg(message)
+    log.msg(message + ' processing finished')
 
 
 
@@ -126,7 +134,7 @@ class WsServer(protocol.Protocol):
             handleStickBindAck(self.factory.wsdbpool, message).addCallbacks(self.onSuccess, onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
         elif message[0] == '2':
             handleSosSql(self.factory.wsdbpool, message).addCallbacks(self.onSuccess, onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
-        elif message[0] == '3':
+        elif message[0] == '3' or 'a':
             self.transport.write(''.join(("Result:", message[0], ',1')))
 	    log.msg('RECV %s , RESP WITH %s' %(message, ''.join(("Result:", message[0], ',1'))))
             try:
@@ -155,9 +163,6 @@ class WsServer(protocol.Protocol):
 	    log.msg('RECV %s , RESP WITH %s' %(message, ''.join(("Result:", message[0], ',1'))))
             self.transport.write(''.join(("Result:", message[0], ',1')))
 
-        elif message[0] == 'a':
-	    log.msg('RECV %s , RESP WITH %s' %(message, ''.join(("Result:", message[0], ',1'))))
-            self.transport.write(''.join(("Result:", message[0], ',1')))
 
         elif message[0] == 'R':
             status = onlineStatusHelper.connectedSticks[self.transport]
