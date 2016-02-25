@@ -70,7 +70,7 @@ def decodeMinigpsResult(body, args):
         resp = eval(body)
         #log.msg('%s %s' %(str(args), str(resp)))
         if resp['status'] == 0:
-            return ','.join((str(resp['lat']), str(resp['lon'])))
+            return ','.join((str(resp['lon']), str(resp['lat'])))
         else:
             log.msg('failed to get gpsinfo from minigps, reason: [%s]' %(resp['cause']))
             return '0,0'
