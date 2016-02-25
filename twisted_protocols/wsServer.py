@@ -11,54 +11,20 @@ from SosModuleSql import deleteSosNumberSql, syncSosSql, syncFamilySql
 from StickModuleSql import handleStickBindAck
 from GetLocationByBs import getLocationByBsinfo, getLocationByBsinfoAsync, _httpBodyToGpsinfo
 from OnlineStatusHelper import onlineStatusHelper
+from GpsMessage import GpsMessageOldVer, GpsMessage
 
 
 SQLUSER = 'tanghao'
 PASSWORD = '123456'
 
 def insertLocation(httpagent, wsdbpool, message):
-    def _convertToFloat(lati_or_longi):
-        #convert string to float, iiff.ffff->dd + (ffffff)/60
-        index = lati_or_longi.index('.')
-        lati_or_longi_intPart = int(lati_or_longi[0:index-2])
-        lati_or_longi_floatPart = float(lati_or_longi[index-2:]) / 60
-        return lati_or_longi_intPart + lati_or_longi_floatPart
-
-    def _getGpsinfoFromMessage(message):
-        longitude = message[3][:-1].strip()
-        latitude = message[4][:-1].strip()
-        longitude = _convertToFloat(longitude)
-        latitude = _convertToFloat(latitude)
-        if longitude == 0 or latitude == 0:
-            return 0, 0
-        if (message[3][-1] == 'W') or (message[3][-1] == 'w'):
-            longitude = 0 - longitude
-        if (message[4][-1] == 's') or (message[4][-1] == 'S'):
-            latitude = 0 - latitude
-        return longitude, latitude
-
-    def _convertSignalToRssi(signal):
-        if signal < 4 or signal == 99:
-            return -107
-        elif signal < 10:
-            return -93
-        elif signal < 16:
-            return -71
-        elif signal < 22:
-            return -69
-        elif signal < 28:
-            return -57
-        elif signal >= 28:
-            return -56
-
-
     def _getGpsinfoCallback(wsinfo, imei, lac, cid, signal, timestamp):
         try:
             imsi = wsinfo[0][1]
             mcc = imsi[0:3]
             mnc = imsi[3:5]
             #return threads.deferToThread(getLocationByBsinfo, mcc, mnc, imei, imsi, lac, cid, signal, timestamp)
-            return getLocationByBsinfoAsync(httpagent, mcc, mnc, imei, imsi, lac, cid, signal).addCallback(readBody).addCallback(_httpBodyToGpsinfo)
+            return getLocationByBsinfoAsync(httpagent, mcc, mnc, imei, imsi, lac, cid, signal).addCallback(readBody).addCallback(_httpBodyToGpsinfo, (mcc, mnc, imei, imsi, lac, cid, signal))
         except Exception as e:
             d = defer.Deferred()
             if len(wsinfo) == 0:
@@ -67,7 +33,7 @@ def insertLocation(httpagent, wsdbpool, message):
                 d.errback(failure.Failure(e))
             return d
 
-    def _insertLocation(gpsinfo, wsdbpool, imei, timestamp):
+    def _insertLocation(gpsinfo, wsdbpool, imei, timestamp, issleep):
         if gpsinfo != '0,0':
             gpsinfo = str(gpsinfo).split(',')
             return insertLocationSql(wsdbpool, imei, gpsinfo[0], gpsinfo[1], timestamp, issleep, 'b')
@@ -77,6 +43,7 @@ def insertLocation(httpagent, wsdbpool, message):
             return d
 
 
+    '''
     message = message.split(',')
     imei = str(message[1]).strip()
     if int(message[2].strip()) == 0:
@@ -98,12 +65,16 @@ def insertLocation(httpagent, wsdbpool, message):
         batteryLevel = 50
         charging = 0
         issleep = '0'
+    '''
 
-    if longitude == 0 or latitude == 0:
-        d = selectWsinfoSql(wsdbpool, imei).addCallback(_getGpsinfoCallback, imei, lac, cid, signal, timestamp).addCallback(_insertLocation, wsdbpool, imei, timestamp)
+    gpsMsg = GpsMessageOldVer(message)
+    
+
+    if gpsMsg.longitude == 0 or gpsMsg.latitude == 0:
+        d = selectWsinfoSql(wsdbpool, gpsMsg.imei).addCallback(_getGpsinfoCallback, gpsMsg.imei, gpsMsg.baseStationInfo.lac, gpsMsg.baseStationInfo.cid, gpsMsg.baseStationInfo.signal, gpsMsg.timestamp).addCallback(_insertLocation, wsdbpool, gpsMsg.imei, gpsMsg.timestamp, gpsMsg.issleep)
     else:
-        d = insertLocationSql(wsdbpool, imei, longitude, latitude,  timestamp, issleep)
-    d.addCallback(insertBatteryLevel, wsdbpool, imei, batteryLevel, charging, timestamp)
+        d = insertLocationSql(wsdbpool, gpsMsg.imei, gpsMsg.longitude, gpsMsg.latitude,  gpsMsg.timestamp, gpsMsg.issleep)
+    d.addCallback(insertBatteryLevel, wsdbpool, gpsMsg.imei, gpsMsg.batteryLevel, gpsMsg.charging, gpsMsg.timestamp)
     return d
 
 def onError(failure, transport, message):
@@ -227,3 +198,40 @@ if __name__ == '__main__':
     log.startLogging(stdout)
     reactor.listenTCP(8081, WsServerFactory(wsdbpool))
     reactor.run()
+    '''
+    def _convertToFloat(lati_or_longi):
+        #convert string to float, iiff.ffff->dd + (ffffff)/60
+        index = lati_or_longi.index('.')
+        lati_or_longi_intPart = int(lati_or_longi[0:index-2])
+        lati_or_longi_floatPart = float(lati_or_longi[index-2:]) / 60
+        return lati_or_longi_intPart + lati_or_longi_floatPart
+
+    def _getGpsinfoFromMessage(message):
+        longitude = message[3][:-1].strip()
+        latitude = message[4][:-1].strip()
+        longitude = _convertToFloat(longitude)
+        latitude = _convertToFloat(latitude)
+        if longitude == 0 or latitude == 0:
+            return 0, 0
+        if (message[3][-1] == 'W') or (message[3][-1] == 'w'):
+            longitude = 0 - longitude
+        if (message[4][-1] == 's') or (message[4][-1] == 'S'):
+            latitude = 0 - latitude
+        return longitude, latitude
+
+    def _convertSignalToRssi(signal):
+        if signal < 4 or signal == 99:
+            return -107
+        elif signal < 10:
+            return -93
+        elif signal < 16:
+            return -71
+        elif signal < 22:
+            return -69
+        elif signal < 28:
+            return -57
+        elif signal >= 28:
+            return -56
+
+'''
+
