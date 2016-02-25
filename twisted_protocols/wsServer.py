@@ -134,7 +134,7 @@ class WsServer(protocol.Protocol):
             handleStickBindAck(self.factory.wsdbpool, message).addCallbacks(self.onSuccess, onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
         elif message[0] == '2':
             handleSosSql(self.factory.wsdbpool, message).addCallbacks(self.onSuccess, onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
-        elif message[0] == '3' or 'a':
+        elif message[0] in ('3', 'a'):
             self.transport.write(''.join(("Result:", message[0], ',1'))) if message[0] == '3' else self.transport.write(''.join(("Result:", message[0], ',1,',message.split(',')[2])))
 	    log.msg('RECV %s , RESP WITH %s' %(message, ''.join(("Result:", message[0], ',1'))))
             try:
