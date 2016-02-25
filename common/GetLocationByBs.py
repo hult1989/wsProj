@@ -57,13 +57,15 @@ def getLocationFromMinigpsAsync(httpagent, mcc, mnc, bsInfos):
     for info in bsInfos:
         params += [info.lac, info.cid, info.signal]
     paramsDict['x'] = '-'.join(params)
-    #print urllib.urlencode(paramsDict)
-    d = httpagent.request('GET', 'http://minigps.org/cw?'+'x='+paramsDict['x'], Headers({'Connection': ['Keep-Alive']}), StringProducer(urllib.urlencode(paramsDict)))
+    paramsDict['p'] = 1
+    paramsDict['mt'] = 0
+    paramsDict['needaddress'] = 0
+    
+    d = httpagent.request('GET', 'http://minigps.org/cw?'+urllib.urlencode(paramsDict), Headers({'Connection': ['Keep-Alive']}), None)
     #d = httpagent.request('GET', 'http://minigps.org/cw', Headers({'Connection': ['Keep-Alive']}), StringProducer(urllib.urlencode(paramsDict)))
     return d
 
 def onResult(body):
-    print body
     try:
         print eval(body)
     except Exception as e:
