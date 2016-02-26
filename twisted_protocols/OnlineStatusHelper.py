@@ -82,8 +82,8 @@ class OnlineStatusHelper(object):
         #self.log.msg('current bucket no is %s' %(self.getCurBuckNo()))
         for imei in self.connectedSticks.keys():
             if self.connectedSticks[imei].buckNo == tarNo:
+                lastvisit = time.ctime(self.connectedSticks[imei].lastvisit)
                 try:
-                    lastvisit = time.ctime(self.connectedSticks[imei].lastvisit)
                     self.removeImei(imei)
                 except Exception as e:
                     self.log.msg(e)
