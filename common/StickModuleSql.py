@@ -154,7 +154,9 @@ def handleAppBindRequest(wsdbpool, username, simnum, name):
 def _handleAppBindRequest(txn, username, simnum, name):
     result = _getRelationByUsernameSimnum(txn, username, simnum)
     if len(result) > 0:
-        raise StickExistsException
+        imei = result[0][1]
+        state = result[0][2]
+        raise StickExistsException((imei, state))
     _insertTempRelationSql(txn, username, simnum, name)
  
 

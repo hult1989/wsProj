@@ -1,39 +1,40 @@
 import time
 from twisted.internet import task, defer
+
+
+class OnlineStatus(object):
+    def __init__(self, imei, transport, lastvisit, buckNo):
+        self.imei = imei
+        self.lastvisit = lastvisit
+        self.buckNo = buckNo
+        self.requestDefer = None
+        self.transport = transport
+        self.gpsStatus = False
+        self.appRequestTime = None
+
+    def updateAppRequestTime(self):
+        self.appRequestTime = time.time()
+
+    def getAppRequestTime(self):
+        return self.appRequestTime
+
+    def switchGps(self, enable):
+        if enable:
+            self.transport.write(','.join(('8', self.imei, '1')))
+        else:
+            self.transport.write(','.join(('8', self.imei, '0')))
+        self.requestDefer = defer.Deferred()
+        return self.requestDefer
+
+    def getDefer(self):
+        if not self.requestDefer:
+            self.requestDefer = defer.Deferred()
+        return self.requestDefer
+
+
 class OnlineStatusHelper(object):
     TASK_INTERVAL = 60
     IDLE_COUNT = 6
-    class OnlineStatus(object):
-        def __init__(self, imei, transport, lastvisit, buckNo):
-            self.imei = imei
-            self.socket = transport.client
-            self.lastvisit = lastvisit
-            self.buckNo = buckNo
-            self.requestDefer = None
-            self.transport = transport
-            self.gpsStatus = False
-            self.appRequestTime = None
-
-        def updateAppRequestTime(self):
-            self.appRequestTime = time.time()
-
-        def getAppRequestTime(self):
-            return self.appRequestTime
-
-
-        def switchGps(self, enable):
-            if enable:
-                self.transport.write(','.join(('8', self.imei, '1')))
-            else:
-                self.transport.write(','.join(('8', self.imei, '0')))
-            self.requestDefer = defer.Deferred()
-            return self.requestDefer
-
-        def getDefer(self):
-            if not self.requestDefer:
-                self.requestDefer = defer.Deferred()
-            return self.requestDefer
-
     def __init__(self, log):
         self.connectedSticks = {}
         self.log = log
@@ -47,61 +48,63 @@ class OnlineStatusHelper(object):
     def getTargetBuckNo(self):
         return (self.getCurBuckNo() + 1) % self.IDLE_COUNT
 
-    def removePort(self, port):
-        port.loseConnection()
-        if port in self.connectedSticks:
-            del self.connectedSticks[port]
-            return True
-        return False
+    def removeImei(self, imei):
+        if imei not in self.connectedSticks:
+            return 
+        status = self.connectedSticks[imei]
+        try:
+            status.transport.loseConnection()
+        except Exception as e:
+            log.msg('failed to disconnect %s at %s' %(imei, str(status.transport.client)))
+        del self.connectedSticks[imei]
 
     def getLoopingKickStart(self):
         task.LoopingCall(self.kickoutIdleConnection).start(self.TASK_INTERVAL)
 
-
-
-    def updateOnlineStatus(self, port, imei):
-        if port not in self.connectedSticks:
-            self.connectedSticks[port] = self.OnlineStatus(imei, port, time.ctime(), self.getCurBuckNo())
+    def updateOnlineStatus(self, imei, port):
+        if imei not in self.connectedSticks:
+            self.connectedSticks[imei] = OnlineStatus(imei, port, time.ctime(), self.getCurBuckNo())
             return
-        if self.connectedSticks[port].imei != imei:
-            self.log.msg('transport %s conflicts, before imei is %s, current imei is %s' %(port.client, self.connectedSticks[port].imei, imei))
-            self.connectedSticks[port].imei = imei
-        self.connectedSticks[port].lastvisit = time.ctime()
-        self.connectedSticks[port].buckNo = self.getCurBuckNo()
+        status = self.connectedSticks[imei]
+        if status.transport != port:
+            log.msg('stick %s changed socket from %s to %s' %(imei, str(status.transport.client), str(port.client)))
+            try:
+                status.transport.loseConnection()
+            except Exception as e:
+                log.msg('failed to disconnect %s at %s' %(imei, str(status.transport.client)))
+        status.transport = port
+        self.connectedSticks[imei].lastvisit = time.ctime()
+        self.connectedSticks[imei].buckNo = self.getCurBuckNo()
 
 
     def kickoutIdleConnection(self):
         tarNo  = self.getTargetBuckNo()
         #self.log.msg('current bucket no is %s' %(self.getCurBuckNo()))
-        '''
-        for port in self.connectedSticks:
-            self.log.msg('online sticks %s' %(str(vars(self.connectedSticks[port]))))
-        '''
-        for port in self.connectedSticks.keys():
-            if self.connectedSticks[port].buckNo == tarNo:
+        for imei in self.connectedSticks.keys():
+            if self.connectedSticks[imei].buckNo == tarNo:
                 try:
-                    self.removePort(port)
+                    lastvisit = time.ctime(self.connectedSticks[imei].lastvisit)
+                    self.removeImei(imei)
                 except Exception as e:
                     self.log.msg(e)
                 finally:
-                    self.log.msg('kickout connection %s' %(str(port.client)))
+                    self.log.msg('kickout stick %s, its last message sent at %s' %(imei, lastvisit))
 
     def getStatusWebPage(self):
         title = '<title>online sticks</title>'
         head = '<h3 align="center">%s sticks connected, current no: %s</h3>' %(self.getOnlineSticksNum(), self.getCurBuckNo())
         table = '<table border="1" align="center" cellpadding=5><tr><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th></tr>' %('ID', 'IMEI', 'GPS', 'SOCKET', 'LAST BEAT', 'BUCKET NO', 'OPERATION')
-        for i, port in enumerate(self.connectedSticks):
+        for i, imei in enumerate(self.connectedSticks):
             table += '<tr>'
-            status = self.connectedSticks[port]
+            status = self.connectedSticks[imei]
             table += '<td>%s</td>' %(i)
             table += '<td>%s</td>' %(str(status.imei))
             table += '<td>%s</td>' %(str(status.gpsStatus))
-            table += '<td>%s</td>' %(str(status.socket))
+            table += '<td>%s</td>' %(str(status.transport.client))
             table += '<td>%s</td>' %(str(status.lastvisit))
             table += '<td align="center">%s</td>' %(str(status.buckNo))
             table += '<td align="center"><form method="POST">'
-            table += '<input type="hidden" name="imei" value="%s"/>' %(self.connectedSticks[port].imei)
-
+            table += '<input type="hidden" name="imei" value="%s"/>' %(imei)
             table += '<input type="radio" name="enablegps" value="off"/>enable gps'
             table += '<input type="radio" name="disgps" value="off"/>disable gps'
             table += '<input type="radio" name="offline" value="off"/>offline'

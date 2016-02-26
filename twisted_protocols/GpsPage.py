@@ -42,12 +42,12 @@ class GpsPage(Resource):
         elif request.args['action'] == ['switch']:
             payload = eval(request.content.read())
             if payload['oper'] == 'enable':
-                for port, status in onlineStatusHelper.connectedSticks.items():
-                    if status.imei == str(payload['imei']):
-                        port.write('8,'+status.imei + ',1')
-                        d = status.switchGps(True).addCallbacks(onSuccess, onError, callbackArgs = (request,), errbackArgs=(request,))
-                        return NOT_DONE_YET
-                return resultValue(509)
+                if payload['imei'] not in onlineStatusHelper.connectedSticks:
+                    return resultValue(509)
+                status = onlineStatusHelper.connectedSticks[payload['imei']]
+                status.transport.write('8,'+ payload['imei'] + ',1')
+                d = status.switchGps(True).addCallbacks(onSuccess, onError, callbackArgs = (request,), errbackArgs=(request,))
+                return NOT_DONE_YET
 
 
 

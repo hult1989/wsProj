@@ -117,12 +117,11 @@ class WsServer(protocol.Protocol):
 
 
     def dataReceived(self, message):
-        try:
-            imei = message.split(',')[1]
-            self.factory.onlineHelper.updateOnlineStatus(self.transport, imei)
-        except Exception as e:
-            log.msg(e)
         log.msg('%s send message %s' %(str(self.transport.client), message))
+        message = message.strip()
+        imei = message.split(',')[1]
+        self.factory.onlineHelper.updateOnlineStatus(imei, self.transport)
+
         for m in message.split(','):
             if len(m) == 0 and message[0] != '5' and message[0] != '7':
                 self.transport.write(''.join(("Result:", message[0], ',0')))
@@ -135,10 +134,11 @@ class WsServer(protocol.Protocol):
         elif message[0] == '2':
             handleSosSql(self.factory.wsdbpool, message).addCallbacks(self.onSuccess, onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
         elif message[0] in ('3', 'a'):
+            imei = message.split(',')[1]
             if message[0] == '3':
                 self.transport.write(''.join(("Result:", message[0], ',1')))
             elif message[0] == 'a':
-                status = self.factory.onlineHelper.connectedSticks[self.transport]
+                status = self.factory.onlineHelper.connectedSticks[imei]
                 if not status.getAppRequestTime():
                     self.transport.write(''.join(("Result:", message[0], ',1,',message.split(',')[2])))
                 else:
@@ -174,14 +174,15 @@ class WsServer(protocol.Protocol):
 
 
         elif message[0] == 'R':
-            status = onlineStatusHelper.connectedSticks[self.transport]
+            message =  message.split(',')
+            status = onlineStatusHelper.connectedSticks[message[-1]]
             d = status.getDefer()
             if d:
-                if message.strip()[-1] == '1':
-                    log.msg('确认打开gps，defer id 为 %s' %(str(id(d))))
+                if message[1] == '1':
+                    log.msg('确认打开gps')
                     status.gpsStatus = True
                 else:
-                    log.msg('确认关闭gps，defer id 为 %s' %(str(id(d))))
+                    log.msg('确认关闭gps')
                     status.gpsStatus = False
                 d.callback(True)
 

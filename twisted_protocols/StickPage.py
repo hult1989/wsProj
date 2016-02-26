@@ -55,6 +55,19 @@ class StickPage(Resource):
             request.write(dumps({'result': '1', 'imei': str(result[0]), 'level': str(int(result[1])), 'charging': str(result[2]), 'timestamp': str(result[3])}))
         request.finish()
 
+
+    def onBindError(self, error, request):
+        if isinstance(error.value, StickExistsException):
+            request.write(dumps({'result': '406', 'imei': str(error.value.args[0][0]), 'type': str(error.value.args[0][1])}))
+        elif isinstance(error.value, AppException):
+            request.write(resultValue(error.value.errCode))
+        else:
+            log.msg(error)
+        request.finish()
+
+
+
+
     def render_POST(self, request):
 
         payload = eval(request.content.read())
@@ -67,7 +80,7 @@ class StickPage(Resource):
         if request.args['action'] == ['bind']:
             d = StickModuleSql.handleAppBindRequest(wsdbpool, payload['username'], payload['simnum'], payload['name'])
             d.addCallback(onSuccess, request)
-            d.addErrback(onError, request)
+            d.addErrback(self.onBindError, request)
             return NOT_DONE_YET
 
         elif request.args['action'] == ['getimei']:
