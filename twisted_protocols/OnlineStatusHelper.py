@@ -12,6 +12,14 @@ class OnlineStatusHelper(object):
             self.requestDefer = None
             self.transport = transport
             self.gpsStatus = False
+            self.appRequestTime = None
+
+        def updateAppRequestTime(self):
+            self.appRequestTime = time.time()
+
+        def getAppRequestTime(self):
+            return self.appRequestTime
+
 
         def switchGps(self, enable):
             if enable:
@@ -64,7 +72,7 @@ class OnlineStatusHelper(object):
 
     def kickoutIdleConnection(self):
         tarNo  = self.getTargetBuckNo()
-        self.log.msg('current bucket no is %s' %(self.getCurBuckNo()))
+        #self.log.msg('current bucket no is %s' %(self.getCurBuckNo()))
         '''
         for port in self.connectedSticks:
             self.log.msg('online sticks %s' %(str(vars(self.connectedSticks[port]))))

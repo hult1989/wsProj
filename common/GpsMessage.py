@@ -75,15 +75,18 @@ class GpsMessage(GpsMessageBase):
 
 
 if __name__ == '__main__':
-    msg = GpsMessage('3,866523028123929,160101120000,11356.3373E,2232.9325N,050,1,1,0,0460,0000,0000,0007,27ba,0df5,0078,27ba,0f53,0068,27ba,0fbf,0082,27ba,0eda,0083,25f0,0e44,0086,27ba,0f1f,0087,27ba,0df4,0090,6')
+    #msg = GpsMessage('3,866523028123929,160101120000,11356.3373E,2232.9325N,050,1,1,0,0460,0000,0000,0007,27ba,0df5,0078,27ba,0f53,0068,27ba,0fbf,0082,27ba,0eda,0083,25f0,0e44,0086,27ba,0f1f,0087,27ba,0df4,0090,6')
+    msg = GpsMessage('a,862609000057781,160226032659,11403.2502E,2236.9187N,065,0,0,4,0460,0000,0255,0006,27ba,0f53,0072,27ba,0f52,0071,27ba,0fc1,0078,27ba,0f20,0079,27ba,0eda,0085,27ba,0df5,0086,9')
     for k, v in vars(msg).items():
         print k, ': ', v
     for info in msg.baseStationInfos:
         print vars(info)
+    '''
     oldVer = '3,866523028123929,160224015217,00000.00000,0000.00000,2540,7a8d,31,100,0,0,0,12'
     old = GpsMessageOldVer(oldVer)
     for k, v in vars(old).items():
         print k, ': ', v
     print vars(old.baseStationInfo)
+    '''
 
 

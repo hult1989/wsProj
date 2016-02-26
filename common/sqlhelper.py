@@ -403,7 +403,10 @@ def _selectLocation(txn, imei, username, lastsync, payload):
         if len(txn.fetchall()) == 0:
             raise NoGpsPermissionException
     txn.execute('select unix_timestamp(opertime) from location where imei = %s order by opertime desc limit 1', (str(imei),))
-    opertime = txn.fetchone()[0]
+    try:
+        opertime = txn.fetchone()[0]
+    except Exception as e:
+        raise NoMoreDataException
 
     if int(lastsync) != 0:
         sql = 'select imei, longitude, latitude, unix_timestamp(timestamp), type, issleep from location where imei = %s and unix_timestamp(opertime) > %s' %(imei, lastsync[0:-3])

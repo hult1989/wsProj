@@ -135,8 +135,17 @@ class WsServer(protocol.Protocol):
         elif message[0] == '2':
             handleSosSql(self.factory.wsdbpool, message).addCallbacks(self.onSuccess, onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
         elif message[0] in ('3', 'a'):
-            self.transport.write(''.join(("Result:", message[0], ',1'))) if message[0] == '3' else self.transport.write(''.join(("Result:", message[0], ',1,',message.split(',')[2])))
-	    log.msg('RECV %s , RESP WITH %s' %(message, ''.join(("Result:", message[0], ',1'))))
+            if message[0] == '3':
+                self.transport.write(''.join(("Result:", message[0], ',1')))
+            elif message[0] == 'a':
+                status = self.factory.onlineHelper.connectedSticks[self.transport]
+                if not status.getAppRequestTime():
+                    self.transport.write(''.join(("Result:", message[0], ',1,',message.split(',')[2])))
+                else:
+                    log.msg('resp with app request time %s' %(status.getAppRequestTime()))
+                    self.transport.write(''.join(("Result:", message[0], ',1,',time.strftime('%Y%m%d%H%M%S', time.gmtime(status.getAppRequestTime()))[2:])))
+
+	    #log.msg('RECV %s , RESP WITH %s' %(message, ''.join(("Result:", message[0], ',1'))))
             try:
                 tempList = list()
                 for msg in message.splitlines():
