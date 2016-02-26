@@ -34,7 +34,7 @@ class OnlineStatus(object):
 
 class OnlineStatusHelper(object):
     TASK_INTERVAL = 60
-    IDLE_COUNT = 6
+    IDLE_COUNT = 5
     def __init__(self, log):
         self.connectedSticks = {}
         self.log = log
@@ -63,7 +63,7 @@ class OnlineStatusHelper(object):
 
     def updateOnlineStatus(self, imei, port):
         if imei not in self.connectedSticks:
-            self.connectedSticks[imei] = OnlineStatus(imei, port, time.ctime(), self.getCurBuckNo())
+            self.connectedSticks[imei] = OnlineStatus(imei, port, time.time(), self.getCurBuckNo())
             return
         status = self.connectedSticks[imei]
         if status.transport != port:
@@ -73,15 +73,16 @@ class OnlineStatusHelper(object):
             except Exception as e:
                 log.msg('failed to disconnect %s at %s' %(imei, str(status.transport.client)))
         status.transport = port
-        self.connectedSticks[imei].lastvisit = time.ctime()
+        self.connectedSticks[imei].lastvisit = time.time()
         self.connectedSticks[imei].buckNo = self.getCurBuckNo()
 
 
     def kickoutIdleConnection(self):
         tarNo  = self.getTargetBuckNo()
+        cur = time.time()
         #self.log.msg('current bucket no is %s' %(self.getCurBuckNo()))
         for imei in self.connectedSticks.keys():
-            if self.connectedSticks[imei].buckNo == tarNo:
+            if cur - self.connectedSticks[imei].lastvisit > self.IDLE_COUNT * self.TASK_INTERVAL:
                 lastvisit = time.ctime(self.connectedSticks[imei].lastvisit)
                 try:
                     self.removeImei(imei)
@@ -101,7 +102,7 @@ class OnlineStatusHelper(object):
             table += '<td>%s</td>' %(str(status.imei))
             table += '<td>%s</td>' %(str(status.gpsStatus))
             table += '<td>%s</td>' %(str(status.transport.client))
-            table += '<td>%s</td>' %(str(status.lastvisit))
+            table += '<td>%s</td>' %(str(time.ctime(status.lastvisit)))
             table += '<td align="center">%s</td>' %(str(status.buckNo))
             table += '<td align="center"><form method="POST">'
             table += '<input type="hidden" name="imei" value="%s"/>' %(imei)
