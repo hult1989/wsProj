@@ -59,7 +59,7 @@ tcplocation = '3,862609000062526,130127033305,00000.000000,0000.000000,2490,10f6
 
 gpsrequest = dumps({'imei': '862609000062906', 'timestamp': '0'})
 bindrequest = dumps({'username': 'zod', 'simnum': '1234567890', 'name': '拐杖'})
-imeirequest = dumps({'username': 'zod', 'simnum': '13836435683'})
+imeirequest = dumps({'username': 'hh001', 'simnum': '13609617965'})
 setsosrequest = dumps({'imei': '862609000062401', 'adminpwd': '123456', 'contactentry': {'sosnumber': '13609613781', 'contact':'蝙蝠侠'}})
 delsosrequest = dumps({'imei': '1024', 'adminpwd': '123456', 'contactentry': {'sosnumber': '12332112345', 'contact':'蝙蝠侠'}})
 varifyadd = dumps({'imei': '98789', 'sosnumber': '12332112345'})

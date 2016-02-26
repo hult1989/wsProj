@@ -56,7 +56,7 @@ class OnlineStatusHelper(object):
             self.connectedSticks[port] = self.OnlineStatus(imei, port, time.ctime(), self.getCurBuckNo())
             return
         if self.connectedSticks[port].imei != imei:
-            self.log.msg('transport %s conflicts, before imei is %s, current imei is %s' %(port.client, self.connectedSticks[port], imei))
+            self.log.msg('transport %s conflicts, before imei is %s, current imei is %s' %(port.client, self.connectedSticks[port].imei, imei))
             self.connectedSticks[port].imei = imei
         self.connectedSticks[port].lastvisit = time.ctime()
         self.connectedSticks[port].buckNo = self.getCurBuckNo()
@@ -65,8 +65,10 @@ class OnlineStatusHelper(object):
     def kickoutIdleConnection(self):
         tarNo  = self.getTargetBuckNo()
         self.log.msg('current bucket no is %s' %(self.getCurBuckNo()))
+        '''
         for port in self.connectedSticks:
             self.log.msg('online sticks %s' %(str(vars(self.connectedSticks[port]))))
+        '''
         for port in self.connectedSticks.keys():
             if self.connectedSticks[port].buckNo == tarNo:
                 try:
@@ -79,7 +81,7 @@ class OnlineStatusHelper(object):
     def getStatusWebPage(self):
         title = '<title>online sticks</title>'
         head = '<h3 align="center">%s sticks connected, current no: %s</h3>' %(self.getOnlineSticksNum(), self.getCurBuckNo())
-        table = '<table border="1" align="center" cellpadding=5><tr><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th></tr>' %('ID', 'IMEI', 'GPS', 'SOCKET', 'LAST BEAT', 'BUCKET NO', 'DISABLE GPS', 'FORCED OFFLINE')
+        table = '<table border="1" align="center" cellpadding=5><tr><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th></tr>' %('ID', 'IMEI', 'GPS', 'SOCKET', 'LAST BEAT', 'BUCKET NO', 'OPERATION')
         for i, port in enumerate(self.connectedSticks):
             table += '<tr>'
             status = self.connectedSticks[port]
@@ -89,8 +91,13 @@ class OnlineStatusHelper(object):
             table += '<td>%s</td>' %(str(status.socket))
             table += '<td>%s</td>' %(str(status.lastvisit))
             table += '<td align="center">%s</td>' %(str(status.buckNo))
-            table += '<td align="center"><form method="POST"><input type="submit" name="disgps" value="%s" /></form></td>' %(self.connectedSticks[port].imei)
-            table += '<td align="center"><form method="POST"><input type="submit" name="button" value="%s" /></form></td>' %(self.connectedSticks[port].imei)
+            table += '<td align="center"><form method="POST">'
+            table += '<input type="hidden" name="imei" value="%s"/>' %(self.connectedSticks[port].imei)
+
+            table += '<input type="radio" name="enablegps" value="off"/>enable gps'
+            table += '<input type="radio" name="disgps" value="off"/>disable gps'
+            table += '<input type="radio" name="offline" value="off"/>offline'
+            table += '<input type="submit" name="button" value="submit"/></form></td>'
             table += '</tr>'
         return '<!DOCTYPE html><html><head>%s</head><body>%s%s</body></html>' %(title, head, table)
        
