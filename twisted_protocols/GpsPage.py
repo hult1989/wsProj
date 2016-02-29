@@ -38,6 +38,9 @@ class GpsPage(Resource):
             d = selectLocationSql(wsdbpool, payload['imei'], payload['username'], payload['timestamp'], payload)
             d.addCallback(self.OnGpsResult, request, payload)
             d.addErrback(onError, request)
+            if payload['imei'] in onlineStatusHelper.connectedSticks:
+                onlineStatusHelper.connectedSticks[payload['imei']].updateAppRequestTime()
+                log.msg(str(vars(onlineStatusHelper.connectedSticks[payload['imei']])))
             return NOT_DONE_YET
         elif request.args['action'] == ['switch']:
             payload = eval(request.content.read())
