@@ -87,12 +87,11 @@ def insertLocation(httpagent, wsdbpool, message):
     return d
 
 def onError(failure, transport, message):
-    log.msg('message %s failed to process because of %s' %(message, str(failure.value)))
-    log.msg('RECV %s , RESP WITH %s' %(message, ''.join(("Result:", message[0], ',0'))))
-    transport.write(''.join(("Result:", message[0], ',0')))
+    log.msg('RECV %s from %s, RESP WITH %s, because of %s' %(message, str(transport.client), ''.join(("Result:", message[0], ',0')), str(failure.value)))
+    transport.write(''.join(("Result:", message[0], ',0'))+'\r\n')
 
-def onGpsMsgError(failure, message):
-    message = 'failed to process message ' + message + ' because of ' + str(failure.value)
+def onGpsMsgError(failure, message, transport):
+    log.msg('RECV %s from %s, RESP WITH %s, because of %s' %(message, str(transport.client), ''.join(("Result:", message[0], ',0')), str(failure.value)))
     log.msg(message)
 
 def onGpsMsgSuccess(result, message):
@@ -100,31 +99,33 @@ def onGpsMsgSuccess(result, message):
 
 
 
-class WsServer(protocol.Protocol):
+class WsServer(basic.LineReceiver):
     def __init__(self, factory):
         self.factory = factory
     
     def onSuccess(self, result, transport, message):
         if result == True or result == None or type(result) == tuple or type(result) == list:
-            transport.write(''.join(("Result:", message[0], ',1')))
-	    log.msg('RECV %s , RESP WITH %s' %(message, ''.join(("Result:", message[0], ',1'))))
+            transport.write(''.join(("Result:", message[0], ',1'))+'\r\n')
+	    log.msg('RECV %s  from %s, RESP WITH %s' %(message, str(transport.client), ''.join(("Result:", message[0], ',1'))))
         elif result == False:
 	    log.msg('RECV %s , RESP WITH %s' %(message, ''.join(("Result:", message[0], ',0'))))
-            transport.write(''.join(("Result:", message[0], ',0')))
+            transport.write(''.join(("Result:", message[0], ',0'))+'\r\n')
 
     def connectionMade(self):
         log.msg('transport %s connected' %(str(self.transport.client)))
 
 
-    def dataReceived(self, message):
+    def lineReceived(self, message):
         log.msg('%s send message %s' %(str(self.transport.client), message))
         message = message.strip()
+        if not message:
+            return
         imei = message.split(',')[1]
         self.factory.onlineHelper.updateOnlineStatus(imei, self.transport)
 
         for m in message.split(','):
             if len(m) == 0 and message[0] != '5' and message[0] != '7':
-                self.transport.write(''.join(("Result:", message[0], ',0')))
+                self.transport.write(''.join(("Result:", message[0], ',0'))+'\r\n')
 	        log.msg('RECV %s , RESP WITH %s' %(message, ''.join(("Result:", message[0], ',0'))))
                 return
 
@@ -136,14 +137,14 @@ class WsServer(protocol.Protocol):
         elif message[0] in ('3', 'a'):
             imei = message.split(',')[1]
             if message[0] == '3':
-                self.transport.write(''.join(("Result:", message[0], ',1')))
+                self.transport.write(''.join(("Result:", message[0], ',1'))+'\r\n')
             elif message[0] == 'a':
                 status = self.factory.onlineHelper.connectedSticks[imei]
                 if not status.getAppRequestTime():
-                    self.transport.write(''.join(("Result:", message[0], ',1,',message.split(',')[2])))
+                    self.transport.write(''.join(("Result:", message[0], ',1,',message.split(',')[2]))+'\r\n')
                 else:
                     log.msg('resp with app request time %s' %(status.getAppRequestTime()))
-                    self.transport.write(''.join(("Result:", message[0], ',1,',time.strftime('%Y%m%d%H%M%S', time.gmtime(status.getAppRequestTime()))[2:])))
+                    self.transport.write(''.join(("Result:", message[0], ',1,',time.strftime('%Y%m%d%H%M%S', time.gmtime(status.getAppRequestTime()))[2:]))+'\r\n')
 
 	    #log.msg('RECV %s , RESP WITH %s' %(message, ''.join(("Result:", message[0], ',1'))))
             try:
@@ -151,9 +152,9 @@ class WsServer(protocol.Protocol):
                 for msg in message.splitlines():
                     #d = insertLocation(self.factory.wsdbpool, msg).addCallbacks(self.onSuccess, onError, callbackArgs=(self.transport, msg), errbackArgs=(self.transport, msg))
                     tempList.append(insertLocation(self.factory.httpagent, self.factory.wsdbpool, msg))
-                d = defer.gatherResults(tempList, consumeErrors=True).addCallbacks(onGpsMsgSuccess, onGpsMsgError, callbackArgs=(msg,), errbackArgs=(msg,))
+                d = defer.gatherResults(tempList, consumeErrors=True).addCallbacks(onGpsMsgSuccess, onGpsMsgError, callbackArgs=(msg,), errbackArgs=(msg, self.transport))
             except Exception as e:
-                onGpsMsgError(failure.Failure(Exception(e)), message)
+                onGpsMsgError(failure.Failure(Exception(e)), message, self.transport)
 
         elif message[0] == '4':
             handleImsiSql(self.factory.wsdbpool, message).addCallbacks(self.onSuccess, onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
@@ -163,14 +164,14 @@ class WsServer(protocol.Protocol):
             if message[-2:] == 'ok' or message[-2:] == 'OK':
                 deleteSosNumberSql(self.factory.wsdbpool, message.split(',')[1]).addCallbacks(self.onSuccess, onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
             else:
-                self.transport.write(''.join(("Result:", message[0], ',0')))
+                self.transport.write(''.join(("Result:", message[0], ',0'))+'\r\n')
 	        log.msg('RECV %s , RESP WITH %s' %(message, ''.join(("Result:", message[0], ',0'))))
         elif message[0] == '7':
             syncFamilySql(self.factory.wsdbpool, message).addCallbacks(self.onSuccess, onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
 
         elif message[0] == '9':
 	    log.msg('RECV %s , RESP WITH %s' %(message, ''.join(("Result:", message[0], ',1'))))
-            self.transport.write(''.join(("Result:", message[0], ',1')))
+            self.transport.write(''.join(("Result:", message[0], ',1'))+'\r\n')
 
 
         elif message[0] == 'R':

@@ -20,9 +20,9 @@ class OnlineStatus(object):
 
     def switchGps(self, enable):
         if enable:
-            self.transport.write(','.join(('8', self.imei, '1')))
+            self.transport.write(','.join(('8', self.imei, '1')) + '\r\n')
         else:
-            self.transport.write(','.join(('8', self.imei, '0')))
+            self.transport.write(','.join(('8', self.imei, '0')) + '\r\n')
         self.requestDefer = defer.Deferred()
         return self.requestDefer
 

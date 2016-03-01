@@ -49,7 +49,6 @@ class GpsPage(Resource):
                 if payload['imei'] not in onlineStatusHelper.connectedSticks:
                     return resultValue(509)
                 status = onlineStatusHelper.connectedSticks[payload['imei']]
-                status.transport.write('8,'+ payload['imei'] + ',1')
                 d = status.switchGps(True).addCallbacks(onSuccess, onError, callbackArgs = (request,), errbackArgs=(request,))
                 reactor.callLater(5, self.onSwitchOperTimeout, d)
                 return NOT_DONE_YET
