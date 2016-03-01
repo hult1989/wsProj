@@ -8,6 +8,7 @@ def resultValue(n):
     return dumps({'result': str(n)})
 
 def onError(error, request):
+    log.msg('catch stick offline exception')
     if isinstance(error.value, AppException):
         request.write(resultValue(error.value.errCode))
     else:

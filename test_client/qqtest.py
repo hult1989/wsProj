@@ -91,7 +91,7 @@ emailrequest = dumps({'username': '1025', 'email': 'kindth@qq.com'})
 relatedusers = dumps({'imei': '19890924'})
 deleteuser = dumps({'imei': '19890924', 'username': 'zod', 'deleteuser': 'alice'})
 transferrequest = dumps({'imei': '1024', 'username': 'batman', 'newowner': 'hulk', 'password': 'b'})
-switchrequest = dumps({'imei': '1111', 'oper': 'enable'})
+switchrequest = dumps({'imei': '1024', 'oper': 'enable'})
 
 
 host = 'http://119.29.142.11:8082/api'

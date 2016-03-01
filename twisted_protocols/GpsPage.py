@@ -3,7 +3,8 @@ from json import dumps
 
 from twisted.web.resource import Resource
 from twisted.web.server import Site, NOT_DONE_YET
-from twisted.python import log
+from twisted.python import log, failure
+from twisted.internet import defer, reactor
 
 from appServerCommon import resultValue, onError, onSuccess
 import appException
@@ -50,9 +51,12 @@ class GpsPage(Resource):
                 status = onlineStatusHelper.connectedSticks[payload['imei']]
                 status.transport.write('8,'+ payload['imei'] + ',1')
                 d = status.switchGps(True).addCallbacks(onSuccess, onError, callbackArgs = (request,), errbackArgs=(request,))
+                reactor.callLater(5, self.onSwitchOperTimeout, d)
                 return NOT_DONE_YET
 
 
+    def onSwitchOperTimeout(self, d):
+        d.errback(failure.Failure(appException.StickOfflineException()))
 
 
     def OnGpsResult(self, result, request, payload):

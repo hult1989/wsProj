@@ -177,7 +177,7 @@ class WsServer(protocol.Protocol):
             message =  message.split(',')
             status = onlineStatusHelper.connectedSticks[message[-1]]
             d = status.getDefer()
-            if d:
+            if d and not d.called:
                 if message[1] == '1':
                     log.msg('确认打开gps')
                     status.gpsStatus = True
@@ -185,6 +185,7 @@ class WsServer(protocol.Protocol):
                     log.msg('确认关闭gps')
                     status.gpsStatus = False
                 d.callback(True)
+            log.msg(str(vars(status)))
 
 
 
