@@ -1,5 +1,6 @@
 # -*- coding:utf-8 -*-
 import urllib2, urllib
+import json
 from eviltransform import gcj2wgs_exact
 from pprint import pformat
 from stringprod import StringProducer
@@ -68,7 +69,7 @@ def getLocationFromMinigpsAsync(httpagent, mcc, mnc, bsInfos):
 def decodeMinigpsResult(body, args):
     try:
         resp = eval(body)
-        #log.msg('%s %s' %(str(args), str(resp)))
+        log.msg('%s %s' %(str(args), str(resp)))
         if resp['status'] == 0:
             return ','.join((str(resp['lon']), str(resp['lat'])))
         else:
@@ -78,6 +79,40 @@ def decodeMinigpsResult(body, args):
         log.msg(str(body))
         log.msg('failed to get gpsinfo from minigps, reason: [%s]' %(str(e)))
         return '0,0'
+
+def getLocationFromHaoservAsync(httpagent, mcc, mnc, bsInfos):
+    paramsDict = {}
+    paramsDict['key'] = '7de99da6dcd54c82b6f5267b597d0aba'
+    paramsDict['type'] = 2
+    paramsDict['mnctype'] = 'gsm'
+    requestData= {}
+    requestData['celltowers'] = []
+    for info in bsInfos:
+        celltower = {}
+        celltower['mcc'] = int(mcc,16)
+        celltower['mnc'] = int(mnc,16)
+        celltower['cell_id'] = int(info.cid, 16)
+        celltower['lac'] = int(info.lac, 16)
+        celltower['signalstrength'] = int(info.signal, 16) - 110
+        requestData['celltowers'].append(celltower)
+    paramsDict['requestdata'] = json.dumps(requestData)
+    print json.dumps(requestData)
+    url =  'http://api.haoservice.com/api/viplbs?' + urllib.urlencode(paramsDict)
+    d = httpagent.request('GET', url , Headers({'Connection': ['Keep-Alive']}), None)  #StringProducer(urllib.urlencode(paramsDict)))
+    return d
+
+
+def decodeHaoservResult(body, args):
+    try:
+        resp = eval(body) if not 'null' in body else eval(body.replace('null', '0'))
+        resp = resp['location']
+        log.msg('%s %s' %(str(args), str(resp)))
+        return ','.join((str(resp['longitude']), str(resp['latitude'])))
+    except Exception as e:
+        log.msg(str(body))
+        log.msg('failed to get gpsinfo from haoserv, reason: [%s]' %(str(e)))
+        return '0,0'
+
 
 
 def onError(failure):
@@ -108,5 +143,6 @@ if __name__ == '__main__':
     from GpsMessage import GpsMessage
     msg = GpsMessage('3,866523028123929,160101120000,11356.3373E,2232.9325N,050,1,1,0,0460,0000,0000,0007,27ba,0df5,0078,27ba,0f53,0068,27ba,0fbf,0082,27ba,0eda,0083,25f0,0e44,0086,27ba,0f1f,0087,27ba,0df4,0090,6')
     agent = Agent(reactor, pool=HTTPConnectionPool(reactor))
-    getLocationFromMinigpsAsync(agent, msg.mcc, msg.mnc, msg.baseStationInfos).addCallback(readBody).addCallbacks(decodeMinigpsResult, onError)
+    #getLocationFromMinigpsAsync(agent, msg.mcc, msg.mnc, msg.baseStationInfos).addCallback(readBody).addCallbacks(decodeMinigpsResult, onError)
+    getLocationFromHaoservAsync(agent, msg.mcc, msg.mnc, msg.baseStationInfos).addCallback(readBody).addCallback(decodeHaoservResult, (msg))
     reactor.run()

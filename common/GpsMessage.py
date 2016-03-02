@@ -6,6 +6,9 @@ class GpsMessageBase(object):
         def __init__(self, info):
             self.lac, self.cid, self.signal = info
 
+        def __repr__(self):
+            return str({'lac': self.lac, 'cid': self.cid, 'signal': self.signal})
+
     def correcTimestamp(self):
         self.timestamp = time.strftime('%Y%m%d%H%M%S', time.gmtime(time.time())) \
                 if int(self.timestamp) == 0 else '20' + self.timestamp
@@ -80,7 +83,7 @@ if __name__ == '__main__':
     for k, v in vars(msg).items():
         print k, ': ', v
     for info in msg.baseStationInfos:
-        print vars(info)
+        print info
     '''
     oldVer = '3,866523028123929,160224015217,00000.00000,0000.00000,2540,7a8d,31,100,0,0,0,12'
     old = GpsMessageOldVer(oldVer)

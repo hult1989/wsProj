@@ -55,7 +55,8 @@ class GpsPage(Resource):
 
 
     def onSwitchOperTimeout(self, d):
-        d.errback(failure.Failure(appException.StickOfflineException()))
+        if d and not d.called:
+            d.errback(failure.Failure(appException.StickOfflineException()))
 
 
     def OnGpsResult(self, result, request, payload):
