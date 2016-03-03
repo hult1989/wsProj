@@ -141,7 +141,7 @@ class WsServer(basic.LineReceiver):
             elif message[0] == 'a':
                 status = self.factory.onlineHelper.connectedSticks[imei]
                 if not status.getAppRequestTime():
-                    self.transport.write(''.join(("Result:", message[0], ',1,',message.split(',')[2]))+'\r\n')
+                    self.transport.write(''.join(("Result:", message[0], ',1,0'))+'\r\n')
                 else:
                     log.msg('resp with app request time %s' %(status.getAppRequestTime()))
                     self.transport.write(''.join(("Result:", message[0], ',1,',time.strftime('%Y%m%d%H%M%S', time.gmtime(status.getAppRequestTime()))[2:]))+'\r\n')
