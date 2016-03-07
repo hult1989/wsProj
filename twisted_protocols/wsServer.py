@@ -77,8 +77,10 @@ def insertLocation(httpagent, wsdbpool, message):
     elif message[0] == 'a':
         #new format
         gpsMsg = GpsMessage(message)
+        log.msg(str(vars(gpsMsg)))
         if gpsMsg.longitude == 0 or gpsMsg.latitude == 0:
-            d = getLocationFromMinigpsAsync(httpagent, gpsMsg.mcc, gpsMsg.mnc, gpsMsg.baseStationInfos).addCallback(readBody).addCallback(decodeMinigpsResult, (gpsMsg.mcc, gpsMsg.mnc, gpsMsg.baseStationInfos)).addCallback(_insertLocation, wsdbpool, gpsMsg.imei, gpsMsg.timestamp, gpsMsg.issleep)
+            #d = getLocationFromMinigpsAsync(httpagent, gpsMsg.mcc, gpsMsg.mnc, gpsMsg.baseStationInfos).addCallback(readBody).addCallback(decodeMinigpsResult, (gpsMsg.mcc, gpsMsg.mnc, gpsMsg.baseStationInfos)).addCallback(_insertLocation, wsdbpool, gpsMsg.imei, gpsMsg.timestamp, gpsMsg.issleep)
+            d = selectWsinfoSql(wsdbpool, gpsMsg.imei).addCallback(_getGpsinfoCallback, gpsMsg.imei, gpsMsg.mainLac, gpsMsg.mainCid, gpsMsg.mainSignal, gpsMsg.timestamp).addCallback(_insertLocation, wsdbpool, gpsMsg.imei, gpsMsg.timestamp, gpsMsg.issleep)
         else:
             d = insertLocationSql(wsdbpool, gpsMsg.imei, gpsMsg.longitude, gpsMsg.latitude,  gpsMsg.timestamp, gpsMsg.issleep)
 

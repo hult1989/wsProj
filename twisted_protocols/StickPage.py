@@ -79,7 +79,7 @@ class StickPage(Resource):
             request.finish()
             return
         usrelationship = usrelationship[0]
-        d = {'username': str(usrelationship.username), 'imei': str(usrelationship.imei), 'relationship': str(usrelationship.relationship)}
+        d = {'result': '1', 'username': str(usrelationship.username), 'imei': str(usrelationship.imei), 'relationship': str(usrelationship.relationship)}
         request.write(dumps(d))
         request.finish()
 

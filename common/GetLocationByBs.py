@@ -39,6 +39,7 @@ def getLocationByBsinfo(mcc, mnc, imei, imsi, lac, cid, signal, timestamp):
     return latlog
 
 def getLocationByBsinfoAsync(httpagent, mcc, mnc, imei, imsi, lac, cid, signal):
+    #all parameter here are decimal, signal: -113dbm ~ 0
     paramsDict = dict()
     paramsDict['accesstype'] = '0'
     paramsDict['key'] = AMAP_SERVICE_KEY
@@ -47,8 +48,11 @@ def getLocationByBsinfoAsync(httpagent, mcc, mnc, imei, imsi, lac, cid, signal):
     paramsDict['imsi'] = str(imsi)
     paramsDict['bts'] = ','.join((str(mcc), str(mnc), str(lac), str(cid), str(signal)))
     params = urllib.urlencode(paramsDict)
-    params = StringProducer(params)
-    d = httpagent.request('POST', 'http://apilocate.amap.com/position', Headers({}), params)
+    #params = StringProducer(params)
+    url = 'http://apilocate.amap.com/position?' + params
+    log.msg(url)
+    d = httpagent.request('GET', url, Headers({'Connection': ['Keep-Alive']}), None)
+    #d = httpagent.request('POST', 'http://apilocate.amap.com/position', Headers({}), params)
     return d
 
 
@@ -127,7 +131,8 @@ def _httpBodyToGpsinfo(body, args):
         locations = eval(body)['result']['location'].split(',')
         result = gcj2wgs_exact(float(locations[1]), float(locations[0]))
         latlog = str(result[1])+','+str(result[0])
-        log.msg('Reuslt from amap api %s: ' %(str(args) + '   ' +  latlog))
+        log.msg('Reuslt from amap api with gcj2wgs transform is: %s: ' %(str(args) + '   ' +  latlog))
+        log.msg('raw resp from amap without transformed is %s' %(str(eval(body))))
     except Exception as e:
         log.msg('cannot parse response from amapapi because of %s, result from amap is %s' %(str(e), str(body)))
         latlog = '0,0'

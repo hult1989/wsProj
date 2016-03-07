@@ -75,6 +75,10 @@ class GpsMessage(GpsMessageBase):
         self.mnc = hex(int(self.mnc))[2:]
         self.initLongitudeLatitude()
         self.correcTimestamp()
+        self.mainLac = int(message[12], 16)
+        self.mainCid = int(message[13], 16)
+        self.mainSignal = -int(message[14])
+
 
 
 if __name__ == '__main__':
