@@ -91,6 +91,8 @@ emailrequest = dumps({'username': '1025', 'email': 'kindth@qq.com'})
 relatedusers = dumps({'imei': '19890924'})
 deleteuser = dumps({'imei': '19890924', 'username': 'zod', 'deleteuser': 'alice'})
 transferrequest = dumps({'imei': '1024', 'username': 'batman', 'newowner': 'hulk', 'password': 'b'})
+setrelationship = dumps({'imei': '1029', 'username': 'bob', 'relationship': '我是你大爷'})
+getrelationship = dumps({'imei': '1029', 'username': 'bob' })
 switchrequest = dumps({'imei': '1024', 'oper': 'enable'})
 
 
@@ -102,6 +104,8 @@ imeiaddress = host + '/stick?action=getimei'
 currentaddress = host + '/stick?action=setcurrentimei'
 batteryaddress = host + '/stick?action=getbatterylevel'
 transferaddress = host + '/stick?action=transferownership'
+setrelationshipaddress = host + '/stick?action=setuserrelationship'
+getrelationshipaddress = host + '/stick?action=getuserrelationship'
 setsosaddress = host + '/sos?action=addnumber'
 delsosaddress = host + '/sos?action=delnumber'
 varifyaddaddress = host + '/sos?action=varifyadd'
@@ -299,6 +303,10 @@ if sys.argv[1] == 'getbycode':
     makeTest(dumps({'code': str(sys.argv[2])}), getbycodeaddress)
 if sys.argv[1] == 'transfer':
     makeTest(transferrequest, transferaddress)
+if sys.argv[1] == 'setrelationship':
+    makeTest(setrelationship, setrelationshipaddress)
+if sys.argv[1] == 'getrelationship':
+    makeTest(getrelationship, getrelationshipaddress)
 
 if sys.argv[1] == 'switch':
     makeTest(switchrequest, switchaddress)

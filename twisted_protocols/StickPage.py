@@ -2,15 +2,22 @@
 from json import dumps, loads
 
 from twisted.python import log
-from twisted.internet import reactor
+from twisted.internet import reactor, defer
 from twisted.web.resource import Resource
 from twisted.web.server import Site, NOT_DONE_YET
 import cgi
+from twistar.registry import Registry
+from twistar.dbobject import DBObject
 
 from appServerCommon import onError, resultValue, onSuccess, appRequest
 from sqlhelper import *
 from sqlPool import wsdbpool
 import StickModuleSql
+
+
+class User_ws_relationship(DBObject):
+    pass
+
 
 
 
@@ -65,6 +72,16 @@ class StickPage(Resource):
             log.msg(error)
         request.finish()
 
+
+    def onGetRelationship(self, usrelationship, request):
+        if not usrelationship:
+            request.write(resultValue(510))
+            request.finish()
+            return
+        usrelationship = usrelationship[0]
+        d = {'username': str(usrelationship.username), 'imei': str(usrelationship.imei), 'relationship': str(usrelationship.relationship)}
+        request.write(dumps(d))
+        request.finish()
 
 
 
@@ -133,6 +150,23 @@ class StickPage(Resource):
             d.addErrback(onError, request)
             return NOT_DONE_YET
             
+        elif request.args['action'] == ['setuserrelationship']:
+            def createAfterDelete(result, payload):
+                return User_ws_relationship(username = payload['username'], imei = payload['imei'], relationship = payload['relationship']).save()
+            d = User_ws_relationship.deleteAll(where=['username =  ? and imei = ? ', payload['username'], payload['imei']]).addCallback(createAfterDelete, payload)
+            d.addCallback(onSuccess, request)
+            d.addErrback(onError, request)
+            return NOT_DONE_YET
+
+        elif request.args['action'] == ['getuserrelationship']:
+            d = User_ws_relationship.findBy(username=payload['username'], imei = payload['imei'])
+
+            d.addCallback(self.onGetRelationship, request)
+            d.addErrback(onError, request)
+            return NOT_DONE_YET
+
+
 
 
 stickPage = StickPage()
+Registry.DBPOOL = wsdbpool

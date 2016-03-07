@@ -37,6 +37,7 @@ def finish(result, pid):
         os.kill(int(pid), signal.SIGKILL)
     except Exception as e:
         print e
+        reactor.stop()
 
 
 if __name__ == '__main__':

@@ -1,6 +1,8 @@
 # -*- coding:utf-8 -*-
 import random
 from appException import *
+from twistar.dbobject import DBObject
+from twistar.registry import Registry
 
 
 
@@ -194,10 +196,12 @@ def _handleAppSubRequest(txn, username, name, code):
     _deleteOuttimeCode(txn)
     return _getWsinfo(txn, imei)[0]
 
-    
+
+
 
 
 if __name__ == '__main__':
+
     from twisted.internet import reactor, defer
     def testResult(result):
         if type(result) == tuple and len(result) == 0:
@@ -222,11 +226,19 @@ if __name__ == '__main__':
 
     import sys
     from sqlPool import wsdbpool
+    Registry.DBPOOL = wsdbpool
     #wsdbpool.runInteraction(_insertTempRelationSql, 'zod', '13836435682', 'd').addCallbacks(onSuccess, onError)
     #handleAppBindRequest(wsdbpool, 'zod', '10086', 'duplicate').addCallbacks(onSuccess, onError)
     #handleStickBindAck(wsdbpool, '1,abcdef12345,bon13836435682,+8613600000000').addCallbacks(onSuccess, onError)
     #createAuthCode(wsdbpool, '1023').addCallbacks(onSuccess, onError)
     #handleAppSubRequest(wsdbpool, 'zod', 'ddx', 603752).addCallbacks(onSuccess, onError)
-    transferOwnershipSql(wsdbpool, '1024', 'batman', 'b', 'hulk').addCallbacks(onSuccess, onError)
+    #transferOwnershipSql(wsdbpool, '1024', 'batman', 'b', 'hulk').addCallbacks(onSuccess, onError)
+    class User_ws_relationship(DBObject):
+        pass
+    relationship = User_ws_relationship()
+    relationship.username = 'alex'
+    relationship.imei = '1989'
+    #relationship.save().addCallbacks(onSuccess, onError)
+    User_ws_relationship().find(where=['username=? ', 'alex']).addCallbacks(onSuccess, onError)
 
     reactor.run()

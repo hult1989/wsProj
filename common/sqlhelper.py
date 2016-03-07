@@ -51,6 +51,7 @@ def _handleUnsubscribe(txn, username, imei):
     if len(txn.fetchall()) == 0:
         raise NoSubException
     '''
+    txn.execute('delete from user_ws_relationships where username = %s and imei = %s', (username, imei))
     return txn.execute('delete from user_ws where username = %s and imei = %s', (username, imei))
 
 
@@ -346,7 +347,11 @@ def selectRelationByUsernameSimnumSql(wsdbpool, username, simnum):
     return wsdbpool.runQuery('select wsinfo.imei, user_ws.state from user_ws, wsinfo where user_ws.imei = wsinfo.imei and user_ws.username = %s and wsinfo.simnum = %s', (username, simnum))
 
 def deleteRelationSql(wsdbpool, username, imei):
-    return wsdbpool.runOperation('delete from user_ws where username = %s and imei = %s', (username, imei))
+    return wsdbpool.runInteraction(_handleDeleteRelation, username, imei)
+
+def _handleDeleteRelation(txn, username, imei):
+    txn.execute('delete from user_ws_relationships where username = %s and imei = %s', (username, imei))
+    return txn.execute('delete from user_ws where username = %s and imei = %s', (username, imei))
 
 def selectDefaultRelationSql(wsdbpool, username):
     return wsdbpool.runQuery('select * from user_ws where username = %s and isdefault = "1"', (username,))
