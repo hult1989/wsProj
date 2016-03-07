@@ -9,7 +9,7 @@ from twisted.web.client import Agent, readBody, HTTPConnectionPool
 from sqlhelper import handleSosSql, handleBindSql, insertLocationSql, handleImsiSql, selectWsinfoSql, insertBatteryLevel
 from SosModuleSql import deleteSosNumberSql, syncSosSql, syncFamilySql
 from StickModuleSql import handleStickBindAck
-from GetLocationByBs import getLocationByBsinfo, getLocationByBsinfoAsync, _httpBodyToGpsinfo, getLocationFromHaoservAsync, decodeHaoservResult 
+from GetLocationByBs import getLocationByBsinfo, getLocationByBsinfoAsync, _httpBodyToGpsinfo, getLocationFromMinigpsAsync, decodeMinigpsResult 
 from OnlineStatusHelper import onlineStatusHelper
 from GpsMessage import GpsMessageOldVer, GpsMessage
 
@@ -78,7 +78,7 @@ def insertLocation(httpagent, wsdbpool, message):
         #new format
         gpsMsg = GpsMessage(message)
         if gpsMsg.longitude == 0 or gpsMsg.latitude == 0:
-            d = getLocationFromHaoservAsync(httpagent, gpsMsg.mcc, gpsMsg.mnc, gpsMsg.baseStationInfos).addCallback(readBody).addCallback(decodeHaoservResult, (gpsMsg.mcc, gpsMsg.mnc, gpsMsg.baseStationInfos)).addCallback(_insertLocation, wsdbpool, gpsMsg.imei, gpsMsg.timestamp, gpsMsg.issleep)
+            d = getLocationFromMinigpsAsync(httpagent, gpsMsg.mcc, gpsMsg.mnc, gpsMsg.baseStationInfos).addCallback(readBody).addCallback(decodeMinigpsResult, (gpsMsg.mcc, gpsMsg.mnc, gpsMsg.baseStationInfos)).addCallback(_insertLocation, wsdbpool, gpsMsg.imei, gpsMsg.timestamp, gpsMsg.issleep)
         else:
             d = insertLocationSql(wsdbpool, gpsMsg.imei, gpsMsg.longitude, gpsMsg.latitude,  gpsMsg.timestamp, gpsMsg.issleep)
 

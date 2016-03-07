@@ -61,8 +61,9 @@ def getLocationFromMinigpsAsync(httpagent, mcc, mnc, bsInfos):
     paramsDict['p'] = 1
     paramsDict['mt'] = 0
     paramsDict['needaddress'] = 0
-    
-    d = httpagent.request('GET', 'http://minigps.org/cw?'+urllib.urlencode(paramsDict), Headers({'Connection': ['Keep-Alive']}), None)
+    url = 'http://minigps.org/cw?'+urllib.urlencode(paramsDict)
+    log.msg(url)
+    d = httpagent.request('GET', url, Headers({'Connection': ['Keep-Alive']}), None)
     #d = httpagent.request('GET', 'http://minigps.org/cw', Headers({'Connection': ['Keep-Alive']}), StringProducer(urllib.urlencode(paramsDict)))
     return d
 
@@ -96,8 +97,8 @@ def getLocationFromHaoservAsync(httpagent, mcc, mnc, bsInfos):
         celltower['signalstrength'] = int(info.signal, 16) - 110
         requestData['celltowers'].append(celltower)
     paramsDict['requestdata'] = json.dumps(requestData)
-    print json.dumps(requestData)
     url =  'http://api.haoservice.com/api/viplbs?' + urllib.urlencode(paramsDict)
+    log.msg(url)
     d = httpagent.request('GET', url , Headers({'Connection': ['Keep-Alive']}), None)  #StringProducer(urllib.urlencode(paramsDict)))
     return d
 
