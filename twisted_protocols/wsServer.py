@@ -42,30 +42,6 @@ def insertLocation(httpagent, wsdbpool, message):
             d.callback(failure.Failure(Exception('illegal result, cannot get gpsinfo by bsinfo ')))
             return d
 
-
-    '''
-    message = message.split(',')
-    imei = str(message[1]).strip()
-    if int(message[2].strip()) == 0:
-        timestamp = time.strftime('%Y%m%d%H%M%S', time.gmtime(time.time()))
-    else:
-        timestamp = '20'+ message[2].strip()
-
-    longitude, latitude = _getGpsinfoFromMessage(message)
-
-    #get longitude and latitude in string format form message
-    lac = int(message[5], 16)
-    cid = int(message[6], 16)
-    signal = _convertSignalToRssi(int(message[7]))
-    try:
-        batteryLevel = int(message[8])
-        charging = int(message[9])
-        issleep = message[10]
-    except Exception as e:
-        batteryLevel = 50
-        charging = 0
-        issleep = '0'
-    '''
     if message[0] == '3':
         #old format
         gpsMsg = GpsMessageOldVer(message)
@@ -99,7 +75,8 @@ def onGpsMsgError(failure, message, transport):
 def onGpsMsgSuccess(result, message):
     log.msg(message + ' processing finished')
 
-
+def transformedTimestamp(unix_timestamp):
+    return time.strftime('%Y%m%d%H%M%S', time.gmtime(unix_timestamp))
 
 class WsServer(basic.LineReceiver):
     def __init__(self, factory):
@@ -134,8 +111,14 @@ class WsServer(basic.LineReceiver):
         #this is ok becase protocol is instantiated for each connection, so it won't has confusion
         if message[0] == '1':
             handleStickBindAck(self.factory.wsdbpool, message).addCallbacks(self.onSuccess, onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
+
+
+
         elif message[0] == '2':
             handleSosSql(self.factory.wsdbpool, message).addCallbacks(self.onSuccess, onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
+
+
+
         elif message[0] in ('3', 'a'):
             imei = message.split(',')[1]
             if message[0] == '3':
@@ -143,23 +126,34 @@ class WsServer(basic.LineReceiver):
             elif message[0] == 'a':
                 status = self.factory.onlineHelper.connectedSticks[imei]
                 if not status.getAppRequestTime():
-                    self.transport.write(''.join(("Result:", message[0], ',1,0'))+'\r\n')
+                    self.transport.write(''.join(("Result:", message[0], ',1,0,', transformedTimestamp(time.time())[2:]))+'\r\n')
                 else:
                     log.msg('resp with app request time %s' %(status.getAppRequestTime()))
-                    self.transport.write(''.join(("Result:", message[0], ',1,',time.strftime('%Y%m%d%H%M%S', time.gmtime(status.getAppRequestTime()))[2:]))+'\r\n')
-
-	    #log.msg('RECV %s , RESP WITH %s' %(message, ''.join(("Result:", message[0], ',1'))))
+                    self.transport.write(''.join(("Result:", message[0], ',1,', transformedTimestamp(status.getAppRequestTime)[2:], ',', transformedTimestamp(time.time())[2:])) + '\r\n')
             try:
                 tempList = list()
                 for msg in message.splitlines():
-                    #d = insertLocation(self.factory.wsdbpool, msg).addCallbacks(self.onSuccess, onError, callbackArgs=(self.transport, msg), errbackArgs=(self.transport, msg))
                     tempList.append(insertLocation(self.factory.httpagent, self.factory.wsdbpool, msg))
                 d = defer.gatherResults(tempList, consumeErrors=True).addCallbacks(onGpsMsgSuccess, onGpsMsgError, callbackArgs=(msg,), errbackArgs=(msg, self.transport))
             except Exception as e:
                 onGpsMsgError(failure.Failure(Exception(e)), message, self.transport)
 
+
+
+
         elif message[0] == '4':
-            handleImsiSql(self.factory.wsdbpool, message).addCallbacks(self.onSuccess, onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
+            try:
+                imsi = message.split(',')[2]
+                if len(imsi) > 10 and imsi.isdigit():
+                    handleImsiSql(self.factory.wsdbpool, message)
+            except Exception as e:
+                log.msg(e)
+            finally:
+                self.transport.write(''.join(("Result:", message[0], ',1,', transformedTimestamp(time.time())[2:]))+'\r\n')
+
+
+
+
         elif message[0] == '5':
             syncSosSql(self.factory.wsdbpool, message).addCallbacks(self.onSuccess, onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
         elif message[0] == '6':
