@@ -56,7 +56,7 @@ tcplocation = '3,1024,150930141223,0000.00000W,0000.000000N,2615,0e07,15,078,0,1
 tcpaddsos = '2,1027,add9989'
 tcpdelsos = '2,8789,del12332112345'
 tcpimsi = '4,98790,12332112345'
-tcpbind = '1,98789,bon13836435683,15882205392'
+tcpbind = '1,98789,bon1989,15882205392'
 tcpdelete = '6,1023,ok\r\n6,1023,ok'
 tcpsync = '5,98789,3,7,12332112345,92332112345,22332112345'
 
@@ -64,7 +64,7 @@ tcpsync = '5,98789,3,7,12332112345,92332112345,22332112345'
 
 
 gpsrequest = dumps({'imei': '1024', 'timestamp': '000',  'after': '1009226801000', 'before': '1959230401000', 'limit': '10' })
-bindrequest = dumps({'username': 'zod', 'simnum': '0', 'name': '拐杖'})
+bindrequest = dumps({'username': 'hult', 'simnum': '1989', 'name': '拐杖'})
 imeirequest = dumps({'username': 'zod', 'simnum': '1234567890'})
 setsosrequest = dumps({'imei': '1024', 'password': 'f', 'username': 'hulk', 'contactentry': {'sosnumber': '72332112345', 'contact':'蝙蝠侠'}})
 delsosrequest = dumps({'imei': '1024', 'password': 'f', 'username': 'hulk', 'contactentry': {'sosnumber': '72332112345', 'contact':'蝙蝠侠'}})
@@ -82,6 +82,7 @@ upload = dumps({'username': 'zod', 'sticks': [{'name': 'hull', 'imei': '9981'}, 
 review = dumps({'username': 'zod', 'review': '很好的app'})
 #rurequest = dumps({'username': 'zox', 'password': 'f', 'sticks': [{'name': 'hull', 'imei': '1024'}, {'name': 'del', 'imei': '1023'}] })
 rurequest = dumps({'username': 'zoo', 'password':'f'})
+deletestick = dumps({'username': 'zad', 'password':'f', 'imei': '19890929'})
 #upload = dumps({'username': 'zod', 'sticks': [] })
 getcoderequest = dumps({'username': 'alice', 'imei': '98789'})
 unsubrequest = dumps({'username': 'zox', 'imei': '1024'})
@@ -131,6 +132,7 @@ emailaddress = host + '/user?action=fillinemail'
 passwordaddress = host + '/user?action=forgotpassword'
 getemailaddress = host + '/user?action=getemail'
 subaddress = host + '/stick?action=subscribebycode'
+delstickaddr = host + '/stick?action=deletestick'
 
 
 agent = Agent(reactor)
@@ -220,6 +222,8 @@ if sys.argv[1] == 'sub':
 
 if sys.argv[1] == 'ru':
     makeTest(rurequest, ruaddress)
+if sys.argv[1] == 'delstick':
+    makeTest(deletestick, delstickaddr)
 
 if sys.argv[1] == 'forgotpassword':
     makeTest(forgotpassword, passwordaddress)

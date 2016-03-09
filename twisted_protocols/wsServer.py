@@ -6,7 +6,7 @@ from twisted.protocols import basic
 from twisted.enterprise import adbapi
 from twisted.web.client import Agent, readBody, HTTPConnectionPool
 
-from sqlhelper import handleSosSql, handleBindSql, insertLocationSql, handleImsiSql, selectWsinfoSql, insertBatteryLevel
+from sqlhelper import handleSosSql, handleBindSql, insertLocationSql, handleImsiSql, selectWsinfoSql, insertBatteryLevel, resetStickSql
 from SosModuleSql import deleteSosNumberSql, syncSosSql, syncFamilySql
 from StickModuleSql import handleStickBindAck
 from GetLocationByBs import getLocationByBsinfo, getLocationByBsinfoAsync, _httpBodyToGpsinfo, getLocationFromMinigpsAsync, decodeMinigpsResult 
@@ -164,7 +164,7 @@ class WsServer(basic.LineReceiver):
             syncSosSql(self.factory.wsdbpool, message).addCallbacks(self.onSuccess, onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
         elif message[0] == '6':
             if message[-2:] == 'ok' or message[-2:] == 'OK':
-                deleteSosNumberSql(self.factory.wsdbpool, message.split(',')[1]).addCallbacks(self.onSuccess, onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
+                resetStickSql(self.factory.wsdbpool, message.split(',')[1]).addCallbacks(self.onSuccess, onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
             else:
                 self.transport.write(''.join(("Result:", message[0], ',0'))+'\r\n')
 	        log.msg('RECV %s , RESP WITH %s' %(message, ''.join(("Result:", message[0], ',0'))))

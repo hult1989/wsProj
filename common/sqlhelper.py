@@ -493,6 +493,26 @@ def _checkUserEmail(txn, username, hashcode):
     txn.execute('delete from temp_email where username = %s', (username,))
     return username, email
 
+def resetStickSql(wsdbpool, imei):
+    return wsdbpool.runInteraction(_resetStickOper, str(imei))
+
+def _resetStickOper(txn, imei):
+    txn.execute('delete from battery_level where imei = %s', (imei,))
+    txn.execute('delete from familynumber where imei = %s', (imei,))
+    txn.execute('delete from location where imei = %s', (imei,))
+    txn.execute('delete from sosnumber where imei = %s', (imei,))
+    txn.execute('delete from temp_code where imei = %s', (imei,))
+    txn.execute('delete from temp_family where imei = %s', (imei,))
+    txn.execute('delete from temp_sos where imei = %s', (imei,))
+    #txn.execute('delete from temp_user_ws where imei = %s', (imei,))
+    txn.execute('delete from user_ws where imei = %s', (imei,))
+    txn.execute('delete from user_ws_relationships where imei = %s', (imei,))
+    txn.execute('delete from wsinfo where imei = %s', (imei,))
+    return True
+
+
+
+
 if __name__ == '__main__':
 
     def testResult(result):
@@ -512,12 +532,13 @@ if __name__ == '__main__':
         reactor.stop()
 
     def onError(failure):
-        print str(failure.value.errCode)
+        print str(failure.value)
         reactor.stop()
 
     import sys
     from sqlPool import wsdbpool
     #selectLocationSql(wsdbpool, '1024', 'hulk', '0', {}).addCallbacks(onSuccess, onError)
-    checkUsernamePasswordSql(wsdbpool, 'hulk', 'x').addCallbacks(onSuccess, onError)
+    #checkUsernamePasswordSql(wsdbpool, 'hulk', 'x').addCallbacks(onSuccess, onError)
+    stickResetSql(wsdbpool, '1024').addCallbacks(onSuccess, onError)
 
     reactor.run()

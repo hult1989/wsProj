@@ -165,6 +165,12 @@ class StickPage(Resource):
             d.addErrback(onError, request)
             return NOT_DONE_YET
 
+        elif request.args['action'] == ['deletestick']:
+            d = StickModuleSql.handleDeleteStickRequest(wsdbpool, str(payload['imei']), str(payload['username']), str(payload['password']))
+            d.addCallback(onSuccess, request)
+            d.addErrback(onError, request)
+            return NOT_DONE_YET
+
 
 
 

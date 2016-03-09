@@ -3,6 +3,7 @@ import random
 from appException import *
 from twistar.dbobject import DBObject
 from twistar.registry import Registry
+from twisted.python import log
 
 
 
@@ -178,7 +179,8 @@ def _handleStickBindAck(txn, imei, simnum, userphone):
     username = result[0][0]
     name = result[0][1]
     
-    if len(_getStickOwner(txn, imei)) == 0:
+    owner = _getStickOwner(txn, imei)
+    if len(owner) == 0 or owner[0][0] == username:
         _createUserWsRelation(txn, username, imei, name, 'o')
     else:
         _createUserWsRelation(txn, username, imei, name, 'b')
@@ -195,6 +197,26 @@ def _handleAppSubRequest(txn, username, name, code):
     _createUserWsRelation(txn, username, imei, name, 's')
     _deleteOuttimeCode(txn)
     return _getWsinfo(txn, imei)[0]
+
+
+def handleDeleteStickRequest(wsdbpool, imei, username, password):
+    return wsdbpool.runInteraction(_deleteStick,imei, username, password)
+
+def _deleteStick(txn, imei, username, password):
+    if _checkPassword(txn, username, password):
+        owner = _getStickOwner(txn, imei)
+        if owner and username == owner[0][0] and owner[0][4] == 'o':
+            txn.execute('delete from familynumber where imei = %s', (imei,))
+            txn.execute('delete from sosnumber where imei = %s', (imei,))
+            txn.execute('delete from temp_code where imei = %s', (imei,))
+            txn.execute('delete from temp_family where imei = %s', (imei,))
+            txn.execute('delete from temp_sos where imei = %s', (imei,))
+            txn.execute('delete from user_ws where imei = %s', (imei,))
+            txn.execute('delete from user_ws_relationships where imei = %s', (imei,))
+            return True
+        raise NoPermissionException
+    return True
+
 
 
 
