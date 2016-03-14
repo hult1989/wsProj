@@ -129,7 +129,7 @@ class WsServer(basic.LineReceiver):
                     self.transport.write(''.join(("Result:", message[0], ',1,0,', transformedTimestamp(time.time())[2:]))+'\r\n')
                 else:
                     log.msg('resp with app request time %s' %(status.getAppRequestTime()))
-                    self.transport.write(''.join(("Result:", message[0], ',1,', transformedTimestamp(status.getAppRequestTime)[2:], ',', transformedTimestamp(time.time())[2:])) + '\r\n')
+                    self.transport.write(''.join(("Result:", message[0], ',1,', transformedTimestamp(status.getAppRequestTime())[2:], ',', transformedTimestamp(time.time())[2:])) + '\r\n')
             try:
                 tempList = list()
                 for msg in message.splitlines():
@@ -157,7 +157,7 @@ class WsServer(basic.LineReceiver):
         elif message[0] == '5':
             syncSosSql(self.factory.wsdbpool, message).addCallbacks(self.onSuccess, onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
         elif message[0] == '6':
-            if message[-2:] == 'ok' or message[-2:] == 'OK':
+            if message.split(',')[-2] == 'clear all':
                 resetStickSql(self.factory.wsdbpool, message.split(',')[1]).addCallbacks(self.onSuccess, onError, callbackArgs=(self.transport, message), errbackArgs=(self.transport, message))
             else:
                 self.transport.write(''.join(("Result:", message[0], ',0'))+'\r\n')

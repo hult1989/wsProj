@@ -203,7 +203,7 @@ class UserPage(Resource):
             if len(payload['username']) == 0 or len(payload['imei']) == 0:
                 return resultValue(300)
             d = handleUnsubscribeSql(wsdbpool, payload['username'], payload['imei']).addCallbacks(self.unSubSuccess, self.unSubError, callbackArgs=(request, payload['imei']), errbackArgs=(request, payload['imei']))
-            d.addErrback(onError)
+            #d.addErrback(onError)
             return NOT_DONE_YET
 
         if request.args['action'] == ['forgotpassword']:

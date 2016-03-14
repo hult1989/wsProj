@@ -206,8 +206,10 @@ def _deleteStick(txn, imei, username, password):
     if _checkPassword(txn, username, password):
         owner = _getStickOwner(txn, imei)
         if owner and username == owner[0][0] and owner[0][4] == 'o':
+            '''
             txn.execute('delete from familynumber where imei = %s', (imei,))
             txn.execute('delete from sosnumber where imei = %s', (imei,))
+            '''
             txn.execute('delete from temp_code where imei = %s', (imei,))
             txn.execute('delete from temp_family where imei = %s', (imei,))
             txn.execute('delete from temp_sos where imei = %s', (imei,))

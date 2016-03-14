@@ -51,8 +51,14 @@ def _handleUnsubscribe(txn, username, imei):
     if len(txn.fetchall()) == 0:
         raise NoSubException
     '''
-    txn.execute('delete from user_ws_relationships where username = %s and imei = %s', (username, imei))
-    return txn.execute('delete from user_ws where username = %s and imei = %s', (username, imei))
+    txn.execute('select * from user_ws where username = %s and imei = %s and state = "o"', (username, imei))
+    if len(txn.fetchall()) == 0:
+        raise NoPermissionException
+    txn.execute('delete from user_ws_relationships where imei = %s', (imei,))
+    txn.execute('delete from temp_code where imei = %s', (imei,))
+    txn.execute('delete from temp_family where imei = %s', (imei,))
+    txn.execute('delete from temp_sos where imei = %s', (imei,))
+    return txn.execute('delete from user_ws where imei = %s', (imei,))
 
 
 
