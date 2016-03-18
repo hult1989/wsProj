@@ -10,7 +10,7 @@ from twisted_protocols.wsServer import WsServerFactory
 from twisted_protocols.OnlineStatusHelper import onlineStatusHelper
 from appServer import mainPage
 from sqlPool import wsdbpool
-from online import StatusPage
+from online import StatusPage, M2MPage
 
 
 if __name__ == '__main__':
@@ -20,5 +20,6 @@ if __name__ == '__main__':
     reactor.listenTCP(8082, Site(mainPage))
     statusResource = Resource()
     statusResource.putChild('status', StatusPage(onlineStatusHelper))
+    statusResource.putChild('m2m', M2MPage())
     reactor.listenTCP(8084, Site(statusResource))
     reactor.run()

@@ -4,7 +4,8 @@ from twisted.python import log
 from twisted.internet import reactor
 from twisted.internet.defer import Deferred, succeed, DeferredList
 from twisted.internet.protocol import Protocol
-from twisted.web.client import Agent
+from twisted.web.client import Agent, ProxyAgent
+from twisted.internet.endpoints import TCP4ClientEndpoint
 from twisted.web.iweb import IBodyProducer
 from zope.interface import implements
 from json import dumps
@@ -93,7 +94,9 @@ transferrequest = dumps({'imei': '1024', 'username': 'batman', 'newowner': 'hulk
 switchrequest = dumps({'imei': '1024', 'oper': 'enable'})
 
 
-host = 'http://119.29.142.11:8082/api'
+#host = 'http://119.29.142.11:8080'
+host = 'http://smartcane.huahailife.com:8082/api'
+#host = 'localhost:8082/api'
 gpsaddress = host + '/gps?action=getuserlocation'
 switchaddress = host + '/gps?action=switch'
 bindaddress = host + '/stick?action=bind'
@@ -128,7 +131,7 @@ getemailaddress = host + '/user?action=getemail'
 subaddress = host + '/stick?action=subscribebycode'
 
 
-agent = Agent(reactor)
+agent = ProxyAgent(TCP4ClientEndpoint(reactor, 'localhost', 8000))
 
 def printResource(response):
     finished = Deferred()
@@ -150,6 +153,14 @@ def makeTest(request, address):
         d = agent.request('GET', address, bodyProducer = StringProducer(request))
     else:
         d = agent.request('POST', address, bodyProducer = StringProducer(request))
+    d.addCallbacks(printResource, printError)
+    d.addBoth(stop)
+    reactor.run()
+
+def testM2M():
+    address = host
+    request = dumps({"partnercode":"xxxxxxxxxx","servicecode":"xxxxx","requesttime":"xxxxxx","sign":"xxxx","cardcode":"xxxxxx"})
+    d = agent.request('GET', address, bodyProducer = StringProducer(request))
     d.addCallbacks(printResource, printError)
     d.addBoth(stop)
     reactor.run()
@@ -327,4 +338,6 @@ if sys.argv[1] == 'gpspage':
     addresses.append(loginaddress)
     '''
     asynchroTest(requests, addresses)
+if sys.argv[1] == 'm2m':
+    testM2M()
 

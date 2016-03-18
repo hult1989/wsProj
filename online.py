@@ -52,3 +52,10 @@ class StatusPage(Resource):
 
                     
 
+class M2MPage(Resource):
+
+    def render_POST(self, request):
+        log.msg(request.content.read())
+        return 'OK'
+
+    render_GET = render_POST
