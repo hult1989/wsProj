@@ -41,7 +41,8 @@ class LoggingProxyFactory(http.HTTPFactory):
     def buildProtocol(self, addr):
         return LoggingProxy()
 
-import sys
-log.startLogging(sys.stdout)
-reactor.listenTCP(8000, LoggingProxyFactory())
-reactor.run()
+if __name__ == '__main__':
+    import sys
+    log.startLogging(sys.stdout)
+    reactor.listenTCP(8000, LoggingProxyFactory())
+    reactor.run()

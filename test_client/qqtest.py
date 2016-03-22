@@ -131,7 +131,7 @@ getemailaddress = host + '/user?action=getemail'
 subaddress = host + '/stick?action=subscribebycode'
 
 
-agent = ProxyAgent(TCP4ClientEndpoint(reactor, 'localhost', 8000))
+agent = ProxyAgent(TCP4ClientEndpoint(reactor, 'qqcloud', 8000))
 
 def printResource(response):
     finished = Deferred()
