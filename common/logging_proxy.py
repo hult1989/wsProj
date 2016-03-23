@@ -1,6 +1,4 @@
-# Copyright (c) Twisted Matrix Laboratories.
-# See LICENSE for details.
-
+# -*- coding: utf-8 -*-
 """
 An example of a proxy which logs all requests processed through it.
 
@@ -22,8 +20,15 @@ from twisted.internet import reactor
 from twisted.web import proxy, http
 from twisted.python import log
 
+whiteurls = {'siminfoqurey.ashx', 'simrenew.ashx', 'simrenewquery.ashx'}
+
 class LoggingProxyRequest(proxy.ProxyRequest):
     def process(self):
+        if self.uri.split('/')[-1] not in whiteurls:
+            self.finish()
+            log.msg('------invalid proxy request--------')
+            return
+
         log.msg('---------------request---------------------------')
         log.msg("Request from %s for %s" % (self.getClientIP(), self.getAllHeaders()['host']))
         log.msg(self.args)
